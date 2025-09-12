@@ -1310,26 +1310,32 @@
             }
             
             // Add form handler for the simple add rule form
-            document.getElementById('simpleAddRuleForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const selectedScheduleId = scheduleId || document.getElementById('simpleRuleScheduleType').value;
-                
-                if (!selectedScheduleId) {
-                    alert('Please select a schedule');
+        document.getElementById('simpleAddRuleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const selectedScheduleId = scheduleId || document.getElementById('simpleRuleScheduleType').value;
+            
+            if (!selectedScheduleId) {
+                alert('Please select a schedule');
+                return;
+            }
+            
+            const dayOfWeek = document.getElementById('simpleRuleDayOfWeek').value;
+            let targetValue = document.getElementById('simpleRuleTargetValue').value;
+            
+            const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+            if (selectedSchedule && (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday')) {
+                targetValue = '1';
+            } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
+                alert('Please enter a temperature value for heating schedules');
+                return;
+            } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature') {
+                const v = parseFloat(targetValue);
+                if (Number.isNaN(v) || v < 5 || v > 35) {
+                    alert('Please enter a temperature between 5 and 35°C');
                     return;
                 }
-                
-                const dayOfWeek = document.getElementById('simpleRuleDayOfWeek').value;
-                let targetValue = document.getElementById('simpleRuleTargetValue').value;
-                
-                const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
-                if (selectedSchedule && (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday')) {
-                    targetValue = '1';
-                } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
-                    alert('Please enter a temperature value for heating schedules');
-                    return;
-                }
+            }
                 
                 const formData = {
                     day_of_week: dayOfWeek === '' ? null : parseInt(dayOfWeek),
@@ -1524,9 +1530,6 @@
         document.getElementById('addRuleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Ensure target value field is properly configured before submission
-            handleScheduleTypeChange();
-            
             // Get schedule ID from dropdown if not already set
             const selectedScheduleId = currentScheduleId || document.getElementById('ruleScheduleType').value;
             
@@ -1545,6 +1548,12 @@
             } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
                 alert('Please enter a temperature value for heating schedules');
                 return;
+            } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature') {
+                const v = parseFloat(targetValue);
+                if (Number.isNaN(v) || v < 5 || v > 35) {
+                    alert('Please enter a temperature between 5 and 35°C');
+                    return;
+                }
             }
             
             const formData = {
@@ -1579,9 +1588,6 @@
         document.getElementById('addRuleFormMobile').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Ensure target value field is properly configured before submission
-            handleScheduleTypeChangeMobile();
-            
             const selectedScheduleId = currentScheduleId || document.getElementById('ruleScheduleTypeMobile').value;
             
             if (!selectedScheduleId) {
@@ -1598,6 +1604,12 @@
             } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
                 alert('Please enter a temperature value for heating schedules');
                 return;
+            } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature') {
+                const v = parseFloat(targetValue);
+                if (Number.isNaN(v) || v < 5 || v > 35) {
+                    alert('Please enter a temperature between 5 and 35°C');
+                    return;
+                }
             }
             
             const formData = {
@@ -1986,12 +1998,10 @@
             
             if (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday') {
                 targetContainer.style.display = 'none';
-                targetInput.value = '1';
                 targetInput.removeAttribute('required');
                 targetInput.disabled = true;
             } else {
                 targetContainer.style.display = 'block';
-                targetInput.value = '';
                 targetInput.setAttribute('required', 'required');
                 targetInput.disabled = false;
             }
@@ -2020,16 +2030,12 @@
             if (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday') {
                 // Hot water or holiday schedule - hide target value field
                 targetValueContainer.style.display = 'none';
-                // Automatically set value to 1 for hot water/holiday mode
-                targetValueInput.value = '1';
                 // Remove required attribute and disable field for hot water/holiday
                 targetValueInput.removeAttribute('required');
                 targetValueInput.disabled = true;
             } else {
                 // Temperature or other schedule - show target value field
                 targetValueContainer.style.display = 'block';
-                // Clear the value for manual entry
-                targetValueInput.value = '';
                 // Add required attribute and enable field for temperature schedules
                 targetValueInput.setAttribute('required', 'required');
                 targetValueInput.disabled = false;
@@ -2789,13 +2795,11 @@
                 
                 if (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday') {
                     targetContainer.style.display = 'none';
-                    targetInput.value = '1';
                     // Remove required attribute and disable field for hot water/holiday
                     targetInput.removeAttribute('required');
                     targetInput.disabled = true;
                 } else {
                     targetContainer.style.display = 'block';
-                    targetInput.value = '';
                     // Add required attribute and enable field for temperature schedules
                     targetInput.setAttribute('required', 'required');
                     targetInput.disabled = false;
