@@ -154,8 +154,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 LABEL org.opencontainers.image.title="MELCloud Integration" \
       org.opencontainers.image.description="MELCloud heat pump monitoring and data collection service" \
       org.opencontainers.image.vendor="MELCloud Integration Project" \
-      org.opencontainers.image.source="https://github.com/simonwoollams/MELCloud_Integration" \
-      org.opencontainers.image.documentation="https://github.com/simonwoollams/MELCloud_Integration/blob/main/README.md"
+      org.opencontainers.image.source=" https://github.com/tjsDangermouse/BEECloud" \
+      org.opencontainers.image.documentation="https://github.com/tjsDangermouse/BEECloud/blob/main/README.md"
 
 # Set entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

@@ -11,8 +11,8 @@ Self‑hosted web app to view and control your Mitsubishi heat pump via the MELC
 1) Install Docker and Docker Compose.
 2) Download the project:
 ```
-git clone https://github.com/simonwoollams/MELCloud_Integration.git
-cd MELCloud_Integration
+git clone https://github.com/tjsDangermouse/BEECloud.git
+cd BEECloud
 ```
 3) Pick a port (default 8000). To change it, edit `docker-compose.yml` and replace `8000:8000` with your port, for example `9000:8000`.
 4) Start the app:
@@ -31,8 +31,8 @@ Your data (database, logs, backups) is stored in local folders so updates won’
 1) Install Python 3.8 or newer.
 2) Download the project:
 ```
-git clone https://github.com/simonwoollams/MELCloud_Integration.git
-cd MELCloud_Integration
+git clone https://github.com/tjsDangermouse/BEECloud.git
+cd BEECloud
 ```
 3) Choose a port. Open `start.py` and change the `PORT` value if you want something other than 8000.
 4) Run the starter:
