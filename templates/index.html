@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MELCloud Dashboard</title>
+    <link rel="icon" type="image/png" href="/static/Beelogo.png">
+    <link rel="shortcut icon" type="image/png" href="/static/Beelogo.png">
+    <!-- Networking hints -->
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- iOS Full Screen Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MELCloud Dashboard">
+    <link rel="apple-touch-icon" href="/static/Beelogo.png">
+    <link rel="apple-touch-startup-image" href="/static/Beelogo.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
+    <script defer src="/static/js/sw-register.js"></script>
+    <script defer src="/static/js/menu.js"></script>
+    <script defer src="/static/js/status.js"></script>
+    <script src="/static/js/shared-ui.js"></script>
+    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                50: '#fef7ed',
+                                100: '#fdeacc', 
+                                200: '#fad394',
+                                300: '#f7b85c',
+                                400: '#f59e0b',
+                                500: '#f59e0b',
+                                600: '#d97706',
+                                700: '#b45309',
+                                800: '#92400e',
+                                900: '#78350f'
+                            },
+                            success: {
+                                400: '#4ade80',
+                                500: '#22c55e',
+                                600: '#16a34a'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+</head>
+<body class="text-white overflow-x-hidden page-bg">
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+        {% set page_title = 'MELCloud' %}
+        {% include 'partials/mobile_header.html' %}
+
+        <!-- Content Area -->
+        <div style="height: calc(100svh - 200px); overflow: hidden;" class="relative">
+            <div class="flex transition-transform duration-300 h-full" id="mobile-screens">
+                
+                <!-- Screen 1: Main Controls -->
+                <div class="w-full flex-shrink-0 p-5 h-full overflow-y-auto">
+            <!-- Skeleton Placeholder -->
+            <div id="dashboard-skeleton" class="mb-4" style="display:none;">
+                <div class="skeleton" style="height:180px; margin-bottom:12px;"></div>
+                <div class="skeleton skeleton-line lg" style="width:60%;"></div>
+                <div class="skeleton skeleton-line" style="width:40%;"></div>
+            </div>
+            <!-- Temperature Circle and Weather Info -->
+            <div class="relative" id="dashboard-data-root" style="display:none;">
+                <!-- Weather Info -->
+                <div class="absolute top-0 right-0 text-right">
+                    <div class="text-sm text-gray-400" id="mobile-weather-location">Getting location...</div>
+                    <div class="text-lg font-semibold" id="outdoor-temp">15°C</div>
+                    <div class="text-sm text-gray-400" id="mobile-weather-condition">--</div>
+                    <div class="flex items-center justify-end space-x-1 mt-1">
+                        <div id="mobile-weather-icon" class="text-base">🌤️</div>
+                    </div>
+                </div>
+
+                <!-- Mobile: Next Schedules (top-left, compact) -->
+                <div class="absolute top-0 left-0 text-left" style="max-width: 45%;">
+                    <div class="text-xs text-gray-400">Next</div>
+                    <div class="text-sm leading-tight">
+                        <span class="text-gray-400">Heat</span>
+                        <span class="text-white" id="mobile-heating-schedule">--</span>
+                    </div>
+                    <div class="text-sm leading-tight">
+                        <span class="text-gray-400">HW</span>
+                        <span class="text-white" id="mobile-hotwater-schedule">--</span>
+                    </div>
+                </div>
+
+                <!-- Main Temperature Circle -->
+                <div class="flex items-center justify-center py-4">
+                    <div class="relative w-64 h-64" id="temp-circle-container" style="display:none;">
+                        <!-- Temperature C-Curve -->
+                        <svg class="w-full h-full" viewBox="0 0 120 120" id="temp-circle-svg">
+                            <!-- Orange segment (lower temperatures) -->
+                            <path id="orange-segment" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" fill="none" />
+                            <!-- Green segment (higher temperatures) -->  
+                            <path id="green-segment" stroke="#22c55e" stroke-width="8" stroke-linecap="round" fill="none" />
+                            <!-- Control dot -->
+                            <circle cx="60" cy="10" r="6" fill="white" stroke="#374151" stroke-width="2"
+                                class="cursor-pointer" id="temp-control-dot"/>
+                        </svg>
+                        
+                        <!-- Center Content -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <div class="text-sm text-gray-400 mb-1">Indoor</div>
+                            <div class="text-4xl font-bold" id="indoor-temp">21°C</div>
+                            <div class="text-lg text-gray-400 mt-1">Set: <span id="target-temp">23°C</span></div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Buttons -->
+            <div class="flex justify-center space-x-4 px-4">
+                <button class="mode-button w-20 h-20 rounded-full bg-primary-500 text-white font-semibold flex flex-col items-center justify-center shadow-lg" id="boost-btn">
+                    <span class="text-xs">Hot Water Boost</span>
+                </button>
+                <button class="mode-button w-20 h-20 rounded-full bg-success-500 text-white font-semibold flex flex-col items-center justify-center shadow-lg" id="holiday-btn">
+                    <span class="text-xs">Holiday</span>
+                    <span class="text-xs">Mode</span>
+                </button>
+            </div>
+
+            <!-- Mode Status -->
+            <div class="mt-6 text-center text-sm text-gray-400">
+                <span id="mobile-mode-status">Standby</span>
+            </div>
+
+        </div>
+
+                <!-- Screen 2: Temperature Readings -->
+                <div class="w-full flex-shrink-0 p-5 h-full overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold">Temperature Readings</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4" id="mobile-temperature-readings">
+                        <!-- Temperature cards will be populated here -->
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Dedicated space for screen indicators -->
+        <div class="flex justify-center items-center py-3 page-bg">
+            <div class="flex space-x-2">
+                <div class="w-2 h-2 rounded-full bg-white" id="indicator-0"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500" id="indicator-1"></div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->  
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-4 text-primary-500">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L5 9.414V17a1 1 0 002 0v-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 002 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/schedules'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">Schedule</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/energy'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span class="text-xs">Energy</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/data-history'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/settings'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="hidden md:block">
+        <div class="container-desktop">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Static menu to prevent flash - enhanced by menu.js -->
+                <div class="flex items-center space-x-3 mb-6">
+                    <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain" width="40" height="40" decoding="async">
+                    <span class="text-xl font-semibold">MELCloud Dashboard</span>
+                </div>
+
+                <nav class="space-y-2">
+                    <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Schedules</span>
+                    </a>
+                    <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span>Energy</span>
+                    </a>
+                    <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        <span>Data History</span>
+                    </a>
+                    
+                    <div class="settings-section">
+                        <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                        
+                        <!-- Settings Sub-menu -->
+                        <div class="submenu-container collapsed ml-6 space-y-1" id="settings-submenu">
+                            <a href="#" onclick="window.menuComponent?.showTab('profile'); return false;" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-white bg-primary-600" id="profile-submenu">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span class="text-sm">Profile</span>
+                            </a>
+                            <a href="#" onclick="window.menuComponent?.showTab('users'); return false;" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600" id="users-submenu" style="display: none;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
+                                <span class="text-sm">Users</span>
+                            </a>
+                            <a href="#" onclick="window.menuComponent?.showTab('melcloud'); return false;" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600" id="melcloud-submenu" style="display: none;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="text-sm">MELCloud</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Help</span>
+                    </a>
+                    
+                    
+                    <!-- Status and User Component (Desktop Fixed Bottom Left) -->
+                    <div class="hidden md:block fixed bottom-4 left-4 z-50">
+                        <div class="flex items-center space-x-3">
+                            <!-- Countdown Status Component -->
+                            <div class="relative w-6 h-6" title="Connection Status">
+                                <!-- Progress Ring -->
+                                <svg class="absolute inset-0 w-6 h-6 transform -rotate-90">
+                                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                                    <circle id="progress-ring-desktop" cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" 
+                                            opacity="0.8" stroke-dasharray="62.83" stroke-dashoffset="62.83" 
+                                            class="transition-all duration-1000 ease-linear"/>
+                                </svg>
+                                <!-- Status Dot (centered) -->
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div id="connection-status-dot-desktop" class="w-4 h-4 rounded-full bg-gray-500 transition-colors duration-200"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- User Info with Logout (Desktop) -->
+                            <div class="relative">
+                                <button onclick="toggleUserDropdown()" class="bg-transparent hover:bg-white/10 text-white px-3 py-2 rounded-lg font-medium text-sm transition-colors duration-200 border border-white/20 hover:border-white/40 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span id="user-info"></span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" id="user-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Dropdown Menu (positioned to go UP instead of down) -->
+                                <div id="user-dropdown" class="hidden absolute left-0 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                                    <div class="py-1">
+                                        <button onclick="logout()" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                            </svg>
+                                            Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="max-w-6xl mx-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <!-- Left Panel - Takes up 2-3 columns -->
+                        <div class="lg:col-span-2 xl:col-span-3 space-y-8">
+                    <!-- Temperature Control -->
+                    <div class="rounded-3xl p-8 panel-bg">
+                        <div class="flex items-center justify-center mb-8">
+                            <div class="relative w-80 h-80" id="desktop-temp-circle-container">
+                                <!-- Temperature C-Curve -->
+                                <svg class="w-full h-full" viewBox="0 0 120 120" id="desktop-temp-circle-svg">
+                                    <!-- Orange segment (lower temperatures) -->
+                                    <path id="desktop-orange-segment" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" fill="none" />
+                                    <!-- Green segment (higher temperatures) -->
+                                    <path id="desktop-green-segment" stroke="#22c55e" stroke-width="8" stroke-linecap="round" fill="none" />
+                                    <!-- Control dot -->
+                                    <circle cx="60" cy="10" r="8" fill="white" stroke="#374151" stroke-width="2"
+                                        class="cursor-pointer" id="desktop-temp-control-dot"/>
+                                </svg>
+                                
+                                <!-- Center Content -->
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <div class="text-lg text-gray-400 mb-2">Indoor</div>
+                                    <div class="text-6xl font-bold" id="desktop-indoor-temp">21°C</div>
+                                    <div class="text-2xl text-gray-400 mt-2">Set: <span id="desktop-target-temp">23°C</span></div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        <!-- Mode Buttons -->
+                        <div class="flex justify-center space-x-6">
+                            <button class="mode-button px-8 py-4 rounded-2xl bg-primary-500 text-white font-semibold shadow-lg" id="desktop-boost-btn">
+                                Hot Water Boost
+                            </button>
+                            <button class="mode-button px-8 py-4 rounded-2xl bg-success-500 text-white font-semibold shadow-lg" id="desktop-holiday-btn">
+                                Holiday Mode
+                            </button>
+                        </div>
+
+                        <div class="mt-6 text-center text-sm text-gray-400">
+                            <span id="desktop-mode-status">Auto</span>
+                        </div>
+                    </div>
+
+                    <!-- Temperature Readings -->
+                    <div class="rounded-3xl p-8 panel-bg">
+                        <h3 class="text-2xl font-semibold mb-6">Temperature Readings</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4" id="desktop-temperature-readings">
+                            <!-- Temperature cards will be populated here -->
+                        </div>
+                    </div>
+                        </div>
+                        
+                        <!-- Right Panel - Takes up 1 column -->
+                        <div class="lg:col-span-1 xl:col-span-1 space-y-8">
+                    <!-- Weather Widget -->
+                    <div class="weather-widget rounded-3xl p-6 text-white" id="weather-widget">
+                        <div class="text-right">
+                            <div class="text-lg font-semibold">Weather</div>
+                            <div class="text-2xl font-bold" id="weather-temp-condition">Loading...</div>
+                            <div class="text-sm opacity-80" id="weather-location">Getting location...</div>
+                            <div class="mt-4 flex justify-end items-center space-x-2">
+                                <div id="weather-icon" class="text-3xl">🌤️</div>
+                                <div class="text-sm opacity-75">
+                                    <div id="weather-details">--</div>
+                                    <div id="weather-updated" class="text-xs mt-1">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Schedules Card -->
+                    <div class="rounded-3xl p-6 panel-bg">
+                        <h4 class="text-lg font-semibold mb-4">Next Schedules</h4>
+                        <div class="space-y-3">
+                            <div id="next-heating" class="text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Heating</span>
+                                    <span class="text-white" id="heating-schedule">--</span>
+                                </div>
+                            </div>
+                            <div id="next-hotwater" class="text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Hot Water</span>
+                                    <span class="text-white" id="hotwater-schedule">--</span>
+                                </div>
+                            </div>
+                            <div id="no-schedules" class="text-sm text-center text-gray-400 py-4" style="display: none;">
+                                No upcoming schedules
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Cards -->
+                    <div class="space-y-4">
+                        <div class="rounded-2xl p-4 panel-bg">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">WiFi Signal</span>
+                                <span id="wifi-signal-status" class="text-white font-semibold">--</span>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl p-4 panel-bg">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">System Status</span>
+                                <span id="system-status" class="text-green-400 font-semibold">--</span>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show a high-visibility banner if MELCloud creds are missing
+        (function initCredsPrompt() {
+            const run = async () => {
+                try {
+                    // Avoid duplicates
+                    if (document.getElementById('creds-banner')) return;
+                    const resp = await fetch('/api/user/get');
+                    const data = await resp.json();
+                    const needsCreds = !(data && data.success && data.user && data.user.email);
+                    if (!needsCreds) return;
+
+                    const banner = document.createElement('div');
+                    banner.id = 'creds-banner';
+                    // Inline styles to avoid Tailwind JIT dependency and ensure top stacking
+                    banner.setAttribute('style', [
+                        'position:fixed',
+                        // place below the mobile header; desktop has no header so this is fine
+                        'top:80px',
+                        'left:50%',
+                        'transform:translateX(-50%)',
+                        'z-index:99999',
+                        // responsive width
+                        'width:calc(100vw - 2rem)',
+                        'max-width:640px',
+                        // surface styling
+                        'background:rgba(30,64,175,0.95)', // blue-700 with opacity
+                        'border:1px solid rgba(96,165,250,0.6)', // blue-400
+                        'border-radius:12px',
+                        'box-shadow:0 10px 30px rgba(0,0,0,0.35)',
+                        'backdrop-filter:blur(6px)',
+                        'padding:16px',
+                        'color:#dbeafe' // blue-100 text
+                    ].join(';'));
+
+                    banner.innerHTML = '\
+                        <div style="display:flex;align-items:flex-start;gap:12px;">\
+                            <div style="flex-shrink:0;line-height:0;">\
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:#93c5fd">\
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>\
+                                </svg>\
+                            </div>\
+                            <div style="flex:1;">\
+                                <div style="font-weight:600;margin-bottom:4px;color:#bfdbfe">MELCloud credentials required</div>\
+                                <div style="font-size:14px;">Add your MELCloud email and password to start fetching device data.</div>\
+                            </div>\
+                        </div>\
+                        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">\
+                            <button id="creds-dismiss" style="padding:8px 12px;border-radius:8px;background:#374151;color:#e5e7eb;border:1px solid rgba(255,255,255,0.1)">Dismiss</button>\
+                            <button id="creds-go" style="padding:8px 12px;border-radius:8px;background:#2563eb;color:#fff;">Open Settings</button>\
+                        </div>';
+
+                    document.body.appendChild(banner);
+                    document.getElementById('creds-dismiss').onclick = () => banner.remove();
+                    document.getElementById('creds-go').onclick = () => { window.location.href = '/settings?tab=melcloud'; };
+                } catch (e) { /* ignore */ }
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', run);
+            } else {
+                run();
+            }
+        })();
+
+        // Use exact same data loading code as original dashboard
+        let currentData = null;
+        let isDragging = false;
+        let currentDeviceId = null;
+        let currentSetTemperature = null;
+        let userSetupCompleted = false;
+        let lastValidTemperature = null; // Make this global to prevent scoping issues
+        
+        // Temperature control configuration
+        const TEMP_MIN = 10;
+        const TEMP_MAX = 30;
+        const CIRCLE_CENTER_X = 60;
+        const CIRCLE_CENTER_Y = 60;
+        const CIRCLE_RADIUS = 50;
+        
+        // Preload slider from persistent cache for instant UI
+        function preloadSliderFromCache() {
+            try {
+                const cached = localStorage.getItem('lastSliderStateV1');
+                if (!cached) return;
+                const { temp } = JSON.parse(cached);
+                if (typeof temp === 'number') {
+                    const container = document.getElementById('temp-circle-container');
+                    if (container) container.style.display = '';
+                    const root = document.getElementById('dashboard-data-root');
+                    if (root) root.style.display = '';
+                    // Ensure controls are wired before drawing
+                    setupTemperatureControl();
+                    updateTemperatureDisplay(Math.round(temp));
+                    updateTemperatureCircles(Math.round(temp));
+                }
+            } catch {}
+        }
+
+        // Exact same loadData function from original dashboard
+        function loadData() {
+            const sk = document.getElementById('dashboard-skeleton');
+            if (sk) sk.style.display = '';
+            // SWR-style caching using sessionStorage (freshness window: 60s)
+            try {
+                const cached = sessionStorage.getItem('dashboardDataV1');
+                if (cached) {
+                    const { payload, fetchTime } = JSON.parse(cached);
+                    if (payload && fetchTime && (Date.now() - fetchTime) < 60000) {
+                        // Render immediately from cache
+                        displayData(payload);
+                        // Load schedule data after main data is displayed
+                        loadNextSchedules();
+                        if (sk) sk.style.display = 'none';
+                        const root = document.getElementById('dashboard-data-root');
+                        if (root) root.style.display = '';
+                    }
+                }
+            } catch (e) { /* ignore cache errors */ }
+
+            // If no fresh session cache, try a 10-minute persistent cache
+            try {
+                const cachedLS = localStorage.getItem('dashboardDataPersistentV1');
+                if (cachedLS) {
+                    const { payload, fetchTime } = JSON.parse(cachedLS);
+                    if (payload && fetchTime && (Date.now() - fetchTime) < 10 * 60 * 1000) {
+                        displayData(payload);
+                        loadNextSchedules();
+                        if (sk) sk.style.display = 'none';
+                        const root = document.getElementById('dashboard-data-root');
+                        if (root) root.style.display = '';
+                    }
+                }
+            } catch (e) { /* ignore */ }
+
+            // Always revalidate in background
+            fetch('/api/data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    try {
+                        const toStore = JSON.stringify({ payload: data, fetchTime: Date.now() });
+                        sessionStorage.setItem('dashboardDataV1', toStore);
+                        localStorage.setItem('dashboardDataPersistentV1', toStore);
+                    } catch (e) { /* storage full or disabled */ }
+                    displayData(data);
+                    // Load schedule data after main data is loaded
+                    loadNextSchedules();
+                    if (sk) sk.style.display = 'none';
+                    const root = document.getElementById('dashboard-data-root');
+                    if (root) root.style.display = '';
+                })
+                .catch(error => {
+                    console.error('Error loading data:', error);
+                    if (sk) sk.style.display = 'none';
+                });
+        }
+
+        // Check if user setup is complete
+        function checkUserSetup() {
+            fetch('/api/user/check')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.user_exists) {
+                        userSetupCompleted = true;
+                        // Always load fresh database data
+                        console.log('User exists, loading fresh database data');
+                        loadData();
+                    } else {
+                        console.log('No user found - setup may be needed');
+                        // For now, still try to load data (may be using web authentication)
+                        loadData();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking user setup:', error);
+                    // Still try to load data - may be using web authentication
+                    loadData();
+                });
+        }
+
+        // Load weather data from API
+        function loadWeatherData() {
+            // Read from localStorage cache (TTL: 10 minutes)
+            try {
+                const cached = localStorage.getItem('weatherDataV1');
+                if (cached) {
+                    const { payload, fetchTime } = JSON.parse(cached);
+                    if (payload && fetchTime && (Date.now() - fetchTime) < 10 * 60 * 1000) {
+                        updateWeatherWidget(payload);
+                        try { const root = document.getElementById('dashboard-data-root'); if (root) root.style.display=''; } catch {}
+                    }
+                }
+            } catch (e) { /* ignore cache errors */ }
+
+            fetch('/api/weather', { credentials: 'same-origin' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let toShow = null;
+                    if (data.error && data.fallback) {
+                        toShow = data.fallback;
+                    } else if (!data.error) {
+                        toShow = data;
+                    } else {
+                        toShow = {
+                            temperature: '--',
+                            condition: 'Unavailable',
+                            location: 'Unknown',
+                            icon: '❓',
+                            description: 'Weather service error',
+                            updated: '--'
+                        };
+                    }
+                    try {
+                        localStorage.setItem('weatherDataV1', JSON.stringify({ payload: toShow, fetchTime: Date.now() }));
+                    } catch (e) { /* ignore quota errors */ }
+                    updateWeatherWidget(toShow);
+                    try { const root = document.getElementById('dashboard-data-root'); if (root) root.style.display=''; } catch {}
+                })
+                .catch(error => {
+                    updateWeatherWidget({
+                        temperature: '--',
+                        condition: 'Error',
+                        location: 'Unknown',
+                        icon: '❌',
+                        description: 'Connection error',
+                        updated: '--'
+                    });
+                });
+        }
+
+        // Update weather widget with data
+        function updateWeatherWidget(weatherData) {
+            const tempConditionEl = document.getElementById('weather-temp-condition');
+            const locationEl = document.getElementById('weather-location');
+            const iconEl = document.getElementById('weather-icon');
+            const detailsEl = document.getElementById('weather-details');
+            const updatedEl = document.getElementById('weather-updated');
+
+            if (tempConditionEl) {
+                tempConditionEl.textContent = `${weatherData.temperature}°C ${weatherData.condition}`;
+            }
+            if (locationEl) {
+                locationEl.textContent = weatherData.location;
+            }
+            if (iconEl) {
+                iconEl.textContent = getWeatherIcon(weatherData.icon, weatherData.condition);
+            }
+            if (detailsEl && weatherData.humidity !== undefined) {
+                detailsEl.textContent = `${weatherData.humidity}% • ${weatherData.wind_speed}km/h`;
+            }
+            if (updatedEl && weatherData.updated) {
+                const providerLabel = weatherData.provider === 'open-meteo' ? 'Open‑Meteo' : (weatherData.provider || '');
+                updatedEl.textContent = `Updated ${weatherData.updated}${providerLabel ? ' • ' + providerLabel : ''}`;
+            }
+
+            // Update mobile weather elements
+            const mobileLocationEl = document.getElementById('mobile-weather-location');
+            const mobileConditionEl = document.getElementById('mobile-weather-condition');
+            const mobileIconEl = document.getElementById('mobile-weather-icon');
+
+            if (mobileLocationEl) {
+                mobileLocationEl.textContent = weatherData.location;
+            }
+            if (mobileConditionEl) {
+                mobileConditionEl.textContent = weatherData.condition;
+            }
+            if (mobileIconEl) {
+                mobileIconEl.textContent = getWeatherIcon(weatherData.icon, weatherData.condition);
+            }
+        }
+
+        // Get weather icon emoji based on condition
+        function getWeatherIcon(iconCode, condition) {
+            // Map weather conditions to emojis
+            const iconMap = {
+                'clear': '☀️',
+                'sunny': '☀️', 
+                'partly-cloudy': '⛅',
+                'partly-cloudy-day': '⛅',
+                'cloudy': '☁️',
+                'overcast': '☁️',
+                'rain': '🌧️',
+                'drizzle': '🌦️',
+                'thunderstorm': '⛈️',
+                'snow': '🌨️',
+                'mist': '🌫️',
+                'fog': '🌫️',
+                'unknown': '🌤️',
+                'error': '❌'
+            };
+
+            // Try to match icon code first, then condition
+            const key = (iconCode || condition || '').toLowerCase();
+            
+            // Check for partial matches
+            for (const [pattern, emoji] of Object.entries(iconMap)) {
+                if (key.includes(pattern)) {
+                    return emoji;
+                }
+            }
+            
+            // Default icon
+            return '🌤️';
+        }
+
+        // Exact same displayData function logic from original dashboard
+        function displayData(data) {
+            currentData = data;
+            try { const c = document.getElementById('temp-circle-container'); if (c) c.style.display=''; } catch {}
+            
+            // Update temperature displays using exact same logic as original
+            updateTemperatureDisplays(data);
+            
+            // Set current device ID for temperature controls
+            const devices = data.device_result?.devices || [];
+            if (devices.length > 0) {
+                const device = devices[0];
+                currentDeviceId = device.device_id;
+                currentSetTemperature = device.current_data.set_temperature || 21;
+                currentBoostState = device.current_data.forced_hot_water || false;
+                currentHolidayState = device.current_data.holiday_mode || false;
+                try { localStorage.setItem('lastSliderStateV1', JSON.stringify({ temp: currentSetTemperature, ts: Date.now() })); } catch {}
+                
+                // Setup temperature controls AFTER we have the data
+                setupTemperatureControl();
+                
+                // Update temperature control circles with actual data
+                if (currentSetTemperature !== null && !isNaN(currentSetTemperature)) {
+                    updateTemperatureCircles(currentSetTemperature);
+                }
+                
+                // Update mode buttons
+                updateModeButtons(device.current_data.operation_mode);
+                
+                // Update mode display text
+                updateModeDisplay(device.current_data.operation_mode);
+                
+                // Update boost button state
+                updateBoostButtonState();
+                
+                // Update holiday button state
+                updateHolidayButtonState();
+                
+                // Update mobile temperature readings
+                updateMobileTemperatureReadings(device.current_data);
+                
+                // Update desktop temperature readings
+                updateDesktopTemperatureReadings(device.current_data);
+                
+                // Update status cards
+                updateStatusCards(device.current_data);
+            }
+        }
+
+        // Extract temperature display logic exactly from original dashboard
+        function updateTemperatureDisplays(data) {
+            const devices = data.device_result.devices || [];
+            
+            if (devices.length > 0) {
+                const device = devices[0];
+                const deviceData = device.current_data || {};
+                
+                // Room Temperature - exact same logic as original
+                const roomTemp = deviceData.room_temperature !== undefined ? `${deviceData.room_temperature}°C` : '--°C';
+                document.getElementById('indoor-temp').textContent = roomTemp;
+                const desktopIndoor = document.getElementById('desktop-indoor-temp');
+                if (desktopIndoor) desktopIndoor.textContent = roomTemp;
+                
+                // Set Temperature - exact same logic as original, but respect user changes
+                if (!userSettingTemperature) {
+                    const setTemp = deviceData.set_temperature !== undefined ? `${deviceData.set_temperature}°C` : 
+                                  deviceData.target_temperature !== undefined ? `${deviceData.target_temperature}°C` : 
+                                  deviceData.setpoint_temperature !== undefined ? `${deviceData.setpoint_temperature}°C` : '--°C';
+                    document.getElementById('target-temp').textContent = setTemp;
+                    const desktopTarget = document.getElementById('desktop-target-temp');
+                    if (desktopTarget) desktopTarget.textContent = setTemp;
+                }
+                
+                // Outdoor Temperature - exact same logic as original
+                const outdoorTemp = deviceData.outdoor_temperature !== undefined ? `${deviceData.outdoor_temperature}°C` : '--°C';
+                document.getElementById('outdoor-temp').textContent = outdoorTemp;
+            } else {
+                // No devices - show default values exactly like original
+                document.getElementById('indoor-temp').textContent = '--°C';
+                document.getElementById('target-temp').textContent = '--°C';
+                document.getElementById('outdoor-temp').textContent = '--°C';
+                const desktopIndoor = document.getElementById('desktop-indoor-temp');
+                const desktopTarget = document.getElementById('desktop-target-temp');
+                if (desktopIndoor) desktopIndoor.textContent = '--°C';
+                if (desktopTarget) desktopTarget.textContent = '--°C';
+            }
+        }
+
+        // Temperature C-Curve Implementation (adapted from working c-curve.html)
+        
+        // C-curve configuration for our temperature gauge 
+        const centerX = 60;
+        const centerY = 60; 
+        const radius = 50;
+        const gapAngle = 1.8; // Gap angle in radians for the C-shape opening
+        
+        // Calculate the curve parameters based on our background arc: M 25 85 A 50 50 0 1 1 95 85
+        const fullStartAngle = Math.atan2(85 - centerY, 25 - centerX); // Start angle from (25,85) 
+        const fullEndAngle = Math.atan2(85 - centerY, 95 - centerX); // End angle to (95,85)
+        // Adjust for the "long way around" that the SVG arc takes (clockwise direction)
+        const adjustedEndAngle = fullEndAngle + 2 * Math.PI;
+        
+
+        function createCircularArc(startAngle, endAngle) {
+            const startX = centerX + radius * Math.cos(startAngle);
+            const startY = centerY + radius * Math.sin(startAngle);
+            const endX = centerX + radius * Math.cos(endAngle);
+            const endY = centerY + radius * Math.sin(endAngle);
+            
+            const largeArcFlag = (endAngle - startAngle) > Math.PI ? 1 : 0;
+            
+            return `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
+        }
+        
+        function getPointOnCircle(t) {
+            const angle = fullStartAngle + t * (adjustedEndAngle - fullStartAngle);
+            return {
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle),
+                angle: angle
+            };
+        }
+        
+        function updateTemperatureCircles(setTemp) {
+            // Don't override user's manual temperature setting
+            if (userSettingTemperature) {
+                return;
+            }
+            
+            // Convert temperature to position on curve (0-1)
+            const tempRange = TEMP_MAX - TEMP_MIN;
+            const t = (setTemp - TEMP_MIN) / tempRange;
+            
+            updateCurvePaths(t, 'updateTemperatureCircles');
+            
+            // Update dot position
+            const point = getPointOnCircle(t);
+            updateDotPosition('temp-control-dot', point.x, point.y);
+            updateDotPosition('desktop-temp-control-dot', point.x, point.y);
+        }
+        
+        function updateCurvePaths(t, caller = 'unknown') {
+            
+            // Orange path: from start to current position (lower temperatures)
+            const orangeEndAngle = fullStartAngle + t * (adjustedEndAngle - fullStartAngle);
+            
+            // Handle edge cases where segments are too small
+            let orangePath, greenPath;
+            
+            if (t <= 0.001) {
+                // When at minimum, show no orange, all green
+                orangePath = '';
+                greenPath = createCircularArc(fullStartAngle, adjustedEndAngle);
+            } else if (t >= 0.999) {
+                // When at maximum, show all orange, no green
+                orangePath = createCircularArc(fullStartAngle, adjustedEndAngle);
+                greenPath = '';
+            } else {
+                // Normal case - split the arc
+                orangePath = createCircularArc(fullStartAngle, orangeEndAngle);
+                greenPath = createCircularArc(orangeEndAngle, adjustedEndAngle);
+            }
+            
+            // Update mobile segments
+            const orangeSegment = document.getElementById('orange-segment');
+            const greenSegment = document.getElementById('green-segment');
+            if (orangeSegment) orangeSegment.setAttribute('d', orangePath);
+            if (greenSegment) greenSegment.setAttribute('d', greenPath);
+            
+            // Update desktop segments
+            const desktopOrangeSegment = document.getElementById('desktop-orange-segment');
+            const desktopGreenSegment = document.getElementById('desktop-green-segment');
+            if (desktopOrangeSegment) desktopOrangeSegment.setAttribute('d', orangePath);
+            if (desktopGreenSegment) desktopGreenSegment.setAttribute('d', greenPath);
+        }
+
+        // Update dot position to specific coordinates
+        function updateDotPosition(dotId, x, y) {
+            const dot = document.getElementById(dotId);
+            if (!dot) return;
+            
+            dot.setAttribute('cx', x);
+            dot.setAttribute('cy', y);
+        }
+
+        // C-curve drag interaction (adapted from working c-curve.html)
+        
+        function findClosestPointOnCurve(x, y) {
+            let closestDistance = Infinity;
+            let closestT = 0;
+            let step = 0.005; // Coarser step for better performance
+            
+            // First pass - coarse search
+            for (let t = 0; t <= 1; t += step) {
+                let point = getPointOnCircle(t);
+                let distance = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2);
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestT = t;
+                }
+            }
+            
+            // Second pass - fine search around the closest point
+            let fineStep = 0.001;
+            let searchRange = step * 2;
+            let minT = Math.max(0, closestT - searchRange);
+            let maxT = Math.min(1, closestT + searchRange);
+            
+            for (let t = minT; t <= maxT; t += fineStep) {
+                let point = getPointOnCircle(t);
+                let distance = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2);
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestT = t;
+                }
+            }
+            
+            
+            return { t: closestT, point: getPointOnCircle(closestT) };
+        }
+        
+        function getMousePosition(event, svg) {
+            if (!event || !svg) {
+                return null; // Return null for invalid input
+            }
+            
+            let rect = svg.getBoundingClientRect();
+            if (!rect || rect.width === 0 || rect.height === 0) {
+                return null; // Return null for invalid rect
+            }
+            
+            // Handle both mouse and touch events
+            let clientX, clientY;
+            
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else if (event.clientX !== undefined && event.clientY !== undefined) {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            } else {
+                return null; // Return null if no coordinates
+            }
+            
+            // Validate coordinates
+            if (!isFinite(clientX) || !isFinite(clientY)) {
+                return null; // Return null for invalid coordinates
+            }
+            
+            const x = (clientX - rect.left) * (120 / rect.width);  // Scale to viewBox
+            const y = (clientY - rect.top) * (120 / rect.height);   // Scale to viewBox
+            
+            // Final validation
+            if (!isFinite(x) || !isFinite(y)) {
+                return null; // Return null for invalid calculated coordinates
+            }
+            
+            return { x, y };
+        }
+
+        // Set up temperature control interaction
+        function setupTemperatureControl() {
+            setupControlForElement('temp-control-dot', 'temp-circle-svg');
+            setupControlForElement('desktop-temp-control-dot', 'desktop-temp-circle-svg');
+        }
+
+        function setupControlForElement(dotId, svgId) {
+            const dot = document.getElementById(dotId);
+            const svg = document.getElementById(svgId);
+            
+            if (!dot || !svg) return;
+
+            dot.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', endDrag);
+            
+            dot.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', handleDrag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+            
+            function startDrag(event) {
+                event.preventDefault();
+                isDragging = true;
+                userSettingTemperature = true; // Prevent interference while dragging
+                dot.setAttribute('fill', '#f59e0b'); // Orange while dragging
+                lastValidTemperature = null; // Reset on new drag
+            }
+            
+            function handleDrag(event) {
+                if (!isDragging) return;
+                event.preventDefault();
+                
+                let mousePos = getMousePosition(event, svg);
+                
+                // Skip if no valid mouse position
+                if (!mousePos) {
+                    return;
+                }
+                
+                let result = findClosestPointOnCurve(mousePos.x, mousePos.y);
+                
+                // Update dot position
+                dot.setAttribute('cx', result.point.x);
+                dot.setAttribute('cy', result.point.y);
+                
+                // Update curves based on drag position - orange below, green above
+                updateCurvePaths(result.t, 'handleDrag');
+                
+                // Convert t to temperature and update display
+                const temp = TEMP_MIN + (result.t * (TEMP_MAX - TEMP_MIN));
+                const roundedTemp = Math.round(temp);
+                lastValidTemperature = roundedTemp; // Store last valid temperature
+                updateTemperatureDisplay(roundedTemp);
+                // Debounce API call while dragging
+                scheduleDebouncedTemperatureSend(roundedTemp);
+            }
+            
+            function endDrag(event) {
+                if (!isDragging) return;
+                
+                isDragging = false;
+                dot.setAttribute('fill', 'white'); // Back to white
+                
+                // Debounced send of the last temperature after drag ends
+                if (lastValidTemperature !== null) {
+                    scheduleDebouncedTemperatureSend(lastValidTemperature);
+                }
+            }
+        }
+
+        // Track if user is actively setting temperature to prevent interference
+        let userSettingTemperature = false;
+        // Debounce state for temperature API calls
+        let temperatureSendTimeout = null;
+        let pendingTemperature = null;
+
+        function scheduleDebouncedTemperatureSend(temp) {
+            pendingTemperature = temp;
+            if (temperatureSendTimeout) {
+                clearTimeout(temperatureSendTimeout);
+            }
+            temperatureSendTimeout = setTimeout(() => {
+                // Only send the last value after 2 seconds of inactivity
+                if (pendingTemperature !== null) {
+                    setTemperature(pendingTemperature);
+                }
+                temperatureSendTimeout = null;
+            }, 2000);
+        }
+        
+        // Track hot water boost state
+        let currentBoostState = false;
+        
+        // Track holiday mode state
+        let currentHolidayState = false;
+
+        // Update temperature display during dragging
+        function updateTemperatureDisplay(temp) {
+            document.getElementById('target-temp').textContent = `${temp}°C`;
+            const desktopTarget = document.getElementById('desktop-target-temp');
+            if (desktopTarget) desktopTarget.textContent = `${temp}°C`;
+        }
+
+        // Send temperature to API (copied from original dashboard)
+        async function setTemperature(temperature) {
+            if (!currentDeviceId) {
+                console.error('No device ID available');
+                return;
+            }
+
+            // Set flag to prevent interference
+            userSettingTemperature = true;
+
+            try {
+                const response = await fetch(`/api/device/${currentDeviceId}/temperature`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        temperature: temperature,
+                        bypass_rate_limit: true
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    try { localStorage.setItem('lastSliderStateV1', JSON.stringify({ temp: temperature, ts: Date.now() })); } catch {}
+                    // Update local data immediately with all possible property names
+                    if (currentData && currentData.devices && currentData.devices[0]) {
+                        const device = currentData.devices[0];
+                        device.setTemperature = temperature;
+                        device.set_temperature = temperature;
+                        if (device.current_data) {
+                            device.current_data.setTemperature = temperature;
+                            device.current_data.set_temperature = temperature;
+                        }
+                    }
+                    
+                    // Update display immediately and ensure it stays
+                    updateTemperatureDisplay(temperature);
+                    
+                    // Clear flag after a longer delay to ensure display stays
+                    setTimeout(() => {
+                        userSettingTemperature = false;
+                    }, 5000);
+                } else {
+                    console.error('Failed to set temperature:', result.error);
+                    // Revert to previous temperature on error
+                    loadData();
+                    // Clear flag on error
+                    setTimeout(() => {
+                        userSettingTemperature = false;
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error setting temperature:', error);
+                // Revert to previous temperature on network error
+                loadData();
+                // Clear flag on error
+                setTimeout(() => {
+                    userSettingTemperature = false;
+                }, 1000);
+            }
+        }
+
+        // Update mode button states
+        function updateModeButtons(mode) {
+            const boostBtn = document.getElementById('boost-btn');
+            const ecoBtn = document.getElementById('eco-btn');
+            
+            if (!boostBtn || !ecoBtn) return;
+            
+            // Reset button styles
+            boostBtn.className = 'mode-button w-20 h-20 rounded-full font-semibold flex flex-col items-center justify-center shadow-lg';
+            ecoBtn.className = 'mode-button w-20 h-20 rounded-full font-semibold flex flex-col items-center justify-center shadow-lg';
+            
+            // Highlight active mode
+            if (mode === 1) { // Heat mode
+                boostBtn.className += ' bg-primary-500 text-white';
+                ecoBtn.className += ' bg-gray-600 text-gray-300';
+            } else if (mode === 2) { // Cool mode  
+                ecoBtn.className += ' bg-success-500 text-white';
+                boostBtn.className += ' bg-gray-600 text-gray-300';
+            } else {
+                // Default colors when mode is unknown
+                boostBtn.className += ' bg-primary-500 text-white';
+                ecoBtn.className += ' bg-success-500 text-white';
+            }
+        }
+        
+        // Update mode display text (using exact same logic from original dashboard)
+        function updateModeDisplay(mode) {
+            const mobileStatus = document.getElementById('mobile-mode-status');
+            const desktopDisplay = document.getElementById('desktop-mode-status');
+            
+            // Use exact same formatOperationMode logic from original dashboard
+            const modes = { 0: 'In Standby', 1: 'Hot Water On', 2: 'Heating On' };
+            const modeText = modes[mode] || mode;
+            
+            if (mobileStatus) mobileStatus.textContent = modeText;
+            if (desktopDisplay) desktopDisplay.textContent = modeText;
+        }
+
+        // Toggle hot water boost (copied from original dashboard)
+        async function toggleHotWaterBoost() {
+            if (!currentDeviceId) {
+                console.error('No device available for control');
+                return;
+            }
+            
+            const boostBtn = document.getElementById('boost-btn');
+            const desktopBoostBtn = document.getElementById('desktop-boost-btn');
+            
+            // Disable both buttons during request
+            if (boostBtn) {
+                boostBtn.disabled = true;
+                boostBtn.innerHTML = '<span class="text-xs">Wait...</span>';
+            }
+            if (desktopBoostBtn) {
+                desktopBoostBtn.disabled = true;
+                desktopBoostBtn.textContent = 'Wait...';
+            }
+            
+            try {
+                const newState = !currentBoostState;
+                const response = await fetch(`/api/device/${currentDeviceId}/hot-water`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        enable: newState,
+                        bypass_rate_limit: true
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    currentBoostState = newState;
+                    updateBoostButtonState();
+                    console.log(`Hot water boost ${newState ? 'enabled' : 'disabled'}`);
+                    // Refresh data after a short delay
+                    setTimeout(loadData, 2000);
+                } else {
+                    console.error('Failed to toggle hot water boost:', result.error);
+                }
+            } catch (error) {
+                console.error('Error toggling hot water boost:', error);
+            } finally {
+                // Re-enable both buttons and restore their states
+                if (boostBtn) {
+                    boostBtn.disabled = false;
+                }
+                if (desktopBoostBtn) {
+                    desktopBoostBtn.disabled = false;
+                }
+                // Update button states to reflect current status
+                updateBoostButtonState();
+            }
+        }
+
+        // Toggle holiday mode (adapted from test-controls)
+        async function toggleHolidayMode() {
+            if (!currentDeviceId) {
+                console.error('No device available for control');
+                return;
+            }
+            
+            const holidayBtn = document.getElementById('holiday-btn');
+            const desktopHolidayBtn = document.getElementById('desktop-holiday-btn');
+            
+            // Disable both buttons during request
+            if (holidayBtn) {
+                holidayBtn.disabled = true;
+                holidayBtn.innerHTML = '<span class="text-xs">Wait...</span>';
+            }
+            if (desktopHolidayBtn) {
+                desktopHolidayBtn.disabled = true;
+                desktopHolidayBtn.textContent = 'Wait...';
+            }
+            
+            try {
+                const newState = !currentHolidayState;
+                const response = await fetch(`/api/device/${currentDeviceId}/holiday-mode`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        enable: newState,
+                        bypass_rate_limit: true
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    currentHolidayState = newState;
+                    updateHolidayButtonState();
+                    console.log(`Holiday mode ${newState ? 'enabled' : 'disabled'}`);
+                    // Refresh data after a short delay
+                    setTimeout(loadData, 2000);
+                } else {
+                    console.error('Failed to toggle holiday mode:', result.error);
+                }
+            } catch (error) {
+                console.error('Error toggling holiday mode:', error);
+            } finally {
+                // Re-enable both buttons and restore their states
+                if (holidayBtn) {
+                    holidayBtn.disabled = false;
+                }
+                if (desktopHolidayBtn) {
+                    desktopHolidayBtn.disabled = false;
+                }
+                // Update button states to reflect current status
+                updateHolidayButtonState();
+            }
+        }
+
+        // Update holiday button state and appearance
+        function updateHolidayButtonState() {
+            const holidayBtn = document.getElementById('holiday-btn');
+            const desktopHolidayBtn = document.getElementById('desktop-holiday-btn');
+            
+            // Update mobile button
+            if (holidayBtn) {
+                if (currentHolidayState) {
+                    // Holiday mode is on - pulsing white border and change text
+                    holidayBtn.className = 'mode-button w-20 h-20 rounded-full bg-success-500 text-white font-semibold flex flex-col items-center justify-center shadow-lg border-4 border-white animate-pulse';
+                    holidayBtn.innerHTML = '<span class="text-xs text-center">Holiday On</span>';
+                } else {
+                    // Holiday mode is off - normal state
+                    holidayBtn.className = 'mode-button w-20 h-20 rounded-full bg-success-500 text-white font-semibold flex flex-col items-center justify-center shadow-lg';
+                    holidayBtn.innerHTML = '<span class="text-xs">Holiday</span><span class="text-xs">Mode</span>';
+                }
+            }
+            
+            // Update desktop button
+            if (desktopHolidayBtn) {
+                if (currentHolidayState) {
+                    // Holiday mode is on - pulsing white border and change text
+                    desktopHolidayBtn.className = 'mode-button px-8 py-4 rounded-2xl bg-success-500 text-white font-semibold shadow-lg border-4 border-white animate-pulse';
+                    desktopHolidayBtn.textContent = 'Holiday On';
+                } else {
+                    // Holiday mode is off - normal state
+                    desktopHolidayBtn.className = 'mode-button px-8 py-4 rounded-2xl bg-success-500 text-white font-semibold shadow-lg';
+                    desktopHolidayBtn.textContent = 'Holiday Mode';
+                }
+            }
+        }
+
+        // Update boost button state and appearance
+        function updateBoostButtonState() {
+            const boostBtn = document.getElementById('boost-btn');
+            const desktopBoostBtn = document.getElementById('desktop-boost-btn');
+            
+            // Update mobile button
+            if (boostBtn) {
+                if (currentBoostState) {
+                    // Hot water is on - pulsing white border and change text
+                    boostBtn.className = 'mode-button w-20 h-20 rounded-full bg-primary-500 text-white font-semibold flex flex-col items-center justify-center shadow-lg border-4 border-white animate-pulse';
+                    boostBtn.innerHTML = '<span class="text-xs text-center">Hot Water On</span>';
+                } else {
+                    // Hot water is off - normal state
+                    boostBtn.className = 'mode-button w-20 h-20 rounded-full bg-primary-500 text-white font-semibold flex flex-col items-center justify-center shadow-lg';
+                    boostBtn.innerHTML = '<span class="text-xs">Hot Water Boost</span>';
+                }
+            }
+            
+            // Update desktop button
+            if (desktopBoostBtn) {
+                if (currentBoostState) {
+                    // Hot water is on - pulsing white border and change text
+                    desktopBoostBtn.className = 'mode-button px-8 py-4 rounded-2xl bg-primary-500 text-white font-semibold shadow-lg border-4 border-white animate-pulse';
+                    desktopBoostBtn.textContent = 'Hot Water On';
+                } else {
+                    // Hot water is off - normal state
+                    desktopBoostBtn.className = 'mode-button px-8 py-4 rounded-2xl bg-primary-500 text-white font-semibold shadow-lg';
+                    desktopBoostBtn.textContent = 'Hot Water Boost';
+                }
+            }
+        }
+
+        // Mode button handlers
+        function setupModeButtons() {
+            // Mobile buttons
+            const boostBtn = document.getElementById('boost-btn');
+            const holidayBtn = document.getElementById('holiday-btn');
+            
+            // Desktop buttons
+            const desktopBoostBtn = document.getElementById('desktop-boost-btn');
+            const desktopHolidayBtn = document.getElementById('desktop-holiday-btn');
+            
+            // Setup mobile boost button
+            if (boostBtn) {
+                boostBtn.addEventListener('click', toggleHotWaterBoost);
+            }
+            
+            // Setup desktop boost button
+            if (desktopBoostBtn) {
+                desktopBoostBtn.addEventListener('click', toggleHotWaterBoost);
+            }
+            
+            // Setup mobile holiday button
+            if (holidayBtn) {
+                holidayBtn.addEventListener('click', toggleHolidayMode);
+            }
+            
+            // Setup desktop holiday button
+            if (desktopHolidayBtn) {
+                desktopHolidayBtn.addEventListener('click', toggleHolidayMode);
+            }
+        }
+
+        // Mobile screen navigation
+        let currentScreen = 0;
+        
+        function swipeToScreen(screenIndex) {
+            const screens = document.getElementById('mobile-screens');
+            const indicators = document.querySelectorAll('[id^="indicator-"]');
+            
+            currentScreen = screenIndex;
+            screens.style.transform = `translateX(-${screenIndex * 100}%)`;
+            
+            // Update indicators
+            indicators.forEach((indicator, index) => {
+                if (index === screenIndex) {
+                    indicator.className = 'w-2 h-2 rounded-full bg-white';
+                } else {
+                    indicator.className = 'w-2 h-2 rounded-full bg-gray-500';
+                }
+            });
+        }
+        
+        // Add swipe gesture support
+        function setupSwipeGestures() {
+            const container = document.getElementById('mobile-screens');
+            if (!container) return;
+            
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+            
+            container.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+            });
+            
+            container.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                
+                const diffX = startX - currentX;
+                const threshold = 50; // minimum swipe distance
+                
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0 && currentScreen === 0) {
+                        // Swipe left - go to screen 1
+                        swipeToScreen(1);
+                    } else if (diffX < 0 && currentScreen === 1) {
+                        // Swipe right - go to screen 0
+                        swipeToScreen(0);
+                    }
+                }
+                
+                isDragging = false;
+            });
+        }
+        
+        // Populate mobile temperature readings (adapted from original dashboard)
+        function updateMobileTemperatureReadings(deviceData) {
+            const container = document.getElementById('mobile-temperature-readings');
+            if (!container || !deviceData) return;
+            
+            // Helper function to get temperature color class
+            const getTempColorClass = (temp, type) => {
+                if (!temp || temp === 'N/A') return 'text-gray-400';
+                const t = parseFloat(temp);
+                if (type === 'outdoor') {
+                    if (t < 0) return 'text-blue-400';
+                    if (t < 15) return 'text-cyan-400';
+                    if (t < 25) return 'text-green-400';
+                    return 'text-orange-400';
+                } else {
+                    if (t < 20) return 'text-blue-400';
+                    if (t < 35) return 'text-green-400';
+                    if (t < 50) return 'text-yellow-400';
+                    if (t < 70) return 'text-orange-400';
+                    return 'text-red-400';
+                }
+            };
+            
+            const temperatureCards = [
+                {
+                    label: 'Flow Temp',
+                    value: deviceData.flow_temperature,
+                    type: 'system'
+                },
+                {
+                    label: 'Return Temp',
+                    value: deviceData.return_temperature,
+                    type: 'system'
+                },
+                {
+                    label: 'Outdoor Temp',
+                    value: deviceData.outdoor_temperature,
+                    type: 'outdoor'
+                },
+                {
+                    label: 'Room Temp',
+                    value: deviceData.room_temperature,
+                    type: 'room'
+                }
+            ];
+            
+            // Add tank temperature if available
+            if (deviceData.tank_temperature) {
+                temperatureCards.push({
+                    label: 'Tank Temp',
+                    value: deviceData.tank_temperature,
+                    type: 'system'
+                });
+            }
+            
+            // Add zone 2 temperature if available
+            if (deviceData.room_temperature_zone2 && deviceData.room_temperature_zone2 !== -39.0) {
+                temperatureCards.push({
+                    label: 'Room Temp Z2',
+                    value: deviceData.room_temperature_zone2,
+                    type: 'room'
+                });
+            }
+            
+            let html = '';
+            temperatureCards.forEach(card => {
+                const displayValue = card.value ? `${card.value}°C` : 'N/A';
+                const colorClass = getTempColorClass(card.value, card.type);
+                
+                html += `
+                    <div class="rounded-lg p-4 panel-bg-mobile">
+                        <div class="text-xs text-gray-400 uppercase tracking-wide mb-2">${card.label}</div>
+                        <div class="text-xl font-bold ${colorClass}">${displayValue}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Populate desktop temperature readings (adapted from original dashboard)
+        function updateDesktopTemperatureReadings(deviceData) {
+            const container = document.getElementById('desktop-temperature-readings');
+            if (!container || !deviceData) return;
+            
+            // Helper function to get temperature color class
+            const getTempColorClass = (temp, type) => {
+                if (!temp || temp === 'N/A') return 'text-gray-400';
+                const t = parseFloat(temp);
+                if (type === 'outdoor') {
+                    if (t < 0) return 'text-blue-400';
+                    if (t < 15) return 'text-cyan-400';
+                    if (t < 25) return 'text-green-400';
+                    return 'text-orange-400';
+                } else {
+                    if (t < 20) return 'text-blue-400';
+                    if (t < 35) return 'text-green-400';
+                    if (t < 50) return 'text-yellow-400';
+                    if (t < 70) return 'text-orange-400';
+                    return 'text-red-400';
+                }
+            };
+            
+            const temperatureCards = [
+                {
+                    label: 'Flow Temp',
+                    value: deviceData.flow_temperature,
+                    type: 'system'
+                },
+                {
+                    label: 'Return Temp',
+                    value: deviceData.return_temperature,
+                    type: 'system'
+                },
+                {
+                    label: 'Outdoor Temp',
+                    value: deviceData.outdoor_temperature,
+                    type: 'outdoor'
+                },
+                {
+                    label: 'Room Temp',
+                    value: deviceData.room_temperature,
+                    type: 'room'
+                }
+            ];
+            
+            // Add tank temperature if available
+            if (deviceData.tank_temperature) {
+                temperatureCards.push({
+                    label: 'Tank Temp',
+                    value: deviceData.tank_temperature,
+                    type: 'system'
+                });
+            }
+            
+            // Add zone 2 temperature if available
+            if (deviceData.room_temperature_zone2 && deviceData.room_temperature_zone2 !== -39.0) {
+                temperatureCards.push({
+                    label: 'Room Temp Z2',
+                    value: deviceData.room_temperature_zone2,
+                    type: 'room'
+                });
+            }
+            
+            let html = '';
+            temperatureCards.forEach(card => {
+                const displayValue = card.value ? `${card.value}°C` : 'N/A';
+                const colorClass = getTempColorClass(card.value, card.type);
+                
+                html += `
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <div class="text-sm text-gray-400 uppercase tracking-wide mb-2">${card.label}</div>
+                        <div class="text-2xl font-bold ${colorClass}">${displayValue}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Update status cards with real device data
+        function updateStatusCards(deviceData) {
+            // Update WiFi Signal (using dBm values like v1)
+            const wifiElement = document.getElementById('wifi-signal-status');
+            if (wifiElement) {
+                const wifiSignal = deviceData.wifi_signal;
+                let wifiStatus = '';
+                let wifiColor = 'text-gray-400';
+                
+                if (wifiSignal === null || wifiSignal === undefined) {
+                    wifiStatus = 'N/A';
+                    wifiColor = 'text-gray-400';
+                } else {
+                    const signal = parseInt(wifiSignal);
+                    
+                    if (signal >= -50) {
+                        wifiStatus = 'Excellent';
+                        wifiColor = 'text-green-400';
+                    } else if (signal >= -60) {
+                        wifiStatus = 'Good';
+                        wifiColor = 'text-green-400';
+                    } else if (signal >= -70) {
+                        wifiStatus = 'Fair';
+                        wifiColor = 'text-yellow-400';
+                    } else if (signal >= -80) {
+                        wifiStatus = 'Poor';
+                        wifiColor = 'text-orange-400';
+                    } else {
+                        wifiStatus = 'Very Poor';
+                        wifiColor = 'text-red-400';
+                    }
+                }
+                
+                wifiElement.textContent = wifiStatus;
+                wifiElement.className = `${wifiColor} font-semibold`;
+            }
+
+            // Update System Status (device power on/off)
+            const systemElement = document.getElementById('system-status');
+            if (systemElement && deviceData.power !== undefined && deviceData.power !== null) {
+                let systemStatus = '';
+                let systemColor = 'text-gray-400';
+                
+                // Use the power field to determine if device is on or off
+                if (deviceData.power === true) {
+                    systemStatus = 'On';
+                    systemColor = 'text-green-400';
+                } else {
+                    systemStatus = 'Off';
+                    systemColor = 'text-red-400';
+                }
+                
+                systemElement.textContent = systemStatus;
+                systemElement.className = `${systemColor} font-semibold`;
+            }
+        }
+
+        // Enhanced connection status with countdown timer
+        let countdownInterval = null;
+        let lastStatusData = null;
+        
+        async function updateConnectionStatus() {
+            try {
+                const response = await fetch('/api/connection-status');
+                if (response.ok) {
+                    const status = await response.json();
+                    lastStatusData = status;
+                    
+                    // Store in localStorage for cross-page persistence
+                    localStorage.setItem('connectionStatusData', JSON.stringify({
+                        ...status,
+                        fetchTime: Date.now()
+                    }));
+                    
+                    StatusWidget.setConnectionStatus(status.color, status.detail, status);
+                    startCountdownTimer();
+                } else {
+                    StatusWidget.setConnectionStatus('gray', 'Status check failed');
+                }
+            } catch (error) {
+                console.error('Error checking connection status:', error);
+                StatusWidget.setConnectionStatus('gray', 'Status check error');
+            }
+        }
+        
+        
+        
+        function startCountdownTimer() {
+            // Clear existing timer
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(() => {
+                if (!lastStatusData) return;
+                
+                const now = Date.now() / 1000; // Convert to seconds
+                const nextRefresh = lastStatusData.next_request_time;
+                const interval = lastStatusData.interval_seconds;
+                const countdownSeconds = Math.max(0, Math.floor(nextRefresh - now));
+                
+                if (countdownSeconds <= 0) {
+                    // Time for refresh - update status
+                    updateConnectionStatus();
+                    return;
+                }
+                
+                // Calculate progress (handled automatically by StatusWidget)
+                const elapsed = now - (nextRefresh - interval);
+                const progressPercentage = Math.min(100, Math.max(0, (elapsed / interval) * 100));
+                
+                // Update tooltips with countdown
+                const minutes = Math.floor(countdownSeconds / 60);
+                const seconds = countdownSeconds % 60;
+                const timeString = minutes > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${seconds}s`;
+                const tooltip = `${lastStatusData.detail} - Next refresh in: ${timeString}`;
+                
+                // Update tooltip on both dots
+                const mobileContainer = document.getElementById('connection-status-dot-mobile')?.parentElement?.parentElement;
+                const desktopContainer = document.getElementById('connection-status-dot-desktop')?.parentElement?.parentElement;
+                
+                if (mobileContainer) mobileContainer.setAttribute('title', tooltip);
+                if (desktopContainer) desktopContainer.setAttribute('title', tooltip);
+                
+            }, 1000); // Update every second
+        }
+        
+        function restoreStatusFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('connectionStatusData');
+                if (!stored) return false;
+                
+                const data = JSON.parse(stored);
+                const now = Date.now();
+                const age = (now - data.fetchTime) / 1000; // Age in seconds
+                
+                // Only use stored data if it's less than 2 minutes old
+                if (age < 120) {
+                    // Adjust countdown based on time elapsed since storage
+                    const adjustedData = {
+                        ...data,
+                        countdown_seconds: Math.max(0, data.countdown_seconds - Math.floor(age)),
+                        next_request_time: data.next_request_time - age/1000
+                    };
+                    
+                    lastStatusData = adjustedData;
+                    StatusWidget.setConnectionStatus(data.color, data.detail, adjustedData);
+                    startCountdownTimer();
+                    return true;
+                }
+            } catch (error) {
+                console.warn('Failed to restore status from localStorage:', error);
+            }
+            return false;
+        }
+        
+        // Schedule-related functions
+        function loadNextSchedules() {
+            fetch('/api/next-schedules')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateScheduleDisplay(data);
+                    } else {
+                        console.error('Error loading schedules:', data.error);
+                        showNoSchedules();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching schedules:', error);
+                    showNoSchedules();
+                });
+        }
+
+        function updateScheduleDisplay(data) {
+            const heatingElement = document.getElementById('heating-schedule');
+            const hotwaterElement = document.getElementById('hotwater-schedule');
+            const noSchedulesElement = document.getElementById('no-schedules');
+            const mHeat = document.getElementById('mobile-heating-schedule');
+            const mHW = document.getElementById('mobile-hotwater-schedule');
+            
+            let hasSchedules = false;
+
+            // Update heating schedule
+            if (data.next_heating) {
+                const heating = data.next_heating;
+                const daysAway = heating.days_away || 0;
+                
+                // Determine display prefix and mobile suffix
+                let timePrefix, mobileSuffix;
+                if (daysAway === 0) {
+                    timePrefix = 'Today ';
+                    mobileSuffix = '';
+                } else if (daysAway === 1) {
+                    timePrefix = 'Tomorrow ';
+                    mobileSuffix = ' (tom)';
+                } else {
+                    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const today = new Date();
+                    const targetDay = new Date(today.getTime() + daysAway * 24 * 60 * 60 * 1000);
+                    const dayName = dayNames[targetDay.getDay()];
+                    timePrefix = `${dayName} `;
+                    mobileSuffix = ` (${dayName.toLowerCase()})`;
+                }
+                
+                const displayText = `${timePrefix}${heating.time} → ${heating.target_value}°C`;
+                if (heatingElement) heatingElement.textContent = displayText;
+                // Mobile compact: "07:30 • 22°" with day suffix
+                const mText = `${heating.time}${mobileSuffix} • ${heating.target_value}°`;
+                if (mHeat) mHeat.textContent = mText;
+                hasSchedules = true;
+            } else {
+                if (heatingElement) heatingElement.textContent = '--';
+                if (mHeat) mHeat.textContent = '--';
+            }
+
+            // Update hot water schedule  
+            if (data.next_hotwater) {
+                const hotwater = data.next_hotwater;
+                const daysAway = hotwater.days_away || 0;
+                
+                // Determine display prefix and mobile suffix
+                let timePrefix, mobileSuffix;
+                if (daysAway === 0) {
+                    timePrefix = 'Today ';
+                    mobileSuffix = '';
+                } else if (daysAway === 1) {
+                    timePrefix = 'Tomorrow ';
+                    mobileSuffix = ' (tom)';
+                } else {
+                    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const today = new Date();
+                    const targetDay = new Date(today.getTime() + daysAway * 24 * 60 * 60 * 1000);
+                    const dayName = dayNames[targetDay.getDay()];
+                    timePrefix = `${dayName} `;
+                    mobileSuffix = ` (${dayName.toLowerCase()})`;
+                }
+                
+                const actionText = hotwater.target_value > 0 ? 'ON' : 'OFF';
+                const displayText = `${timePrefix}${hotwater.time} → ${actionText}`;
+                if (hotwaterElement) hotwaterElement.textContent = displayText;
+                // Mobile compact: "19:00 • ON" with day suffix
+                const mTextHW = `${hotwater.time}${mobileSuffix} • ${actionText}`;
+                if (mHW) mHW.textContent = mTextHW;
+                hasSchedules = true;
+            } else {
+                if (hotwaterElement) hotwaterElement.textContent = '--';
+                if (mHW) mHW.textContent = '--';
+            }
+
+            // Show/hide no schedules message
+            if (hasSchedules) {
+                noSchedulesElement.style.display = 'none';
+            } else {
+                noSchedulesElement.style.display = 'block';
+            }
+        }
+
+        function showNoSchedules() {
+            document.getElementById('heating-schedule').textContent = '--';
+            document.getElementById('hotwater-schedule').textContent = '--';
+            document.getElementById('no-schedules').style.display = 'block';
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setupModeButtons();
+            setupSwipeGestures();
+            preloadSliderFromCache();
+            checkUserSetup(); // This will call loadData() if setup is complete
+            loadWeatherData();
+            displayUserInfo(); // Load current user info
+            
+            // Initialize shared connection status widget
+            StatusWidget.init();
+            
+            // Auto refresh data every 60 seconds
+            setInterval(loadData, 60000);
+            
+            // Auto refresh schedules every 5 minutes  
+            setInterval(loadNextSchedules, 300000);
+            
+            // Auto refresh weather every 10 minutes
+            setInterval(loadWeatherData, 600000);
+        });
+    </script>
+</body>
+</html>

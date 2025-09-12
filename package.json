@@ -1,0 +1,11 @@
+{
+  "name": "melcloud_integration",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "3.4.10"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --minify"
+  }
+}
+

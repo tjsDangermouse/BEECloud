@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup - MELCloud Dashboard</title>
+    <link rel="icon" type="image/png" href="/static/Beelogo.png">
+    <link rel="shortcut icon" type="image/png" href="/static/Beelogo.png">
+    <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
+    <script defer src="/static/js/sw-register.js"></script>
+    <script>
+        if (typeof tailwind !== 'undefined') { tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        } }
+    </script>
+</head>
+<body class="h-full bg-gray-800 dark:bg-gray-900 font-sans leading-relaxed text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full space-y-8 p-8">
+            <div>
+                <div class="mx-auto h-20 w-20 flex items-center justify-center">
+                    <img class="h-14 w-20" src="/static/Beelogo.png" alt="MELCloud Dashboard" onerror="this.style.display='none'">
+                </div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+                    Initial Setup
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                    Create your administrator account
+                </p>
+            </div>
+            
+            <!-- Flash Messages -->
+            <div id="flash-messages" class="space-y-2"></div>
+            
+            <form class="mt-8 space-y-6" id="setupForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                        <input id="username" name="username" type="text" required 
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700" 
+                               placeholder="Choose a username">
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                        <input id="email" name="email" type="email" required 
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700" 
+                               placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                        <input id="password" name="password" type="password" required 
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700" 
+                               placeholder="Choose a strong password">
+                    </div>
+                    
+                    <div>
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
+                        <input id="confirm_password" name="confirm_password" type="password" required 
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700" 
+                               placeholder="Confirm your password">
+                    </div>
+                </div>
+
+                <!-- Device Timezone Selection -->
+                <div>
+                    <label for="timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Device Timezone
+                    </label>
+                    <select id="timezone" name="timezone" required
+                            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm">
+                        <option value="">Select device timezone...</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        This is the timezone where your heat pump is physically located. Schedule times will be shown in this timezone.
+                    </p>
+                </div>
+
+                <!-- Password Requirements -->
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">Password Requirements</h3>
+                            <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                <ul class="list-disc space-y-1 pl-5">
+                                    <li>At least 8 characters long</li>
+                                    <li>Contains uppercase and lowercase letters</li>
+                                    <li>Contains at least one number</li>
+                                    <li>Not a common password</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" id="setupButton"
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-primary-500 group-hover:text-primary-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <span id="setupButtonText">Create Admin Account</span>
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        This will be the first administrator account for your MELCloud Dashboard
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Flash message handling
+        function showFlash(message, type = 'info') {
+            // Create or get flash container
+            let container = document.getElementById('flash-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'flash-container';
+                container.className = 'fixed top-4 right-4 z-[9999]';
+                document.body.appendChild(container);
+            }
+            
+            // Create flash message element
+            const flash = document.createElement('div');
+            flash.className = `mb-2 p-4 rounded-lg shadow-xl max-w-md transition-all duration-500 transform ${
+                type === 'success' ? 'bg-green-500 text-white border-l-4 border-green-300' :
+                type === 'error' ? 'bg-red-500 text-white border-l-4 border-red-300' :
+                'bg-blue-500 text-white border-l-4 border-blue-300'
+            }`;
+            flash.textContent = message;
+            flash.style.opacity = '0';
+            flash.style.transform = 'translateX(100%)';
+            
+            container.appendChild(flash);
+            
+            // Animate in
+            setTimeout(() => {
+                flash.style.opacity = '1';
+                flash.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Auto remove after 6 seconds (longer for setup page)
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                flash.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (flash.parentNode) {
+                        flash.parentNode.removeChild(flash);
+                    }
+                }, 500);
+            }, 6000);
+        }
+
+        // Load timezone options
+        async function loadTimezones() {
+            try {
+                const response = await fetch('/api/timezones');
+                const result = await response.json();
+                
+                if (result.success && result.timezones) {
+                    const select = document.getElementById('timezone');
+                    // Reset options but keep the placeholder
+                    select.innerHTML = '<option value="">Select device timezone...</option>';
+
+                    // Popular timezones to show first
+                    const popular = [
+                        'UTC',
+                        // Europe
+                        'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Amsterdam', 'Europe/Madrid', 'Europe/Rome',
+                        // North America
+                        'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'America/Vancouver',
+                        // Asia / Middle East / India
+                        'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Kolkata', 'Asia/Dubai',
+                        // AU / NZ
+                        'Australia/Sydney', 'Australia/Melbourne', 'Australia/Perth', 'Pacific/Auckland'
+                    ];
+
+                    const available = new Set(result.timezones);
+                    const added = new Set();
+
+                    // Helper to create option
+                    const makeOption = (tz) => {
+                        const opt = document.createElement('option');
+                        opt.value = tz;
+                        opt.textContent = tz.replace(/_/g, ' ');
+                        return opt;
+                    };
+
+                    // Create optgroups
+                    const groupPopular = document.createElement('optgroup');
+                    groupPopular.label = 'Popular';
+                    const groupAll = document.createElement('optgroup');
+                    groupAll.label = 'All Timezones';
+
+                    // Add popular first (only if present in available)
+                    popular.forEach(tz => {
+                        if (available.has(tz) && !added.has(tz)) {
+                            groupPopular.appendChild(makeOption(tz));
+                            added.add(tz);
+                        }
+                    });
+
+                    // Add the rest alphabetically
+                    const rest = result.timezones
+                        .filter(tz => !added.has(tz))
+                        .sort((a, b) => a.localeCompare(b));
+                    rest.forEach(tz => groupAll.appendChild(makeOption(tz)));
+
+                    // Append groups
+                    if (groupPopular.children.length > 0) select.appendChild(groupPopular);
+                    select.appendChild(groupAll);
+                    
+                    // Try to detect and pre-select user's timezone
+                    try {
+                        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        if (available.has(userTimezone)) {
+                            select.value = userTimezone;
+                        } else {
+                            select.value = 'UTC';
+                        }
+                    } catch (e) {
+                        select.value = 'UTC';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading timezones:', error);
+                // Add basic fallback options
+                const select = document.getElementById('timezone');
+                select.innerHTML = '<option value="">Select device timezone...</option>';
+                ['UTC', 'Europe/London', 'Europe/Paris', 'America/New_York', 'America/Los_Angeles'].forEach(tz => {
+                    const option = document.createElement('option');
+                    option.value = tz;
+                    option.textContent = tz.replace(/_/g, ' ');
+                    select.appendChild(option);
+                });
+                select.value = 'UTC';
+            }
+        }
+
+        // Form validation
+        function validateForm() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const timezone = document.getElementById('timezone').value;
+            
+            if (!timezone) {
+                showFlash('Please select a device timezone', 'error');
+                return false;
+            }
+            
+            if (password !== confirmPassword) {
+                showFlash('Passwords do not match', 'error');
+                return false;
+            }
+            
+            if (password.length < 8) {
+                showFlash('Password must be at least 8 characters long', 'error');
+                return false;
+            }
+            
+            if (!/[A-Z]/.test(password)) {
+                showFlash('Password must contain at least one uppercase letter', 'error');
+                return false;
+            }
+            
+            if (!/[a-z]/.test(password)) {
+                showFlash('Password must contain at least one lowercase letter', 'error');
+                return false;
+            }
+            
+            if (!/\d/.test(password)) {
+                showFlash('Password must contain at least one number', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Setup form handling
+        document.getElementById('setupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            const button = document.getElementById('setupButton');
+            const buttonText = document.getElementById('setupButtonText');
+            const originalText = buttonText.textContent;
+            
+            // Show loading state
+            button.disabled = true;
+            buttonText.textContent = 'Creating Account...';
+            
+            try {
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                const response = await fetch('/setup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showFlash(result.message || 'Admin account created successfully!', 'success');
+                    
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        window.location.href = result.redirect || '/login';
+                    }, 2000);
+                } else {
+                    showFlash(result.error || 'Setup failed', 'error');
+                    
+                    // Reset form state
+                    button.disabled = false;
+                    buttonText.textContent = originalText;
+                    
+                    // Clear password fields on error
+                    document.getElementById('password').value = '';
+                    document.getElementById('confirm_password').value = '';
+                }
+                
+            } catch (error) {
+                console.error('Setup error:', error);
+                showFlash('Network error. Please check your connection and try again.', 'error');
+                
+                // Reset form state
+                button.disabled = false;
+                buttonText.textContent = originalText;
+            }
+        });
+
+        // Load timezones when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTimezones();
+        });
+
+        // Dark mode initialization (sync with main site)
+        function initializeDarkMode() {
+            const darkModePreference = localStorage.getItem('darkMode') || 'false';
+            const html = document.documentElement;
+            
+            if (darkModePreference === 'true') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+        }
+
+        // Focus on username field on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDarkMode();
+            document.getElementById('username').focus();
+        });
+
+        // Real-time password confirmation check
+        document.getElementById('confirm_password').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+</body>
+</html>

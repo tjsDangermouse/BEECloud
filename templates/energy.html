@@ -1,0 +1,3534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MELCloud Energy - Dashboard</title>
+    <!-- Networking hints -->
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- iOS Full Screen Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MELCloud Energy">
+    <link rel="apple-touch-icon" href="/static/Beelogo.png">
+    <link rel="apple-touch-startup-image" href="/static/Beelogo.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
+    <script defer src="/static/js/sw-register.js"></script>
+    <script defer src="/static/js/status.js"></script>
+    <script src="/static/js/shared-ui.js"></script>
+    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                50: '#fef7ed',
+                                100: '#fdeacc', 
+                                200: '#fad394',
+                                300: '#f7b85c',
+                                400: '#f59e0b',
+                                500: '#f59e0b',
+                                600: '#d97706',
+                                700: '#b45309',
+                                800: '#92400e',
+                                900: '#78350f'
+                            },
+                            success: {
+                                400: '#4ade80',
+                                500: '#22c55e',
+                                600: '#16a34a'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+</head>
+<body class="text-white overflow-x-hidden page-bg">
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+        {% set page_title = 'MELCloud' %}
+        {% include 'partials/mobile_header.html' %}
+
+        <!-- Content Area -->
+        <div style="height: calc(100svh - 200px); overflow: hidden;" class="relative">
+            <!-- Mobile swipe container -->
+            <div class="flex transition-transform duration-300 h-full" id="mobile-screens">
+                
+                <!-- Screen 1: Energy Statistics -->
+                <div class="w-full flex-shrink-0 overflow-y-auto px-5 pt-5">
+                <!-- Skeleton Placeholder -->
+                <div id="energy-skeleton" class="mb-3" style="display:none;">
+                    <div class="skeleton skeleton-line lg" style="width: 50%;"></div>
+                    <div class="skeleton" style="height: 120px; margin: 10px 0;"></div>
+                    <div class="skeleton skeleton-line" style="width: 40%;"></div>
+                </div>
+                
+                <!-- Energy Statistics Cards -->
+                <div class="space-y-2">
+                    <!-- Yesterday's COP -->
+                    <div class="rounded-xl p-3 panel-bg-mobile">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-300">Yesterday's COP</h3>
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                        </div>
+                        <div class="text-2xl font-bold mb-0.5" id="yesterday-cop">--</div>
+                        <div class="text-xs text-gray-500 mb-1">Consumed: <span id="yesterday-consumed">--</span> kWh · Produced: <span id="yesterday-produced">--</span> kWh</div>
+                    </div>
+
+                    <!-- Last 30 Days COP -->
+                    <div class="rounded-xl p-3 panel-bg-mobile">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-300">30-Day COP</h3>
+                            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19l7-7-7-7"/>
+                            </svg>
+                        </div>
+                        <div class="text-2xl font-bold mb-0.5" id="month-cop">--</div>
+                        <div class="text-xs text-gray-500 mb-1">Consumed: <span id="month-consumed">--</span> kWh · Produced: <span id="month-produced">--</span> kWh · <span id="month-days">--</span> days</div>
+                    </div>
+
+                    <!-- Last 12 Months SCOP -->
+                    <div class="rounded-xl p-3 panel-bg-mobile">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-300">12-Month SCOP</h3>
+                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="text-2xl font-bold mb-0.5" id="year-scop">--</div>
+                        <div class="text-xs text-gray-500 mb-1">Consumed: <span id="year-consumed">--</span> kWh · Produced: <span id="year-produced">--</span> kWh · <span id="year-days">--</span> days</div>
+                    </div>
+
+                    <!-- Active Schedules -->
+                    <div class="rounded-xl p-3 panel-bg-mobile">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-medium text-gray-300">Active Schedules</h3>
+                            <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="text-2xl font-bold mb-0.5" id="active-schedules-count">--</div>
+                        <div class="text-xs text-gray-500 mb-1" id="schedule-status">Loading schedules...</div>
+                        <div class="space-y-1 mt-2" id="upcoming-actions">
+                            <!-- Upcoming actions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+                
+                <!-- Screen 2: Temperature Chart -->
+                <div class="w-full flex-shrink-0 overflow-y-auto px-5 pt-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold">Temperature</h2>
+                        <div class="flex items-center space-x-2" style="position: relative; z-index: 100;">
+                            <button id="mobile-fullscreen-btn" onclick="toggleMobileFullscreen()" 
+                                    class="p-2 text-gray-400 hover:text-white transition-colors" title="Fullscreen">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                </svg>
+                            </button>
+                            <select id="mobile-chart-timeframe" 
+                                    class="px-3 py-2 text-sm rounded border border-gray-600 bg-gray-700 text-white"
+                                    style="position: relative; z-index: 101; touch-action: manipulation; min-width: 70px;">
+                                <option value="1h">1 Hour</option>
+                                <option value="3h">3 Hours</option>
+                                <option value="6h">6 Hours</option>
+                                <option value="24h" selected>24 Hours</option>
+                                <option value="2d">2 Days</option>
+                                <option value="7d">7 Days</option>
+                                <option value="2w">2 Weeks</option>
+                                <option value="1m">1 Month</option>
+                                <option value="6m">6 Months</option>
+                                <option value="1y">1 Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Temperature Chart Container -->
+                    <div class="relative rounded-xl p-4 panel-bg-mobile" id="mobile-chart-container">
+                        <canvas id="mobileDataChart" class="w-full" style="max-height: 400px; height: 350px;"></canvas>
+                        <!-- Chart Loading/Error Messages -->
+                        <div id="mobile-chart-loading" class="absolute inset-0 flex items-center justify-center rounded-xl text-gray-400 hidden overlay-bg" style="z-index: 100;">
+                            <p>Loading chart data...</p>
+                        </div>
+                        <div id="mobile-chart-error" class="absolute inset-0 flex items-center justify-center rounded-xl text-red-400 hidden overlay-bg" style="z-index: 100;">
+                            <p>Error loading data</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Reset Button -->
+                    <div class="mt-2 text-center">
+                        <button id="mobile-chart-reset-zoom-btn" onclick="resetMobileTemperatureChartZoom()" 
+                                class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors duration-200 hidden">
+                            Reset Zoom
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Screen 3: Energy Chart -->
+                <div class="w-full flex-shrink-0 overflow-y-auto px-5 pt-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold">Energy</h2>
+                        <div class="flex items-center space-x-2" style="position: relative; z-index: 100;">
+                            <button id="mobile-energy-fullscreen-btn" onclick="toggleMobileEnergyFullscreen()" 
+                                    class="p-2 text-gray-400 hover:text-white transition-colors" title="Fullscreen">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                </svg>
+                            </button>
+                            <select id="mobile-energy-period" 
+                                    class="px-3 py-2 text-sm rounded border border-gray-600 bg-gray-700 text-white"
+                                    style="position: relative; z-index: 101; touch-action: manipulation; min-width: 70px;" 
+                                    onchange="onMobileEnergyPeriodChange()">
+                                <option value="7d">7 Days</option>
+                                <option value="14d">14 Days</option>
+                                <option value="1m" selected>1 Month</option>
+                                <option value="3m">3 Months</option>
+                                <option value="6m">6 Months</option>
+                                <option value="1y">1 Year</option>
+                            </select>
+                            <div class="flex items-center bg-gray-700 rounded-lg p-1">
+                                <button id="mobile-daily-toggle" onclick="toggleMobileEnergyView('daily')" 
+                                        class="px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white">
+                                    Daily
+                                </button>
+                                <button id="mobile-monthly-toggle" onclick="toggleMobileEnergyView('monthly')" 
+                                        class="px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600">
+                                    Monthly
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Energy Chart Container -->
+                    <div class="relative rounded-xl p-4 panel-bg-mobile" id="mobile-energy-chart-container">
+                        <canvas id="mobileEnergyChart" class="w-full" style="max-height: 400px; height: 350px;"></canvas>
+                        <!-- Chart Loading/Error Messages -->
+                        <div id="mobile-energy-chart-loading" class="absolute inset-0 flex items-center justify-center rounded-xl text-gray-400 hidden overlay-bg" style="z-index: 100;">
+                            <p>Loading chart data...</p>
+                        </div>
+                        <div id="mobile-energy-chart-error" class="absolute inset-0 flex items-center justify-center rounded-xl text-red-400 hidden overlay-bg" style="z-index: 100;">
+                            <p>Error loading data</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Reset Button -->
+                    <div class="mt-2 text-center">
+                        <button id="mobile-energy-chart-reset-zoom-btn" onclick="resetMobileEnergyChartZoom()" 
+                                class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors duration-200 hidden">
+                            Reset Zoom
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <!-- Dedicated space for screen indicators -->
+        <div class="flex justify-center items-center py-3 page-bg">
+            <div class="flex space-x-2">
+                <div class="w-2 h-2 rounded-full bg-white" id="indicator-0"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500" id="indicator-1"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500" id="indicator-2"></div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->  
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L5 9.414V17a1 1 0 002 0v-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 002 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/schedules'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">Schedule</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-primary-500">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span class="text-xs">Energy</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/data-history'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/settings'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="hidden md:block">
+        <div class="container-desktop">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="space-y-6">
+                    <!-- Logo -->
+                    <div class="flex items-center space-x-3">
+                        <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain" width="40" height="40" decoding="async">
+                        <span class="text-xl font-semibold">MELCloud Dashboard</span>
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="space-y-2">
+                        <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                            </svg>
+                            <span>Home</span>
+                        </a>
+                        <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Schedules</span>
+                        </a>
+                        <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span>Energy</span>
+                        </a>
+                        <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                            <span>Data History</span>
+                        </a>
+                        <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                        <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Help</span>
+                        </a>
+                        
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="max-w-6xl mx-auto">
+                    <h1 class="text-3xl font-bold mb-8">Energy Statistics</h1>
+                    
+                    <!-- Energy Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Yesterday's COP -->
+                        <div class="rounded-3xl p-8" style="background-color: #111827;">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-semibold text-gray-300">Yesterday's COP</h3>
+                                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                            </div>
+                            <div class="text-5xl font-bold mb-4" id="desktop-yesterday-cop">--</div>
+                            <div class="text-lg text-gray-400 mb-4">Coefficient of Performance</div>
+                            <div class="space-y-1">
+                                <div class="text-sm text-gray-500">Energy Consumed: <span id="desktop-yesterday-consumed">--</span> kWh</div>
+                                <div class="text-sm text-gray-500">Energy Produced: <span id="desktop-yesterday-produced">--</span> kWh</div>
+                            </div>
+                        </div>
+
+                        <!-- Last 30 Days COP -->
+                        <div class="rounded-3xl p-8" style="background-color: #111827;">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-semibold text-gray-300">Last 30 Days COP</h3>
+                                <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19l7-7-7-7"/>
+                                </svg>
+                            </div>
+                            <div class="text-5xl font-bold mb-4" id="desktop-month-cop">--</div>
+                            <div class="text-lg text-gray-400 mb-4">30-Day Average COP</div>
+                            <div class="space-y-1">
+                                <div class="text-sm text-gray-500">Energy Consumed: <span id="desktop-month-consumed">--</span> kWh</div>
+                                <div class="text-sm text-gray-500">Energy Produced: <span id="desktop-month-produced">--</span> kWh</div>
+                                <div class="text-sm text-gray-500">Days: <span id="desktop-month-days">--</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Last 12 Months SCOP -->
+                        <div class="rounded-3xl p-8" style="background-color: #111827;">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-semibold text-gray-300">Last 12 Months SCOP</h3>
+                                <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4"/>
+                                </svg>
+                            </div>
+                            <div class="text-5xl font-bold mb-4" id="desktop-year-scop">--</div>
+                            <div class="text-lg text-gray-400 mb-4">Seasonal COP</div>
+                            <div class="space-y-1">
+                                <div class="text-sm text-gray-500">Energy Consumed: <span id="desktop-year-consumed">--</span> kWh</div>
+                                <div class="text-sm text-gray-500">Energy Produced: <span id="desktop-year-produced">--</span> kWh</div>
+                                <div class="text-sm text-gray-500">Days: <span id="desktop-year-days">--</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Temperature Chart Section -->
+                    <div class="mt-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold">Temperature Data</h2>
+                            <div class="flex items-center space-x-4">
+                                <label for="desktop-chart-timeframe" class="text-sm font-medium">Period:</label>
+                                <select id="desktop-chart-timeframe" onchange="onDesktopTimeframeChange()"
+                                        class="px-3 py-2 rounded border border-gray-600 bg-gray-700 text-white">
+                                    <option value="1h">Last Hour</option>
+                                    <option value="3h">Last 3 Hours</option>
+                                    <option value="6h">Last 6 Hours</option>
+                                    <option value="24h" selected>Last 24 Hours</option>
+                                    <option value="2d">Last 2 Days</option>
+                                    <option value="7d">Last Week</option>
+                                    <option value="2w">Last 2 Weeks</option>
+                                    <option value="1m">Last Month</option>
+                                    <option value="6m">Last 6 Months</option>
+                                    <option value="1y">Last Year</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Desktop Temperature Chart Container -->
+                        <div class="relative rounded-3xl p-8 panel-bg">
+                            <!-- Fullscreen Button -->
+                            <button id="desktop-temp-fullscreen-btn" onclick="toggleDesktopTempFullscreen()" 
+                                    class="absolute top-2 right-2 p-2 text-gray-300 hover:text-white bg-gray-700/60 hover:bg-gray-600 rounded-md transition-colors"
+                                    title="Fullscreen">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+                                </svg>
+                            </button>
+                            <canvas id="desktopDataChart" class="w-full" style="max-height: 500px; height: 450px;"></canvas>
+                            <!-- Chart Loading/Error Messages -->
+                            <div id="desktop-chart-loading" class="absolute inset-0 flex items-center justify-center rounded-3xl text-gray-400 hidden overlay-bg" style="z-index: 100;">
+                                <p>Loading chart data...</p>
+                            </div>
+                            <div id="desktop-chart-error" class="absolute inset-0 flex items-center justify-center rounded-3xl text-red-400 hidden overlay-bg" style="z-index: 100;">
+                                <p>Error loading data</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Reset Button -->
+                        <div class="mt-4 text-center">
+                            <button id="desktop-chart-reset-zoom-btn" onclick="resetDesktopTemperatureChartZoom()" 
+                                    class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 hidden">
+                                Reset Zoom
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Energy Chart Section -->
+                    <div class="mt-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold">Energy Data</h2>
+                            <div class="flex items-center space-x-4">
+                                <label for="desktop-energy-period" class="text-sm font-medium">Period:</label>
+                                <select id="desktop-energy-period" onchange="onDesktopEnergyPeriodChange()"
+                                        class="px-3 py-2 rounded border border-gray-600 bg-gray-700 text-white">
+                                    <option value="7d">7 Days</option>
+                                    <option value="14d">14 Days</option>
+                                    <option value="1m" selected>1 Month</option>
+                                    <option value="3m">3 Months</option>
+                                    <option value="6m">6 Months</option>
+                                    <option value="1y">1 Year</option>
+                                </select>
+                                <div class="flex items-center bg-gray-700 rounded-lg p-1">
+                                    <button id="desktop-daily-toggle" onclick="toggleDesktopEnergyView('daily')" 
+                                            class="px-3 py-2 text-sm font-medium rounded transition-colors duration-200 bg-blue-500 text-white">
+                                        Daily
+                                    </button>
+                                    <button id="desktop-monthly-toggle" onclick="toggleDesktopEnergyView('monthly')" 
+                                            class="px-3 py-2 text-sm font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600">
+                                        Monthly
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Desktop Energy Chart Container -->
+                        <div class="relative rounded-3xl p-8 panel-bg">
+                            <!-- Fullscreen Button -->
+                            <button id="desktop-energy-fullscreen-btn" onclick="toggleDesktopEnergyFullscreen()" 
+                                    class="absolute top-2 right-2 p-2 text-gray-300 hover:text-white bg-gray-700/60 hover:bg-gray-600 rounded-md transition-colors"
+                                    title="Fullscreen">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+                                </svg>
+                            </button>
+                            <canvas id="desktopEnergyChart" class="w-full" style="max-height: 500px; height: 450px;"></canvas>
+                            <!-- Chart Loading/Error Messages -->
+                            <div id="desktop-energy-chart-loading" class="absolute inset-0 flex items-center justify-center rounded-3xl text-gray-400 hidden overlay-bg" style="z-index: 100;">
+                                <p>Loading chart data...</p>
+                            </div>
+                            <div id="desktop-energy-chart-error" class="absolute inset-0 flex items-center justify-center rounded-3xl text-red-400 hidden overlay-bg" style="z-index: 100;">
+                                <p>Error loading data</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Reset Button -->
+                        <div class="mt-4 text-center">
+                            <button id="desktop-energy-chart-reset-zoom-btn" onclick="resetDesktopEnergyChartZoom()" 
+                                    class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 hidden">
+                                Reset Zoom
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart instances and variables
+        let mobileChartInstance = null;
+        let desktopChartInstance = null;
+        let mobileFullscreenChartInstance = null;
+        let mobileEnergyChartInstance = null;
+        let mobileEnergyFullscreenChartInstance = null;
+        let mobileSelectedTimeframe = '24h';
+        let desktopSelectedTimeframe = '24h';
+        let fullscreenSelectedTimeframe = '24h';
+        let currentMobileScreen = 0;
+        let isFullscreenMode = false;
+        let isEnergyFullscreenMode = false;
+        let mobileEnergyView = 'daily'; // 'daily' or 'monthly'
+        let mobileEnergyPeriod = '1m'; // energy chart period
+        let desktopEnergyChartInstance = null;
+        let desktopEnergyView = 'daily'; // 'daily' or 'monthly'
+        let desktopEnergyPeriod = '1m'; // desktop energy chart period
+        
+        // Zoom/pan debounce and state for dynamic aggregation
+        let mobileZoomTimer = null, desktopZoomTimer = null, mobileFsZoomTimer = null, desktopFsZoomTimer = null;
+        let lastMobileZoomFetch = { agg: null, start: null, end: null };
+        let lastDesktopZoomFetch = { agg: null, start: null, end: null };
+
+        // Grafana-style legend click handler
+        function grafanaLegendClickHandler(e, legendItem, legend) {
+            const chart = legend.chart;
+            const datasetIndex = legendItem.datasetIndex;
+
+            // Determine current visibility state
+            const visibility = chart.data.datasets.map((_, i) => chart.isDatasetVisible(i));
+            const visibleCount = visibility.filter(Boolean).length;
+            const isClickedVisible = visibility[datasetIndex];
+
+            if (visibleCount > 1 && isClickedVisible) {
+                // First click on a visible series: isolate it
+                chart.data.datasets.forEach((_, i) => {
+                    chart.setDatasetVisibility(i, i === datasetIndex);
+                });
+            } else if (visibleCount === 1 && isClickedVisible) {
+                // Clicking the only visible series: reset to show all
+                chart.data.datasets.forEach((_, i) => {
+                    chart.setDatasetVisibility(i, true);
+                });
+            } else {
+                // Clicked a hidden series: make it visible in addition to current visibles
+                chart.setDatasetVisibility(datasetIndex, true);
+            }
+
+            chart.update();
+        }
+
+        // Status handled by shared StatusWidget
+
+        // Desktop fullscreen state
+        let isDesktopTempFullscreen = false;
+        let isDesktopEnergyFullscreen = false;
+        let desktopTempFullscreenChartInstance = null;
+        let desktopEnergyFullscreenChartInstance = null;
+
+        // Desktop Temperature Fullscreen
+        function toggleDesktopTempFullscreen() {
+            const modal = document.getElementById('desktop-temp-fullscreen');
+            if (!modal) return;
+            isDesktopTempFullscreen = !isDesktopTempFullscreen;
+            if (isDesktopTempFullscreen) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                // Sync dropdown with main timeframe
+                const mainDd = document.getElementById('desktop-chart-timeframe');
+                const fsDd = document.getElementById('desktop-fullscreen-chart-timeframe');
+                if (mainDd && fsDd) fsDd.value = mainDd.value;
+                setTimeout(() => {
+                    if (!desktopTempFullscreenChartInstance) {
+                        createDesktopTempFullscreenChart();
+                    } else {
+                        updateDesktopTempFullscreenChart();
+                    }
+                    setTimeout(() => {
+                        if (desktopTempFullscreenChartInstance) desktopTempFullscreenChartInstance.resize();
+                    }, 150);
+                }, 50);
+            } else {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function createDesktopTempFullscreenChart() {
+            const canvas = document.getElementById('desktopDataChartFullscreen');
+            if (!canvas || !desktopChartInstance) return;
+            const ctx = canvas.getContext('2d');
+            if (desktopTempFullscreenChartInstance) desktopTempFullscreenChartInstance.destroy();
+
+            const datasets = desktopChartInstance.data.datasets.map(ds => ({
+                ...ds,
+                data: [...ds.data]
+            }));
+            const timeConfig = getTimeframeConfig(desktopSelectedTimeframe);
+
+            desktopTempFullscreenChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'top',
+                            labels: { color: '#f3f4f6', font: { size: 14 } }
+                        },
+                        tooltip: { enabled: true },
+                        zoom: {
+                            pan: { 
+                                enabled: true, 
+                                mode: 'x', 
+                                modifierKey: 'shift',
+                                onPanComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(desktopFsZoomTimer);
+                                    desktopFsZoomTimer = setTimeout(() => updateDesktopChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            },
+                            zoom: {
+                                wheel: { enabled: false },
+                                drag: { enabled: true, mode: 'x', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.8)', borderWidth: 1 },
+                                mode: 'x',
+                                onZoom: () => document.getElementById('desktop-temp-fullscreen-reset-zoom-btn').classList.remove('hidden'),
+                                onZoomComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(desktopFsZoomTimer);
+                                    desktopFsZoomTimer = setTimeout(() => updateDesktopChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: timeConfig.unit, stepSize: timeConfig.stepSize, displayFormats: { minute: timeConfig.format, hour: timeConfig.format, day: timeConfig.format, week: timeConfig.format, month: timeConfig.format } },
+                            title: { display: true, text: 'Time', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af', maxTicksLimit: 10 },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Temperature (°C)', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        }
+                    }
+                }
+            });
+            // Sync visibility state from main chart
+            desktopChartInstance.data.datasets.forEach((_, i) => {
+                desktopTempFullscreenChartInstance.setDatasetVisibility(i, desktopChartInstance.isDatasetVisible(i));
+            });
+            desktopTempFullscreenChartInstance.update();
+        }
+
+        function updateDesktopTempFullscreenChart() {
+            if (!desktopTempFullscreenChartInstance || !desktopChartInstance) return;
+            desktopChartInstance.data.datasets.forEach((dataset, index) => {
+                if (desktopTempFullscreenChartInstance.data.datasets[index]) {
+                    desktopTempFullscreenChartInstance.data.datasets[index].data = [...dataset.data];
+                    desktopTempFullscreenChartInstance.data.datasets[index].label = dataset.label;
+                }
+            });
+            desktopTempFullscreenChartInstance.update();
+        }
+
+        // Desktop fullscreen timeframe change handlers
+        function onDesktopFullscreenTempTimeframeChange() {
+            const fsDd = document.getElementById('desktop-fullscreen-chart-timeframe');
+            const mainDd = document.getElementById('desktop-chart-timeframe');
+            if (fsDd && mainDd) {
+                desktopSelectedTimeframe = fsDd.value;
+                mainDd.value = fsDd.value;
+                // Trigger main change handler to fetch data
+                if (typeof onDesktopTimeframeChange === 'function') {
+                    onDesktopTimeframeChange();
+                } else {
+                    mainDd.dispatchEvent(new Event('change'));
+                }
+                // After data refresh, sync fullscreen
+                setTimeout(updateDesktopTempFullscreenChart, 600);
+            }
+        }
+
+        function resetDesktopTempFullscreenChartZoom() {
+            if (desktopTempFullscreenChartInstance) {
+                try { desktopTempFullscreenChartInstance.resetZoom(); } catch (e) {}
+                if (desktopTempFullscreenChartInstance.options && desktopTempFullscreenChartInstance.options.scales && desktopTempFullscreenChartInstance.options.scales.x) {
+                    desktopTempFullscreenChartInstance.options.scales.x.min = undefined;
+                    desktopTempFullscreenChartInstance.options.scales.x.max = undefined;
+                }
+                desktopTempFullscreenChartInstance.update('none');
+            }
+            const btn = document.getElementById('desktop-temp-fullscreen-reset-zoom-btn');
+            if (btn) btn.classList.add('hidden');
+            if (typeof lastDesktopZoomFetch !== 'undefined') lastDesktopZoomFetch = { agg: null, start: null, end: null };
+            updateDesktopChart();
+            setTimeout(() => { updateDesktopTempFullscreenChart(); }, 600);
+        }
+
+        // Desktop Energy Fullscreen
+        function toggleDesktopEnergyFullscreen() {
+            const modal = document.getElementById('desktop-energy-fullscreen');
+            if (!modal) return;
+            isDesktopEnergyFullscreen = !isDesktopEnergyFullscreen;
+            if (isDesktopEnergyFullscreen) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                // Sync dropdowns with main controls
+                const mainDd = document.getElementById('desktop-energy-period');
+                const fsDd = document.getElementById('desktop-fullscreen-energy-period');
+                if (mainDd && fsDd) fsDd.value = mainDd.value;
+                const fsDailyBtn = document.getElementById('desktop-fullscreen-daily-toggle');
+                const fsMonthlyBtn = document.getElementById('desktop-fullscreen-monthly-toggle');
+                if (fsDailyBtn && fsMonthlyBtn) {
+                    if (desktopEnergyView === 'daily') {
+                        fsDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                        fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                    } else {
+                        fsDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                        fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                    }
+                }
+                setTimeout(() => {
+                    if (!desktopEnergyFullscreenChartInstance) {
+                        createDesktopEnergyFullscreenChart();
+                    } else {
+                        updateDesktopEnergyFullscreenChart();
+                    }
+                    setTimeout(() => {
+                        if (desktopEnergyFullscreenChartInstance) desktopEnergyFullscreenChartInstance.resize();
+                    }, 150);
+                }, 50);
+            } else {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function createDesktopEnergyFullscreenChart() {
+            const canvas = document.getElementById('desktopEnergyChartFullscreen');
+            if (!canvas || !desktopEnergyChartInstance) return;
+            const ctx = canvas.getContext('2d');
+            if (desktopEnergyFullscreenChartInstance) desktopEnergyFullscreenChartInstance.destroy();
+
+            const datasets = desktopEnergyChartInstance.data.datasets.map(ds => ({
+                ...ds,
+                data: [...ds.data]
+            }));
+            const labels = [...desktopEnergyChartInstance.data.labels];
+
+            desktopEnergyFullscreenChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'top',
+                            labels: { color: '#f3f4f6', font: { size: 14 } }
+                        },
+                        tooltip: { enabled: true },
+                        zoom: {
+                            pan: { enabled: true, mode: 'x', modifierKey: 'shift' },
+                            zoom: {
+                                wheel: { enabled: false },
+                                drag: { enabled: true, mode: 'x', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.8)', borderWidth: 1 },
+                                mode: 'x',
+                                onZoom: () => document.getElementById('desktop-energy-fullscreen-reset-zoom-btn').classList.remove('hidden')
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af', maxTicksLimit: 12 },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            type: 'linear', display: true, position: 'left',
+                            title: { display: true, text: 'Energy (kWh)', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        },
+                        cop: {
+                            type: 'linear', display: true, position: 'right',
+                            title: { display: true, text: 'COP', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+            // Sync visibility state from main chart
+            desktopEnergyChartInstance.data.datasets.forEach((_, i) => {
+                desktopEnergyFullscreenChartInstance.setDatasetVisibility(i, desktopEnergyChartInstance.isDatasetVisible(i));
+            });
+            desktopEnergyFullscreenChartInstance.update();
+        }
+
+        function updateDesktopEnergyFullscreenChart() {
+            if (!desktopEnergyFullscreenChartInstance || !desktopEnergyChartInstance) return;
+            desktopEnergyFullscreenChartInstance.data.labels = [...desktopEnergyChartInstance.data.labels];
+            desktopEnergyChartInstance.data.datasets.forEach((dataset, index) => {
+                if (desktopEnergyFullscreenChartInstance.data.datasets[index]) {
+                    desktopEnergyFullscreenChartInstance.data.datasets[index].data = [...dataset.data];
+                    desktopEnergyFullscreenChartInstance.data.datasets[index].label = dataset.label;
+                }
+            });
+            desktopEnergyFullscreenChartInstance.update();
+        }
+
+        function onDesktopFullscreenEnergyPeriodChange() {
+            const fsDd = document.getElementById('desktop-fullscreen-energy-period');
+            const mainDd = document.getElementById('desktop-energy-period');
+            if (fsDd && mainDd) {
+                desktopEnergyPeriod = fsDd.value;
+                mainDd.value = fsDd.value;
+                onDesktopEnergyPeriodChange();
+                setTimeout(updateDesktopEnergyFullscreenChart, 600);
+            }
+        }
+
+        function toggleDesktopFullscreenEnergyView(view) {
+            // Update main view and buttons
+            toggleDesktopEnergyView(view);
+            // Sync fullscreen button styles
+            const fsDailyBtn = document.getElementById('desktop-fullscreen-daily-toggle');
+            const fsMonthlyBtn = document.getElementById('desktop-fullscreen-monthly-toggle');
+            if (fsDailyBtn && fsMonthlyBtn) {
+                if (view === 'daily') {
+                    fsDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                    fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                } else {
+                    fsDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                    fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                }
+            }
+            setTimeout(updateDesktopEnergyFullscreenChart, 600);
+        }
+
+        function resetDesktopEnergyFullscreenChartZoom() {
+            if (desktopEnergyFullscreenChartInstance) {
+                desktopEnergyFullscreenChartInstance.resetZoom();
+                document.getElementById('desktop-energy-fullscreen-reset-zoom-btn').classList.add('hidden');
+            }
+        }
+
+        // User info and logout functionality now handled by shared-ui.js
+        
+        // Schedule dashboard integration functions
+        async function fetchScheduleData() {
+            try {
+                // Fetch active schedules
+                const schedulesResponse = await fetch('/api/schedules?active_only=true');
+                const schedulesData = await schedulesResponse.json();
+                
+                // Fetch next upcoming heating and hot water schedules (existing endpoint)
+                const upcomingResponse = await fetch('/api/next-schedules');
+                const upcomingData = await upcomingResponse.json();
+                
+                let upcomingActions = [];
+                if (upcomingData && upcomingData.success) {
+                    const toAction = (item) => {
+                        // Build a Date for next execution based on provided time and is_tomorrow
+                        const now = new Date();
+                        const [hh, mm] = String(item.time || '').split(':').map(Number);
+                        const exec = new Date(now.getFullYear(), now.getMonth(), now.getDate(), isNaN(hh)?0:hh, isNaN(mm)?0:mm, 0, 0);
+                        if (item.is_tomorrow) exec.setDate(exec.getDate() + 1);
+                        return {
+                            schedule_name: item.name || 'Schedule',
+                            next_execution: exec.toISOString(),
+                            target_value: item.target_value
+                        };
+                    };
+                    if (upcomingData.next_heating) upcomingActions.push(toAction(upcomingData.next_heating));
+                    if (upcomingData.next_hotwater) upcomingActions.push(toAction(upcomingData.next_hotwater));
+                }
+                
+                if (schedulesData.success) {
+                    updateScheduleCard(schedulesData.schedules, upcomingActions);
+                } else {
+                    document.getElementById('schedule-status').textContent = 'Error loading schedules';
+                }
+            } catch (error) {
+                console.error('Error fetching schedule data:', error);
+                document.getElementById('schedule-status').textContent = 'Failed to load';
+            }
+        }
+
+        function updateScheduleCard(schedules, upcomingActions) {
+            const activeCount = schedules.length;
+            const countElement = document.getElementById('active-schedules-count');
+            const statusElement = document.getElementById('schedule-status');
+            const actionsContainer = document.getElementById('upcoming-actions');
+            
+            // Update count
+            countElement.textContent = activeCount;
+            
+            // Update status text
+            if (activeCount === 0) {
+                statusElement.textContent = 'No active schedules';
+            } else {
+                const nextAction = upcomingActions.length > 0 ? upcomingActions[0] : null;
+                if (nextAction) {
+                    const nextTime = new Date(nextAction.next_execution);
+                    const timeStr = nextTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    statusElement.textContent = `Next: ${nextAction.schedule_name} at ${timeStr}`;
+                } else {
+                    statusElement.textContent = `${activeCount} active schedule${activeCount > 1 ? 's' : ''}`;
+                }
+            }
+            
+            // Update upcoming actions list
+            actionsContainer.innerHTML = '';
+            const actionsToShow = upcomingActions.slice(0, 3); // Show up to 3 upcoming actions
+            
+            actionsToShow.forEach(action => {
+                const nextTime = new Date(action.next_execution);
+                const timeStr = nextTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const targetText = action.target_value ? `${action.target_value}°C` : 'Toggle';
+                
+                const actionDiv = document.createElement('div');
+                actionDiv.className = 'text-xs text-gray-400 flex justify-between items-center';
+                actionDiv.innerHTML = `
+                    <span>${action.schedule_name}</span>
+                    <span>${timeStr} → ${targetText}</span>
+                `;
+                actionsContainer.appendChild(actionDiv);
+            });
+            
+            // Add link to schedules page if there are schedules
+            if (activeCount > 0) {
+                const linkDiv = document.createElement('div');
+                linkDiv.className = 'text-xs mt-2 pt-1 border-t border-gray-600';
+                linkDiv.innerHTML = `
+                    <a href="/schedules" class="text-orange-400 hover:text-orange-300 flex items-center justify-between">
+                        <span>Manage Schedules</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                `;
+                actionsContainer.appendChild(linkDiv);
+            }
+        }
+        
+        // Load energy data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing energy page');
+            loadEnergyData();
+            displayUserInfo(); // Load current user info
+            fetchScheduleData(); // Load schedule information
+            
+            // Initialize shared connection status widget
+            StatusWidget.init();
+            
+            // Setup swipe functionality for mobile first
+            setupMobileSwipe();
+            
+            // Setup dropdown event listeners
+            setupDropdownListeners();
+            
+            // Setup fullscreen dropdown listener
+            setupFullscreenDropdownListeners();
+            
+            // Initialize temperature charts with a slight delay to ensure DOM is ready
+            setTimeout(() => {
+                console.log('Initializing charts');
+                updateMobileChart();
+                updateDesktopChart();
+                updateDesktopEnergyChart();
+            }, 100);
+            
+            // Auto-refresh every 60 seconds
+            setInterval(loadEnergyData, 60000);
+            setInterval(() => {
+                if (window.innerWidth < 768) { // Only update mobile chart on mobile
+                    updateMobileChart();
+                }
+                updateDesktopChart();
+            }, 60000);
+            
+            // Setup orientation change detection
+            window.addEventListener('orientationchange', handleOrientationChange);
+            window.addEventListener('resize', handleOrientationChange);
+            
+            // Also listen to screen orientation API if available
+            if (screen.orientation) {
+                screen.orientation.addEventListener('change', handleOrientationChange);
+            }
+            
+            // Add manual test for debugging
+            console.log('🧪 Fullscreen functionality initialized. Use testFullscreen() in console or TEST button to test manually.');
+        });
+
+        async function loadEnergyData() {
+            const sk = document.getElementById('energy-skeleton');
+            if (sk) sk.style.display = '';
+            try {
+                // Render from session cache first (TTL 90s)
+                try {
+                    const cached = sessionStorage.getItem('energyStatsV1');
+                    if (cached) {
+                        const { payload, fetchTime } = JSON.parse(cached);
+                        if (payload && fetchTime && (Date.now() - fetchTime) < 90000) {
+                            updateEnergyDisplay('yesterday', payload.yesterday);
+                            updateEnergyDisplay('month', payload.month);
+                            updateEnergyDisplay('year', payload.year);
+                            if (sk) sk.style.display = 'none';
+                        }
+                    }
+                } catch {}
+
+                console.log('Fetching energy data...');
+                const response = await fetch('/api/energy-stats');
+                const data = await response.json();
+                
+                console.log('Energy API Response:', data);
+                
+                if (data.debug) {
+                    console.log('Device Keys:', data.debug.device_keys);
+                    console.log('Current Data Keys:', data.debug.current_data_keys);
+                    console.log('Sample Energy Fields:', data.debug.sample_fields);
+                    console.log('Calculated COP:', data.debug.calculated_cop);
+                }
+                
+                if (data.error) {
+                    console.error('Error loading energy data:', data.error);
+                    return;
+                }
+                
+                console.log('Yesterday COP:', data.yesterday?.cop);
+                console.log('Month COP:', data.month?.cop);
+                console.log('Year SCOP:', data.year?.cop);
+                
+                // Update mobile and desktop displays
+                updateEnergyDisplay('yesterday', data.yesterday);
+                updateEnergyDisplay('month', data.month);
+                updateEnergyDisplay('year', data.year);
+                try { sessionStorage.setItem('energyStatsV1', JSON.stringify({ payload: data, fetchTime: Date.now() })); } catch {}
+                if (sk) sk.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error loading energy data:', error);
+                if (sk) sk.style.display = 'none';
+            }
+        }
+
+        function updateEnergyDisplay(period, data) {
+            // Update mobile COP values
+            const mobileValueElement = document.getElementById(`${period}-cop`) || document.getElementById(`${period}-scop`);
+            if (mobileValueElement && data && data.cop !== undefined) {
+                mobileValueElement.textContent = data.cop.toFixed(2);
+            }
+            
+            // Update mobile energy values
+            const mobileConsumed = document.getElementById(`${period}-consumed`);
+            const mobileProduced = document.getElementById(`${period}-produced`);
+            const mobileDays = document.getElementById(`${period}-days`);
+            
+            if (mobileConsumed && data && data.consumed !== undefined) {
+                mobileConsumed.textContent = data.consumed.toFixed(1);
+            }
+            if (mobileProduced && data && data.produced !== undefined) {
+                mobileProduced.textContent = data.produced.toFixed(1);
+            }
+            if (mobileDays && data && data.days !== undefined) {
+                mobileDays.textContent = data.days;
+            }
+            
+            // Update desktop COP values
+            const desktopValueElement = document.getElementById(`desktop-${period}-cop`) || document.getElementById(`desktop-${period}-scop`);
+            if (desktopValueElement && data && data.cop !== undefined) {
+                desktopValueElement.textContent = data.cop.toFixed(2);
+            }
+            
+            // Update desktop energy values
+            const desktopConsumed = document.getElementById(`desktop-${period}-consumed`);
+            const desktopProduced = document.getElementById(`desktop-${period}-produced`);
+            const desktopDays = document.getElementById(`desktop-${period}-days`);
+            
+            if (desktopConsumed && data && data.consumed !== undefined) {
+                desktopConsumed.textContent = data.consumed.toFixed(1);
+            }
+            if (desktopProduced && data && data.produced !== undefined) {
+                desktopProduced.textContent = data.produced.toFixed(1);
+            }
+            if (desktopDays && data && data.days !== undefined) {
+                desktopDays.textContent = data.days;
+            }
+        }
+
+        // Timeframe configuration functions
+        function getTimeframeConfig(timeframe) {
+            const configs = {
+                '1h': { hours: 1, unit: 'minute', stepSize: 5, format: 'HH:mm' },
+                '3h': { hours: 3, unit: 'minute', stepSize: 15, format: 'HH:mm' },
+                '6h': { hours: 6, unit: 'minute', stepSize: 30, format: 'HH:mm' },
+                '24h': { hours: 24, unit: 'hour', stepSize: 2, format: 'MMM dd HH:mm' },
+                '2d': { days: 2, unit: 'hour', stepSize: 6, format: 'MMM dd HH:mm' },
+                '7d': { days: 7, unit: 'hour', stepSize: 12, format: 'MMM dd HH:mm' },
+                '2w': { days: 14, unit: 'day', stepSize: 1, format: 'MMM dd' },
+                '1m': { days: 30, unit: 'day', stepSize: 3, format: 'MMM dd' },
+                '6m': { days: 180, unit: 'week', stepSize: 2, format: 'MMM dd' },
+                '1y': { days: 365, unit: 'month', stepSize: 1, format: 'MMM yyyy' }
+            };
+            return configs[timeframe] || configs['24h'];
+        }
+        
+        function getDateRangeForTimeframe(timeframe) {
+            const now = new Date();
+            const config = getTimeframeConfig(timeframe);
+            let startDate = new Date(now);
+            
+            if (config.hours) {
+                startDate.setHours(startDate.getHours() - config.hours);
+            } else if (config.days) {
+                startDate.setDate(startDate.getDate() - config.days);
+            }
+            
+            if (config.hours) {
+                return {
+                    start: startDate.toISOString(),
+                    end: now.toISOString()
+                };
+            } else {
+                return {
+                    start: startDate.toISOString().split('T')[0],
+                    end: now.toISOString().split('T')[0]
+                };
+            }
+        }
+        
+        // Determine aggregation mode based on the visible range
+        function getAggregationForRange(startMs, endMs) {
+            const rangeDays = Math.max(0, (endMs - startMs) / (1000 * 60 * 60 * 24));
+            if (rangeDays <= 2) return { type: 'raw', aggregated: false, limit: 500 };
+            if (rangeDays <= 31) return { type: 'hourly', aggregated: true, limit: 1000 };
+            if (rangeDays <= 180) return { type: 'daily', aggregated: true, limit: 400 };
+            return { type: 'weekly', aggregated: true, limit: 60 };
+        }
+
+        function buildTemperatureUrl(aggInfo, startMs, endMs) {
+            const startISO = new Date(startMs).toISOString();
+            const endISO = new Date(endMs).toISOString();
+            const startDate = startISO.split('T')[0];
+            const endDate = endISO.split('T')[0];
+            if (aggInfo.type === 'raw') {
+                return `/api/data/history?limit=${aggInfo.limit}&date_from=${encodeURIComponent(startISO)}&date_to=${encodeURIComponent(endISO)}`;
+            } else if (aggInfo.type === 'hourly') {
+                return `/api/data/hourly-temperature-summary?limit=${aggInfo.limit}&date_from=${encodeURIComponent(startISO)}&date_to=${encodeURIComponent(endISO)}`;
+            } else if (aggInfo.type === 'daily') {
+                return `/api/data/daily-temperature-summary?limit=${aggInfo.limit}&date_from=${encodeURIComponent(startDate)}&date_to=${encodeURIComponent(endDate)}`;
+            } else {
+                return `/api/data/weekly-temperature-summary?limit=${aggInfo.limit}&date_from=${encodeURIComponent(startDate)}&date_to=${encodeURIComponent(endDate)}`;
+            }
+        }
+
+        function rangesRoughlyEqual(aStart, aEnd, bStart, bEnd) {
+            if (aStart == null || aEnd == null || bStart == null || bEnd == null) return false;
+            const lenA = aEnd - aStart;
+            const lenB = bEnd - bStart;
+            if (lenA === 0 || lenB === 0) return false;
+            const centerDelta = Math.abs(((aStart + aEnd) / 2) - ((bStart + bEnd) / 2));
+            const lenDelta = Math.abs(lenA - lenB);
+            return (centerDelta / lenA < 0.02) && (lenDelta / lenA < 0.02);
+        }
+
+        function updateMobileChartForVisibleRange(startMs, endMs) {
+            const chartLoading = document.getElementById('mobile-chart-loading');
+            const chartError = document.getElementById('mobile-chart-error');
+            const aggInfo = getAggregationForRange(startMs, endMs);
+            const url = buildTemperatureUrl(aggInfo, startMs, endMs);
+            if (lastMobileZoomFetch.agg === aggInfo.type && rangesRoughlyEqual(lastMobileZoomFetch.start, lastMobileZoomFetch.end, startMs, endMs)) {
+                return;
+            }
+            lastMobileZoomFetch = { agg: aggInfo.type, start: startMs, end: endMs };
+            chartError.classList.add('hidden');
+            chartLoading.classList.remove('hidden');
+            fetch(url)
+                .then(r => r.json())
+                .then(result => {
+                    chartLoading.classList.add('hidden');
+                    if (result.success && result.data.length > 0) {
+                        if (mobileChartInstance) updateMobileChartData(result.data, aggInfo.aggregated);
+                        else createMobileChart(result.data, aggInfo.aggregated);
+                        if (mobileFullscreenChartInstance) updateMobileFullscreenChart();
+                    } else {
+                        chartError.innerHTML = '<p>No data available for the visible range.</p>';
+                        chartError.classList.remove('hidden');
+                    }
+                })
+                .catch(err => {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = `<p>Error loading data: ${err.message}</p>`;
+                    chartError.classList.remove('hidden');
+                });
+        }
+
+        function updateDesktopChartForVisibleRange(startMs, endMs) {
+            const chartLoading = document.getElementById('desktop-chart-loading');
+            const chartError = document.getElementById('desktop-chart-error');
+            const aggInfo = getAggregationForRange(startMs, endMs);
+            const url = buildTemperatureUrl(aggInfo, startMs, endMs);
+            if (lastDesktopZoomFetch.agg === aggInfo.type && rangesRoughlyEqual(lastDesktopZoomFetch.start, lastDesktopZoomFetch.end, startMs, endMs)) {
+                return;
+            }
+            lastDesktopZoomFetch = { agg: aggInfo.type, start: startMs, end: endMs };
+            chartError.classList.add('hidden');
+            chartLoading.classList.remove('hidden');
+            fetch(url)
+                .then(r => r.json())
+                .then(result => {
+                    chartLoading.classList.add('hidden');
+                    if (result.success && result.data.length > 0) {
+                        if (desktopChartInstance) updateDesktopChartData(result.data, aggInfo.aggregated);
+                        else createDesktopChart(result.data, aggInfo.aggregated);
+                        if (typeof isDesktopTempFullscreen !== 'undefined' && isDesktopTempFullscreen) {
+                            updateDesktopTempFullscreenChart();
+                        }
+                    } else {
+                        chartError.innerHTML = '<p>No data available for the visible range.</p>';
+                        chartError.classList.remove('hidden');
+                    }
+                })
+                .catch(err => {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = `<p>Error loading data: ${err.message}</p>`;
+                    chartError.classList.remove('hidden');
+                });
+        }
+        
+        // Setup fullscreen dropdown event listeners
+        function setupFullscreenDropdownListeners() {
+            const fullscreenDropdown = document.getElementById('fullscreen-chart-timeframe');
+            if (fullscreenDropdown) {
+                fullscreenDropdown.addEventListener('change', function(e) {
+                    console.log('✅ Fullscreen dropdown CHANGED to:', e.target.value);
+                    fullscreenSelectedTimeframe = e.target.value;
+                    mobileSelectedTimeframe = e.target.value; // Keep both in sync
+                    
+                    // Update both mobile dropdown and main chart
+                    const mobileDropdown = document.getElementById('mobile-chart-timeframe');
+                    if (mobileDropdown) {
+                        mobileDropdown.value = e.target.value;
+                    }
+                    
+                    updateMobileChart();
+                    if (mobileFullscreenChartInstance) {
+                        setTimeout(() => updateMobileFullscreenChart(), 500);
+                    }
+                });
+            }
+        }
+        
+        // Orientation and landscape detection
+        function checkLandscapeMode() {
+            // Check for landscape orientation on touch devices (iPhone/mobile)
+            const isLandscape = window.innerWidth > window.innerHeight;
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            return isLandscape && isTouchDevice;
+        }
+        
+        // Auto-trigger fullscreen in landscape mode
+        function handleOrientationChange() {
+            setTimeout(() => {
+                const isLandscape = window.innerWidth > window.innerHeight;
+                const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                const isOnTemperatureScreen = currentMobileScreen === 1;
+                const isOnEnergyScreen = currentMobileScreen === 2;
+                
+                console.log('Orientation:', {width: window.innerWidth, height: window.innerHeight, isLandscape, isTouchDevice, screen: currentMobileScreen, tempFullscreen: isFullscreenMode, energyFullscreen: isEnergyFullscreenMode});
+                
+                // Auto-open fullscreen when switching to landscape on temperature screen
+                if (isLandscape && isTouchDevice && isOnTemperatureScreen && !isFullscreenMode) {
+                    console.log('AUTO OPENING TEMPERATURE FULLSCREEN');
+                    toggleMobileFullscreen();
+                }
+                
+                // Auto-open fullscreen when switching to landscape on energy screen
+                if (isLandscape && isTouchDevice && isOnEnergyScreen && !isEnergyFullscreenMode) {
+                    console.log('AUTO OPENING ENERGY FULLSCREEN');
+                    toggleMobileEnergyFullscreen();
+                }
+                
+                // Auto-close temperature fullscreen when switching to portrait
+                if (!isLandscape && isTouchDevice && isFullscreenMode) {
+                    console.log('AUTO CLOSING TEMPERATURE FULLSCREEN');
+                    toggleMobileFullscreen();
+                }
+                
+                // Auto-close energy fullscreen when switching to portrait
+                if (!isLandscape && isTouchDevice && isEnergyFullscreenMode) {
+                    console.log('AUTO CLOSING ENERGY FULLSCREEN');
+                    toggleMobileEnergyFullscreen();
+                }
+            }, 300);
+        }
+        
+        // Manual fullscreen trigger for testing
+        function testFullscreen() {
+            console.log('🧪 Testing fullscreen manually');
+            toggleMobileFullscreen();
+        }
+
+        // Setup dropdown event listeners
+        function setupDropdownListeners() {
+            console.log('Setting up dropdown listeners');
+            
+            // Mobile dropdown
+            const mobileDropdown = document.getElementById('mobile-chart-timeframe');
+            if (mobileDropdown) {
+                console.log('Found mobile dropdown, adding event listener');
+                console.log('Mobile dropdown current value:', mobileDropdown.value);
+                console.log('Mobile dropdown options count:', mobileDropdown.options.length);
+                
+                // Simple change event listener
+                mobileDropdown.addEventListener('change', function(e) {
+                    console.log('✅ Mobile dropdown CHANGED to:', e.target.value);
+                    mobileSelectedTimeframe = e.target.value;
+                    fullscreenSelectedTimeframe = e.target.value; // Keep both in sync
+                    
+                    // Update fullscreen dropdown if it exists
+                    const fullscreenDropdown = document.getElementById('fullscreen-chart-timeframe');
+                    if (fullscreenDropdown) {
+                        fullscreenDropdown.value = e.target.value;
+                    }
+                    
+                    updateMobileChart();
+                    if (mobileFullscreenChartInstance) {
+                        setTimeout(() => updateMobileFullscreenChart(), 500);
+                    }
+                });
+                
+                // Test click listener
+                mobileDropdown.addEventListener('click', function(e) {
+                    console.log('📱 Mobile dropdown clicked');
+                });
+                
+                // Test focus listener
+                mobileDropdown.addEventListener('focus', function(e) {
+                    console.log('🎯 Mobile dropdown focused');
+                });
+                
+            } else {
+                console.error('❌ Mobile dropdown not found');
+            }
+            
+            // Desktop dropdown  
+            const desktopDropdown = document.getElementById('desktop-chart-timeframe');
+            if (desktopDropdown) {
+                console.log('Found desktop dropdown, adding event listener');
+                desktopDropdown.addEventListener('change', function(e) {
+                    console.log('✅ Desktop dropdown CHANGED to:', e.target.value);
+                    desktopSelectedTimeframe = e.target.value;
+                    updateDesktopChart();
+                    // Sync fullscreen dropdown if open
+                    const fsDd = document.getElementById('desktop-fullscreen-chart-timeframe');
+                    if (fsDd) fsDd.value = e.target.value;
+                });
+            } else {
+                console.log('Desktop dropdown not found (normal on mobile)');
+            }
+        }
+        
+        // Mobile chart functions
+        function onMobileTimeframeChange() {
+            console.log('Mobile timeframe changed');
+            const dropdown = document.getElementById('mobile-chart-timeframe');
+            if (dropdown) {
+                mobileSelectedTimeframe = dropdown.value;
+                console.log('New mobile timeframe:', mobileSelectedTimeframe);
+                updateMobileChart();
+            } else {
+                console.error('Mobile timeframe dropdown not found');
+            }
+        }
+        
+        function updateMobileChart() {
+            console.log('Updating mobile chart with timeframe:', mobileSelectedTimeframe);
+            const chartLoading = document.getElementById('mobile-chart-loading');
+            const chartError = document.getElementById('mobile-chart-error');
+            
+            if (!chartLoading || !chartError) {
+                console.error('Mobile chart elements not found');
+                return;
+            }
+            
+            chartError.classList.add('hidden');
+            chartLoading.classList.remove('hidden');
+            
+            const dateRange = getDateRangeForTimeframe(mobileSelectedTimeframe);
+            
+            let url;
+            let isAggregated = false;
+            
+            // Use raw history for short windows; summaries for longer ranges
+            if (mobileSelectedTimeframe === '1h' || mobileSelectedTimeframe === '3h' || mobileSelectedTimeframe === '6h' || mobileSelectedTimeframe === '24h' || mobileSelectedTimeframe === '2d') {
+                url = '/api/data/history?limit=500';
+                isAggregated = false;
+            } else if (mobileSelectedTimeframe === '7d' || mobileSelectedTimeframe === '2w' || mobileSelectedTimeframe === '1m') {
+                url = '/api/data/hourly-temperature-summary?limit=1000';
+                isAggregated = true;
+            } else if (mobileSelectedTimeframe === '6m') {
+                url = '/api/data/daily-temperature-summary?limit=200';
+                isAggregated = true;
+            } else if (mobileSelectedTimeframe === '1y') {
+                url = '/api/data/weekly-temperature-summary?limit=60';
+                isAggregated = true;
+            } else {
+                // Default safe fallback
+                url = '/api/data/hourly-temperature-summary?limit=1000';
+                isAggregated = true;
+            }
+            
+            if (mobileSelectedTimeframe !== 'all') {
+                url += `&date_from=${dateRange.start}&date_to=${dateRange.end}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+                    chartLoading.classList.add('hidden');
+                    
+                    if (result.success && result.data.length > 0) {
+                        if (mobileChartInstance) {
+                            updateMobileChartData(result.data, isAggregated);
+                        } else {
+                            createMobileChart(result.data, isAggregated);
+                        }
+                    } else {
+                        chartError.innerHTML = '<p>No data available for the selected timeframe.</p>';
+                        chartError.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = '<p>Error loading chart data: ' + error.message + '</p>';
+                    chartError.classList.remove('hidden');
+                });
+        }
+        
+        function createMobileChart(data, isAggregated = false) {
+            console.log('Creating mobile chart');
+            const canvas = document.getElementById('mobileDataChart');
+            if (!canvas) {
+                console.error('Mobile chart canvas not found');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            if (mobileChartInstance) {
+                mobileChartInstance.destroy();
+            }
+            
+            data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const allDataSeries = [
+                { key: 'room_temperature', label: 'Room', color: 'rgb(59, 130, 246)' },
+                { key: 'outdoor_temperature', label: 'Outdoor', color: 'rgb(16, 185, 129)' },
+                { key: 'tank_temperature', label: 'Tank', color: 'rgb(245, 158, 11)' },
+                { key: 'flow_temperature', label: 'Flow', color: 'rgb(239, 68, 68)' },
+                { key: 'return_temperature', label: 'Return', color: 'rgb(139, 92, 246)' }
+            ];
+            
+            const datasets = allDataSeries.map(point => {
+                const dataset = {
+                    label: isAggregated ? `${point.label} (Avg)` : point.label,
+                    borderColor: point.color,
+                    backgroundColor: point.color + '20',
+                    data: data.map(item => {
+                        const timestamp = new Date(item.timestamp);
+                        let value = null;
+                        
+                        if (isAggregated) {
+                            const tempData = item[point.key];
+                            if (tempData && typeof tempData === 'object') {
+                                value = tempData.avg;
+                            }
+                        } else {
+                            value = item[point.key];
+                        }
+                        
+                        return value !== null && value !== undefined ? { x: timestamp, y: value } : null;
+                    }).filter(point => point !== null),
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointHoverBorderWidth: 2
+                };
+                
+                return dataset;
+            });
+            
+            const timeConfig = getTimeframeConfig(mobileSelectedTimeframe);
+            
+            mobileChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'bottom',
+                            labels: {
+                                color: '#f3f4f6',
+                                usePointStyle: false,
+                                boxWidth: 12,
+                                boxHeight: 3,
+                                padding: 6,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                                modifierKey: 'shift',
+                                onPanComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(mobileZoomTimer);
+                                    mobileZoomTimer = setTimeout(() => updateMobileChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            },
+                            zoom: {
+                                wheel: { enabled: false },
+                                drag: {
+                                    enabled: true,
+                                    mode: 'x',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                                    borderWidth: 1
+                                },
+                                mode: 'x',
+                                onZoom: () => document.getElementById('mobile-chart-reset-zoom-btn').classList.remove('hidden'),
+                                onZoomComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(mobileZoomTimer);
+                                    mobileZoomTimer = setTimeout(() => updateMobileChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: timeConfig.unit,
+                                stepSize: timeConfig.stepSize,
+                                displayFormats: {
+                                    minute: timeConfig.format,
+                                    hour: timeConfig.format,
+                                    day: timeConfig.format,
+                                    week: timeConfig.format,
+                                    month: timeConfig.format
+                                }
+                            },
+                            title: { display: true, text: 'Time', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af', maxTicksLimit: 6 },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Temperature (°C)', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateMobileChartData(data, isAggregated = false) {
+            if (!mobileChartInstance) return;
+            
+            data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const allDataSeries = [
+                { key: 'room_temperature', label: 'Room' },
+                { key: 'outdoor_temperature', label: 'Outdoor' },
+                { key: 'tank_temperature', label: 'Tank' },
+                { key: 'flow_temperature', label: 'Flow' },
+                { key: 'return_temperature', label: 'Return' }
+            ];
+            
+            allDataSeries.forEach((point, index) => {
+                if (mobileChartInstance.data.datasets[index]) {
+                    const newData = data.map(item => {
+                        const timestamp = new Date(item.timestamp);
+                        let value = null;
+                        
+                        if (isAggregated) {
+                            const tempData = item[point.key];
+                            if (tempData && typeof tempData === 'object') {
+                                value = tempData.avg;
+                            }
+                        } else {
+                            value = item[point.key];
+                        }
+                        
+                        return value !== null && value !== undefined ? { x: timestamp, y: value } : null;
+                    }).filter(point => point !== null);
+                    
+                    mobileChartInstance.data.datasets[index].data = newData;
+                    mobileChartInstance.data.datasets[index].label = isAggregated ? `${point.label} (Avg)` : point.label;
+                }
+            });
+            
+            mobileChartInstance.update();
+        }
+        
+        function resetMobileTemperatureChartZoom() {
+            // Clear zoom transform on main chart
+            if (mobileChartInstance) {
+                try { mobileChartInstance.resetZoom(); } catch (e) {}
+                if (mobileChartInstance.options && mobileChartInstance.options.scales && mobileChartInstance.options.scales.x) {
+                    mobileChartInstance.options.scales.x.min = undefined;
+                    mobileChartInstance.options.scales.x.max = undefined;
+                }
+                mobileChartInstance.update('none');
+            }
+            const btn = document.getElementById('mobile-chart-reset-zoom-btn');
+            if (btn) btn.classList.add('hidden');
+            if (typeof lastMobileZoomFetch !== 'undefined') lastMobileZoomFetch = { agg: null, start: null, end: null };
+            updateMobileChart();
+        }
+        
+        // Desktop chart functions
+        function onDesktopTimeframeChange() {
+            desktopSelectedTimeframe = document.getElementById('desktop-chart-timeframe').value;
+            updateDesktopChart();
+        }
+        
+        function updateDesktopChart() {
+            const chartLoading = document.getElementById('desktop-chart-loading');
+            const chartError = document.getElementById('desktop-chart-error');
+            
+            chartError.classList.add('hidden');
+            chartLoading.classList.remove('hidden');
+            
+            const dateRange = getDateRangeForTimeframe(desktopSelectedTimeframe);
+            
+            let url;
+            let isAggregated = false;
+            
+            // Use raw history for short windows; summaries for longer ranges
+            if (desktopSelectedTimeframe === '1h' || desktopSelectedTimeframe === '3h' || desktopSelectedTimeframe === '6h' || desktopSelectedTimeframe === '24h' || desktopSelectedTimeframe === '2d') {
+                url = '/api/data/history?limit=500';
+                isAggregated = false;
+            } else if (desktopSelectedTimeframe === '7d' || desktopSelectedTimeframe === '2w' || desktopSelectedTimeframe === '1m') {
+                url = '/api/data/hourly-temperature-summary?limit=1000';
+                isAggregated = true;
+            } else if (desktopSelectedTimeframe === '6m') {
+                url = '/api/data/daily-temperature-summary?limit=200';
+                isAggregated = true;
+            } else if (desktopSelectedTimeframe === '1y') {
+                url = '/api/data/weekly-temperature-summary?limit=60';
+                isAggregated = true;
+            } else {
+                // Default safe fallback
+                url = '/api/data/hourly-temperature-summary?limit=1000';
+                isAggregated = true;
+            }
+            
+            if (desktopSelectedTimeframe !== 'all') {
+                url += `&date_from=${dateRange.start}&date_to=${dateRange.end}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+                    chartLoading.classList.add('hidden');
+                    
+                    if (result.success && result.data.length > 0) {
+                        if (desktopChartInstance) {
+                            updateDesktopChartData(result.data, isAggregated);
+                        } else {
+                            createDesktopChart(result.data, isAggregated);
+                        }
+                        // If desktop fullscreen is open, keep it in sync
+                        if (typeof isDesktopTempFullscreen !== 'undefined' && isDesktopTempFullscreen) {
+                            updateDesktopTempFullscreenChart();
+                        }
+                    } else {
+                        chartError.innerHTML = '<p>No data available for the selected timeframe.</p>';
+                        chartError.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = '<p>Error loading chart data: ' + error.message + '</p>';
+                    chartError.classList.remove('hidden');
+                });
+        }
+        
+        function createDesktopChart(data, isAggregated = false) {
+            const ctx = document.getElementById('desktopDataChart').getContext('2d');
+            
+            if (desktopChartInstance) {
+                desktopChartInstance.destroy();
+            }
+            
+            data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const allDataSeries = [
+                { key: 'room_temperature', label: 'Room Temperature', color: 'rgb(59, 130, 246)' },
+                { key: 'outdoor_temperature', label: 'Outdoor Temperature', color: 'rgb(16, 185, 129)' },
+                { key: 'tank_temperature', label: 'Tank Temperature', color: 'rgb(245, 158, 11)' },
+                { key: 'flow_temperature', label: 'Flow Temperature', color: 'rgb(239, 68, 68)' },
+                { key: 'return_temperature', label: 'Return Temperature', color: 'rgb(139, 92, 246)' },
+                { key: 'delta_t', label: 'Delta T (Flow - Return)', color: 'rgb(236, 72, 153)', calculated: true }
+            ];
+            
+            const datasets = allDataSeries.map(point => {
+                const dataset = {
+                    label: isAggregated ? `${point.label} (Avg)` : point.label,
+                    borderColor: point.color,
+                    backgroundColor: point.color + '20',
+                    data: data.map(item => {
+                        const timestamp = new Date(item.timestamp);
+                        let value = null;
+                        
+                        if (point.calculated && point.key === 'delta_t') {
+                            if (isAggregated) {
+                                const flowData = item.flow_temperature;
+                                const returnData = item.return_temperature;
+                                if (flowData && returnData && typeof flowData === 'object' && typeof returnData === 'object') {
+                                    value = flowData.avg - returnData.avg;
+                                }
+                            } else {
+                                if (item.flow_temperature !== null && item.return_temperature !== null) {
+                                    value = item.flow_temperature - item.return_temperature;
+                                }
+                            }
+                        } else {
+                            if (isAggregated) {
+                                const tempData = item[point.key];
+                                if (tempData && typeof tempData === 'object') {
+                                    value = tempData.avg;
+                                }
+                            } else {
+                                value = item[point.key];
+                            }
+                        }
+                        
+                        return value !== null && value !== undefined ? { x: timestamp, y: value } : null;
+                    }).filter(point => point !== null),
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBorderWidth: 2
+                };
+                
+                return dataset;
+            });
+            
+            const timeConfig = getTimeframeConfig(desktopSelectedTimeframe);
+            
+            desktopChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'top',
+                            labels: {
+                                color: '#f3f4f6',
+                                usePointStyle: false,
+                                boxWidth: 40,
+                                boxHeight: 2,
+                                padding: 10,
+                                font: { size: 12 }
+                            }
+                        },
+                        title: { display: true, text: 'Temperature Data', color: '#f3f4f6' },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                                modifierKey: 'shift',
+                                onPanComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(desktopZoomTimer);
+                                    desktopZoomTimer = setTimeout(() => updateDesktopChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            },
+                            zoom: {
+                                wheel: { enabled: false },
+                                drag: {
+                                    enabled: true,
+                                    mode: 'x',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                                    borderWidth: 1
+                                },
+                                mode: 'x',
+                                onZoom: () => document.getElementById('desktop-chart-reset-zoom-btn').classList.remove('hidden'),
+                                onZoomComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(desktopZoomTimer);
+                                    desktopZoomTimer = setTimeout(() => updateDesktopChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: timeConfig.unit,
+                                stepSize: timeConfig.stepSize,
+                                displayFormats: {
+                                    minute: timeConfig.format,
+                                    hour: timeConfig.format,
+                                    day: timeConfig.format,
+                                    week: timeConfig.format,
+                                    month: timeConfig.format
+                                }
+                            },
+                            title: { display: true, text: 'Time', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Temperature (°C)', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateDesktopChartData(data, isAggregated = false) {
+            if (!desktopChartInstance) return;
+            
+            data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const allDataSeries = [
+                { key: 'room_temperature', label: 'Room Temperature' },
+                { key: 'outdoor_temperature', label: 'Outdoor Temperature' },
+                { key: 'tank_temperature', label: 'Tank Temperature' },
+                { key: 'flow_temperature', label: 'Flow Temperature' },
+                { key: 'return_temperature', label: 'Return Temperature' },
+                { key: 'delta_t', label: 'Delta T (Flow - Return)', calculated: true }
+            ];
+            
+            allDataSeries.forEach((point, index) => {
+                if (desktopChartInstance.data.datasets[index]) {
+                    const newData = data.map(item => {
+                        const timestamp = new Date(item.timestamp);
+                        let value = null;
+                        
+                        if (point.calculated && point.key === 'delta_t') {
+                            if (isAggregated) {
+                                const flowData = item.flow_temperature;
+                                const returnData = item.return_temperature;
+                                if (flowData && returnData && typeof flowData === 'object' && typeof returnData === 'object') {
+                                    value = flowData.avg - returnData.avg;
+                                }
+                            } else {
+                                if (item.flow_temperature !== null && item.return_temperature !== null) {
+                                    value = item.flow_temperature - item.return_temperature;
+                                }
+                            }
+                        } else {
+                            if (isAggregated) {
+                                const tempData = item[point.key];
+                                if (tempData && typeof tempData === 'object') {
+                                    value = tempData.avg;
+                                }
+                            } else {
+                                value = item[point.key];
+                            }
+                        }
+                        
+                        return value !== null && value !== undefined ? { x: timestamp, y: value } : null;
+                    }).filter(point => point !== null);
+                    
+                    desktopChartInstance.data.datasets[index].data = newData;
+                    desktopChartInstance.data.datasets[index].label = isAggregated ? `${point.label} (Avg)` : point.label;
+                }
+            });
+            
+            desktopChartInstance.update();
+        }
+        
+        function resetDesktopTemperatureChartZoom() {
+            if (desktopChartInstance) {
+                try { desktopChartInstance.resetZoom(); } catch (e) {}
+                if (desktopChartInstance.options && desktopChartInstance.options.scales && desktopChartInstance.options.scales.x) {
+                    desktopChartInstance.options.scales.x.min = undefined;
+                    desktopChartInstance.options.scales.x.max = undefined;
+                }
+                desktopChartInstance.update('none');
+            }
+            const btn = document.getElementById('desktop-chart-reset-zoom-btn');
+            if (btn) btn.classList.add('hidden');
+            if (typeof lastDesktopZoomFetch !== 'undefined') lastDesktopZoomFetch = { agg: null, start: null, end: null };
+            updateDesktopChart();
+        }
+        
+        // Desktop energy chart functions
+        function onDesktopEnergyPeriodChange() {
+            console.log('Desktop energy period changed');
+            const dropdown = document.getElementById('desktop-energy-period');
+            if (dropdown) {
+                desktopEnergyPeriod = dropdown.value;
+                console.log('New desktop energy period:', desktopEnergyPeriod);
+                updateDesktopEnergyChart();
+                // Sync fullscreen dropdown if present
+                const fsDd = document.getElementById('desktop-fullscreen-energy-period');
+                if (fsDd) fsDd.value = dropdown.value;
+            } else {
+                console.error('Desktop energy period dropdown not found');
+            }
+        }
+
+        function toggleDesktopEnergyView(view) {
+            desktopEnergyView = view;
+            const dailyBtn = document.getElementById('desktop-daily-toggle');
+            const monthlyBtn = document.getElementById('desktop-monthly-toggle');
+            
+            if (view === 'daily') {
+                dailyBtn.className = 'px-3 py-2 text-sm font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                monthlyBtn.className = 'px-3 py-2 text-sm font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+            } else {
+                dailyBtn.className = 'px-3 py-2 text-sm font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                monthlyBtn.className = 'px-3 py-2 text-sm font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+            }
+            
+            updateDesktopEnergyChart();
+            // Sync fullscreen toggle styling if present
+            const fsDailyBtn = document.getElementById('desktop-fullscreen-daily-toggle');
+            const fsMonthlyBtn = document.getElementById('desktop-fullscreen-monthly-toggle');
+            if (fsDailyBtn && fsMonthlyBtn) {
+                if (view === 'daily') {
+                    fsDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                    fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                } else {
+                    fsDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                    fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                }
+            }
+        }
+
+        function updateDesktopEnergyChart() {
+            console.log('Updating desktop energy chart with view:', desktopEnergyView);
+            const chartLoading = document.getElementById('desktop-energy-chart-loading');
+            const chartError = document.getElementById('desktop-energy-chart-error');
+            
+            if (!chartLoading || !chartError) {
+                console.error('Desktop energy chart elements not found');
+                return;
+            }
+            
+            chartError.classList.add('hidden');
+            chartLoading.classList.remove('hidden');
+            
+            // Build API URL based on view and period
+            let url, errorMsg, limit;
+            
+            // Determine limit based on period
+            if (desktopEnergyPeriod === '7d') limit = 7;
+            else if (desktopEnergyPeriod === '14d') limit = 14;
+            else if (desktopEnergyPeriod === '1m') limit = 30;
+            else if (desktopEnergyPeriod === '3m') limit = 90;
+            else if (desktopEnergyPeriod === '6m') limit = 180;
+            else if (desktopEnergyPeriod === '1y') limit = 365;
+            else limit = 30; // default
+            
+            if (desktopEnergyView === 'monthly') {
+                // For monthly view, adjust limit (each month = 1 data point)
+                const monthlyLimit = Math.ceil(limit / 30); // convert days to months
+                url = `/api/data/monthly-energy-summary?limit=${monthlyLimit}`;
+                errorMsg = 'monthly energy data';
+            } else {
+                url = `/api/data/daily-energy-summary?limit=${limit}`;
+                errorMsg = 'daily energy data';
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+                    chartLoading.classList.add('hidden');
+                    
+                    if (result.success && result.data.length > 0) {
+                        if (desktopEnergyChartInstance) {
+                            updateDesktopEnergyChartData(result.data);
+                        } else {
+                            createDesktopEnergyChart(result.data);
+                        }
+                        // If desktop energy fullscreen is open, keep it in sync
+                        if (typeof isDesktopEnergyFullscreen !== 'undefined' && isDesktopEnergyFullscreen) {
+                            updateDesktopEnergyFullscreenChart();
+                        }
+                    } else {
+                        chartError.innerHTML = `<p>No ${errorMsg} available.</p>`;
+                        chartError.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = `<p>Error loading ${errorMsg}: ${error.message}</p>`;
+                    chartError.classList.remove('hidden');
+                });
+        }
+
+        function createDesktopEnergyChart(data) {
+            console.log('Creating desktop energy chart');
+            const canvas = document.getElementById('desktopEnergyChart');
+            if (!canvas) {
+                console.error('Desktop energy chart canvas not found');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            if (desktopEnergyChartInstance) {
+                desktopEnergyChartInstance.destroy();
+            }
+            
+            // Handle both daily and monthly data formats
+            const dateKey = desktopEnergyView === 'monthly' ? 'monthly_energy_date' : 'daily_energy_date';
+            
+            // Sort data by date
+            data.sort((a, b) => new Date(a[dateKey]) - new Date(b[dateKey]));
+            
+            // Prepare data for chart - format dates to yyyy/mm/dd (remove time)
+            const labels = data.map(item => {
+                let date = item[dateKey];
+                if (typeof date === 'string') {
+                    // Remove time component if present (everything after 'T' or space)
+                    date = date.split('T')[0].split(' ')[0];
+                    // Convert YYYY-MM-DD to YYYY/MM/DD or YYYY-MM to YYYY/MM
+                    date = date.replace(/-/g, '/');
+                }
+                return date;
+            });
+            
+            desktopEnergyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Heating Consumed',
+                            data: data.map(item => item.heating_consumed),
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1,
+                            stack: 'consumed'
+                        },
+                        {
+                            label: 'Hot Water Consumed', 
+                            data: data.map(item => item.hot_water_consumed),
+                            backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 1,
+                            stack: 'consumed'
+                        },
+                        {
+                            label: 'Heating Produced',
+                            data: data.map(item => item.heating_produced),
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1,
+                            stack: 'produced'
+                        },
+                        {
+                            label: 'Hot Water Produced',
+                            data: data.map(item => item.hot_water_produced),
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                            stack: 'produced'
+                        },
+                        {
+                            label: 'Heating COP',
+                            data: data.map(item => item.heating_cop),
+                            type: 'line',
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            borderWidth: 3,
+                            yAxisID: 'cop',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Hot Water COP',
+                            data: data.map(item => item.hot_water_cop),
+                            type: 'line',
+                            borderColor: 'rgba(236, 72, 153, 1)',
+                            backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                            borderWidth: 3,
+                            yAxisID: 'cop',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Total COP',
+                            data: data.map(item => {
+                                const totalProduced = (item.heating_produced || 0) + (item.hot_water_produced || 0);
+                                const totalConsumed = (item.heating_consumed || 0) + (item.hot_water_consumed || 0);
+                                return totalConsumed > 0 ? totalProduced / totalConsumed : 0;
+                            }),
+                            type: 'line',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderWidth: 4,
+                            yAxisID: 'cop',
+                            fill: false,
+                            tension: 0.1,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'top',
+                            labels: {
+                                color: '#f3f4f6',
+                                usePointStyle: false,
+                                boxWidth: 20,
+                                boxHeight: 3,
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true  // Keep tooltips enabled on desktop
+                        },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                                modifierKey: 'shift',
+                                onPanComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(mobileFsZoomTimer);
+                                    mobileFsZoomTimer = setTimeout(() => updateMobileChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            },
+                            zoom: {
+                                wheel: { enabled: false },
+                                drag: {
+                                    enabled: true,
+                                    mode: 'x',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                                    borderWidth: 1
+                                },
+                                mode: 'x',
+                                onZoom: () => document.getElementById('desktop-energy-chart-reset-zoom-btn').classList.remove('hidden')
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date', color: '#f3f4f6' },
+                            ticks: { 
+                                color: '#9ca3af',
+                                maxTicksLimit: 8
+                            },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Energy (kWh)', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        },
+                        cop: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'COP', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDesktopEnergyChartData(data) {
+            if (!desktopEnergyChartInstance) return;
+            
+            const dateKey = desktopEnergyView === 'monthly' ? 'monthly_energy_date' : 'daily_energy_date';
+            data.sort((a, b) => new Date(a[dateKey]) - new Date(b[dateKey]));
+            
+            // Format labels to yyyy/mm/dd (remove time)
+            const labels = data.map(item => {
+                let date = item[dateKey];
+                if (typeof date === 'string') {
+                    // Remove time component if present (everything after 'T' or space)
+                    date = date.split('T')[0].split(' ')[0];
+                    // Convert YYYY-MM-DD to YYYY/MM/DD or YYYY-MM to YYYY/MM
+                    date = date.replace(/-/g, '/');
+                }
+                return date;
+            });
+            
+            // Update chart data
+            desktopEnergyChartInstance.data.labels = labels;
+            desktopEnergyChartInstance.data.datasets[0].data = data.map(item => item.heating_consumed);
+            desktopEnergyChartInstance.data.datasets[1].data = data.map(item => item.hot_water_consumed);
+            desktopEnergyChartInstance.data.datasets[2].data = data.map(item => item.heating_produced);
+            desktopEnergyChartInstance.data.datasets[3].data = data.map(item => item.hot_water_produced);
+            desktopEnergyChartInstance.data.datasets[4].data = data.map(item => item.heating_cop);
+            desktopEnergyChartInstance.data.datasets[5].data = data.map(item => item.hot_water_cop);
+            desktopEnergyChartInstance.data.datasets[6].data = data.map(item => {
+                const totalProduced = (item.heating_produced || 0) + (item.hot_water_produced || 0);
+                const totalConsumed = (item.heating_consumed || 0) + (item.hot_water_consumed || 0);
+                return totalConsumed > 0 ? totalProduced / totalConsumed : 0;
+            });
+            
+            desktopEnergyChartInstance.update();
+        }
+
+        function resetDesktopEnergyChartZoom() {
+            if (desktopEnergyChartInstance) {
+                desktopEnergyChartInstance.resetZoom();
+                document.getElementById('desktop-energy-chart-reset-zoom-btn').classList.add('hidden');
+            }
+        }
+        
+        // Mobile fullscreen functions
+        function toggleMobileFullscreen() {
+            console.log('🔄 toggleMobileFullscreen called, current mode:', isFullscreenMode);
+            const fullscreenModal = document.getElementById('mobile-chart-fullscreen');
+            
+            if (!fullscreenModal) {
+                console.error('❌ Fullscreen modal not found!');
+                return;
+            }
+            
+            console.log('🔍 Modal element found:', fullscreenModal);
+            console.log('🔍 Modal current classes:', fullscreenModal.className);
+            console.log('🔍 Modal computed style display:', window.getComputedStyle(fullscreenModal).display);
+            
+            isFullscreenMode = !isFullscreenMode;
+            console.log('🔄 New fullscreen mode:', isFullscreenMode);
+            
+            if (isFullscreenMode) {
+                console.log('✅ Opening fullscreen');
+                fullscreenModal.classList.remove('hidden');
+                fullscreenModal.style.display = 'block';  // Force display
+                fullscreenModal.style.position = 'fixed';
+                fullscreenModal.style.top = '0';
+                fullscreenModal.style.left = '0';
+                fullscreenModal.style.width = '100%';
+                fullscreenModal.style.height = '100%';
+                fullscreenModal.style.zIndex = '9999';
+                fullscreenModal.style.backgroundColor = '#2d2e2d';
+                
+                console.log('🔍 After opening - classes:', fullscreenModal.className);
+                console.log('🔍 After opening - display:', window.getComputedStyle(fullscreenModal).display);
+                
+                document.body.style.overflow = 'hidden';
+                // Initialize fullscreen chart if needed
+                setTimeout(() => {
+                    if (!mobileFullscreenChartInstance) {
+                        console.log('📊 Creating new fullscreen chart');
+                        createMobileFullscreenChart();
+                    } else {
+                        console.log('🔄 Updating existing fullscreen chart');
+                        updateMobileFullscreenChart();
+                    }
+                    
+                    // Force chart resize after modal is fully displayed
+                    setTimeout(() => {
+                        if (mobileFullscreenChartInstance) {
+                            console.log('🔄 Resizing fullscreen chart');
+                            mobileFullscreenChartInstance.resize();
+                        }
+                    }, 200);
+                }, 100);
+            } else {
+                console.log('❌ Closing fullscreen');
+                fullscreenModal.classList.add('hidden');
+                fullscreenModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+        
+        function createMobileFullscreenChart() {
+            console.log('📊 Creating mobile fullscreen chart');
+            const canvas = document.getElementById('mobileDataChartFullscreen');
+            console.log('🔍 Canvas element:', canvas);
+            
+            if (!canvas) {
+                console.error('❌ Mobile fullscreen chart canvas not found');
+                return;
+            }
+            
+            console.log('🔍 Canvas dimensions:', canvas.offsetWidth, 'x', canvas.offsetHeight);
+            const ctx = canvas.getContext('2d');
+            console.log('🔍 Canvas context:', ctx);
+            
+            if (mobileFullscreenChartInstance) {
+                console.log('🔄 Destroying existing fullscreen chart');
+                mobileFullscreenChartInstance.destroy();
+            }
+            
+            // Try to copy real data from mobile chart first
+            if (mobileChartInstance && mobileChartInstance.data.datasets && mobileChartInstance.data.datasets.length > 0) {
+                console.log('📊 Real data available, copying from mobile chart');
+                console.log('🔍 Mobile chart datasets:', mobileChartInstance.data.datasets.length);
+                
+                const datasets = mobileChartInstance.data.datasets.map(dataset => ({
+                    ...dataset,
+                    data: [...dataset.data],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 6
+                }));
+                
+                console.log('🔍 Copied datasets:', datasets);
+                
+                const timeConfig = getTimeframeConfig(fullscreenSelectedTimeframe);
+                
+                try {
+                    mobileFullscreenChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: { datasets: datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { intersect: false, mode: 'index' },
+                            plugins: {
+                                legend: {
+                                    onClick: grafanaLegendClickHandler,
+                                    position: 'top',
+                                    labels: {
+                                        color: '#f3f4f6',
+                                        usePointStyle: false,
+                                        boxWidth: 20,
+                                        boxHeight: 3,
+                                        padding: 15,
+                                        font: { size: 14 }
+                                    }
+                                },
+                                tooltip: {
+                                    enabled: false
+                                },
+                                zoom: {
+                                    pan: {
+                                        enabled: true,
+                                        mode: 'x',
+                                        modifierKey: 'shift',
+                                        onPanComplete: ({chart}) => {
+                                            const x = chart.scales.x; if (!x) return;
+                                            clearTimeout(mobileFsZoomTimer);
+                                            mobileFsZoomTimer = setTimeout(() => updateMobileChartForVisibleRange(x.min, x.max), 350);
+                                        }
+                                    },
+                                    zoom: {
+                                        wheel: { enabled: false },
+                                        drag: {
+                                            enabled: true,
+                                            mode: 'x',
+                                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                                            borderWidth: 1
+                                        },
+                                        mode: 'x',
+                                        onZoom: () => document.getElementById('mobile-fullscreen-reset-zoom-btn').classList.remove('hidden'),
+                                        onZoomComplete: ({chart}) => {
+                                            const x = chart.scales.x; if (!x) return;
+                                            clearTimeout(mobileFsZoomTimer);
+                                            mobileFsZoomTimer = setTimeout(() => updateMobileChartForVisibleRange(x.min, x.max), 350);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        unit: timeConfig.unit,
+                                        stepSize: timeConfig.stepSize,
+                                        displayFormats: {
+                                            minute: timeConfig.format,
+                                            hour: timeConfig.format,
+                                            day: timeConfig.format,
+                                            week: timeConfig.format,
+                                            month: timeConfig.format
+                                        }
+                                    },
+                                    title: { display: true, text: 'Time', color: '#f3f4f6', font: { size: 14 } },
+                                    ticks: { color: '#9ca3af', maxTicksLimit: 8 },
+                                    grid: { color: '#4b5563' }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Temperature (°C)', color: '#f3f4f6', font: { size: 14 } },
+                                    ticks: { color: '#9ca3af' },
+                                    grid: { color: '#4b5563' }
+                                }
+                            }
+                        }
+                    });
+                    console.log('✅ Fullscreen chart created with real data!');
+                    return;
+                } catch (error) {
+                    console.error('❌ Error creating fullscreen chart with real data:', error);
+                }
+            }
+            
+            // Fallback: create test chart if no real data available
+            console.log('📊 No real data available, creating test chart');
+            try {
+                mobileFullscreenChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Room Temperature (Sample)',
+                                data: [
+                                    {x: new Date(Date.now() - 60*60*1000), y: 22},
+                                    {x: new Date(Date.now() - 30*60*1000), y: 23},
+                                    {x: new Date(), y: 24}
+                                ],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                onClick: grafanaLegendClickHandler,
+                                position: 'top',
+                                labels: { color: '#f3f4f6', font: { size: 14 } }
+                            },
+                            tooltip: {
+                                enabled: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: { unit: 'minute', displayFormats: { minute: 'HH:mm' } },
+                                title: { display: true, text: 'Time', color: '#f3f4f6' },
+                                ticks: { color: '#9ca3af' },
+                                grid: { color: '#4b5563' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Temperature (°C)', color: '#f3f4f6' },
+                                ticks: { color: '#9ca3af' },
+                                grid: { color: '#4b5563' }
+                            }
+                        }
+                    }
+                });
+                console.log('✅ Test chart created as fallback');
+            } catch (error) {
+                console.error('❌ Error creating test chart:', error);
+            }
+            
+            const datasets = mobileChartInstance.data.datasets.map(dataset => ({
+                ...dataset,
+                data: [...dataset.data]
+            }));
+            
+            const timeConfig = getTimeframeConfig(fullscreenSelectedTimeframe);
+            
+            mobileFullscreenChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'top',
+                            labels: {
+                                color: '#f3f4f6',
+                                usePointStyle: false,
+                                boxWidth: 20,
+                                boxHeight: 3,
+                                padding: 15,
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                                modifierKey: 'shift'
+                            },
+                            zoom: {
+                                wheel: { enabled: false },
+                                drag: {
+                                    enabled: true,
+                                    mode: 'x',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                                    borderWidth: 1
+                                },
+                                mode: 'x',
+                                onZoom: () => document.getElementById('mobile-fullscreen-reset-zoom-btn').classList.remove('hidden'),
+                                onZoomComplete: ({chart}) => {
+                                    const x = chart.scales.x; if (!x) return;
+                                    clearTimeout(mobileFsZoomTimer);
+                                    mobileFsZoomTimer = setTimeout(() => updateMobileChartForVisibleRange(x.min, x.max), 350);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: timeConfig.unit,
+                                stepSize: timeConfig.stepSize,
+                                displayFormats: {
+                                    minute: timeConfig.format,
+                                    hour: timeConfig.format,
+                                    day: timeConfig.format,
+                                    week: timeConfig.format,
+                                    month: timeConfig.format
+                                }
+                            },
+                            title: { display: true, text: 'Time', color: '#f3f4f6', font: { size: 14 } },
+                            ticks: { color: '#9ca3af', maxTicksLimit: 8 },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Temperature (°C)', color: '#f3f4f6', font: { size: 14 } },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateMobileFullscreenChart() {
+            if (!mobileFullscreenChartInstance || !mobileChartInstance) return;
+            
+            // Copy current data from main mobile chart
+            mobileChartInstance.data.datasets.forEach((dataset, index) => {
+                if (mobileFullscreenChartInstance.data.datasets[index]) {
+                    mobileFullscreenChartInstance.data.datasets[index].data = [...dataset.data];
+                    mobileFullscreenChartInstance.data.datasets[index].label = dataset.label;
+                }
+            });
+            
+            mobileFullscreenChartInstance.update();
+        }
+        
+        function resetMobileFullscreenChartZoom() {
+            if (mobileFullscreenChartInstance) {
+                try { mobileFullscreenChartInstance.resetZoom(); } catch (e) {}
+                if (mobileFullscreenChartInstance.options && mobileFullscreenChartInstance.options.scales && mobileFullscreenChartInstance.options.scales.x) {
+                    mobileFullscreenChartInstance.options.scales.x.min = undefined;
+                    mobileFullscreenChartInstance.options.scales.x.max = undefined;
+                }
+                mobileFullscreenChartInstance.update('none');
+            }
+            const btn = document.getElementById('mobile-fullscreen-reset-zoom-btn');
+            if (btn) btn.classList.add('hidden');
+            if (typeof lastMobileZoomFetch !== 'undefined') lastMobileZoomFetch = { agg: null, start: null, end: null };
+            updateMobileChart();
+            setTimeout(() => { if (mobileFullscreenChartInstance) updateMobileFullscreenChart(); }, 500);
+        }
+
+        // Mobile energy chart functions
+        function toggleMobileEnergyView(view) {
+            mobileEnergyView = view;
+            const dailyBtn = document.getElementById('mobile-daily-toggle');
+            const monthlyBtn = document.getElementById('mobile-monthly-toggle');
+            
+            if (view === 'daily') {
+                dailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                monthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+            } else {
+                dailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                monthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+            }
+            
+            updateMobileEnergyChart();
+        }
+
+        // Mobile energy chart period change handler
+        function onMobileEnergyPeriodChange() {
+            console.log('Mobile energy period changed');
+            const dropdown = document.getElementById('mobile-energy-period');
+            if (dropdown) {
+                mobileEnergyPeriod = dropdown.value;
+                console.log('New mobile energy period:', mobileEnergyPeriod);
+                updateMobileEnergyChart();
+            } else {
+                console.error('Mobile energy period dropdown not found');
+            }
+        }
+
+        function updateMobileEnergyChart() {
+            console.log('Updating mobile energy chart with view:', mobileEnergyView);
+            const chartLoading = document.getElementById('mobile-energy-chart-loading');
+            const chartError = document.getElementById('mobile-energy-chart-error');
+            
+            if (!chartLoading || !chartError) {
+                console.error('Mobile energy chart elements not found');
+                return;
+            }
+            
+            chartError.classList.add('hidden');
+            chartLoading.classList.remove('hidden');
+            
+            // Build API URL based on view and period
+            let url, errorMsg, limit;
+            
+            // Determine limit based on period
+            if (mobileEnergyPeriod === '7d') limit = 7;
+            else if (mobileEnergyPeriod === '14d') limit = 14;
+            else if (mobileEnergyPeriod === '1m') limit = 30;
+            else if (mobileEnergyPeriod === '3m') limit = 90;
+            else if (mobileEnergyPeriod === '6m') limit = 180;
+            else if (mobileEnergyPeriod === '1y') limit = 365;
+            else limit = 30; // default
+            
+            if (mobileEnergyView === 'monthly') {
+                // For monthly view, adjust limit (each month = 1 data point)
+                const monthlyLimit = Math.ceil(limit / 30); // convert days to months
+                url = `/api/data/monthly-energy-summary?limit=${monthlyLimit}`;
+                errorMsg = 'monthly energy data';
+            } else {
+                url = `/api/data/daily-energy-summary?limit=${limit}`;
+                errorMsg = 'daily energy data';
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+                    chartLoading.classList.add('hidden');
+                    
+                    if (result.success && result.data.length > 0) {
+                        if (mobileEnergyChartInstance) {
+                            updateMobileEnergyChartData(result.data);
+                        } else {
+                            createMobileEnergyChart(result.data);
+                        }
+                    } else {
+                        chartError.innerHTML = `<p>No ${errorMsg} available.</p>`;
+                        chartError.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = `<p>Error loading ${errorMsg}: ${error.message}</p>`;
+                    chartError.classList.remove('hidden');
+                });
+        }
+
+        function createMobileEnergyChart(data) {
+            console.log('Creating mobile energy chart');
+            const canvas = document.getElementById('mobileEnergyChart');
+            if (!canvas) {
+                console.error('Mobile energy chart canvas not found');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            if (mobileEnergyChartInstance) {
+                mobileEnergyChartInstance.destroy();
+            }
+            
+            // Handle both daily and monthly data formats
+            const dateKey = mobileEnergyView === 'monthly' ? 'monthly_energy_date' : 'daily_energy_date';
+            
+            // Sort data by date
+            data.sort((a, b) => new Date(a[dateKey]) - new Date(b[dateKey]));
+            
+            // Prepare data for chart - format dates to yyyy/mm/dd (remove time)
+            const labels = data.map(item => {
+                let date = item[dateKey];
+                if (typeof date === 'string') {
+                    // Remove time component if present (everything after 'T' or space)
+                    date = date.split('T')[0].split(' ')[0];
+                    // Convert YYYY-MM-DD to YYYY/MM/DD or YYYY-MM to YYYY/MM
+                    date = date.replace(/-/g, '/');
+                }
+                return date;
+            });
+            
+            mobileEnergyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Heating Consumed',
+                            data: data.map(item => item.heating_consumed),
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1,
+                            stack: 'consumed'
+                        },
+                        {
+                            label: 'Hot Water Consumed', 
+                            data: data.map(item => item.hot_water_consumed),
+                            backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 1,
+                            stack: 'consumed'
+                        },
+                        {
+                            label: 'Heating Produced',
+                            data: data.map(item => item.heating_produced),
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1,
+                            stack: 'produced'
+                        },
+                        {
+                            label: 'Hot Water Produced',
+                            data: data.map(item => item.hot_water_produced),
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                            stack: 'produced'
+                        },
+                        {
+                            label: 'Heating COP',
+                            data: data.map(item => item.heating_cop),
+                            type: 'line',
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            borderWidth: 2,
+                            yAxisID: 'cop',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Hot Water COP',
+                            data: data.map(item => item.hot_water_cop),
+                            type: 'line',
+                            borderColor: 'rgba(236, 72, 153, 1)',
+                            backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                            borderWidth: 2,
+                            yAxisID: 'cop',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Total COP',
+                            data: data.map(item => {
+                                const totalProduced = (item.heating_produced || 0) + (item.hot_water_produced || 0);
+                                const totalConsumed = (item.heating_consumed || 0) + (item.hot_water_consumed || 0);
+                                return totalConsumed > 0 ? totalProduced / totalConsumed : 0;
+                            }),
+                            type: 'line',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderWidth: 3,
+                            yAxisID: 'cop',
+                            fill: false,
+                            tension: 0.1,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: {
+                            onClick: grafanaLegendClickHandler,
+                            position: 'bottom',
+                            labels: {
+                                color: '#f3f4f6',
+                                usePointStyle: false,
+                                boxWidth: 12,
+                                boxHeight: 3,
+                                padding: 4,
+                                font: { size: 9 }
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Date', color: '#f3f4f6' },
+                            ticks: { 
+                                color: '#9ca3af',
+                                maxTicksLimit: 6,
+                                callback: function(value, index, ticks) {
+                                    const label = this.getLabelForValue(value);
+                                    console.log('Chart label formatting:', label);
+                                    
+                                    if (typeof label === 'string') {
+                                        // Handle YYYY-MM-DD format (daily)
+                                        if (label.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                            const formatted = label.replace(/-/g, '/');
+                                            console.log('Daily format converted:', label, '→', formatted);
+                                            return formatted;
+                                        }
+                                        // Handle YYYY-MM format (monthly)
+                                        else if (label.match(/^\d{4}-\d{2}$/)) {
+                                            const formatted = label.replace(/-/g, '/');
+                                            console.log('Monthly format converted:', label, '→', formatted);
+                                            return formatted;
+                                        }
+                                    }
+                                    
+                                    return label;
+                                }
+                            },
+                            grid: { color: '#4b5563' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Energy (kWh)', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        },
+                        cop: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'COP', color: '#f3f4f6' },
+                            ticks: { color: '#9ca3af' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMobileEnergyChartData(data) {
+            if (!mobileEnergyChartInstance) return;
+            
+            const dateKey = mobileEnergyView === 'monthly' ? 'monthly_energy_date' : 'daily_energy_date';
+            data.sort((a, b) => new Date(a[dateKey]) - new Date(b[dateKey]));
+            
+            // Format labels to yyyy/mm/dd (remove time)
+            const labels = data.map(item => {
+                let date = item[dateKey];
+                if (typeof date === 'string') {
+                    // Remove time component if present (everything after 'T' or space)
+                    date = date.split('T')[0].split(' ')[0];
+                    // Convert YYYY-MM-DD to YYYY/MM/DD or YYYY-MM to YYYY/MM
+                    date = date.replace(/-/g, '/');
+                }
+                return date;
+            });
+            
+            // Update chart data
+            mobileEnergyChartInstance.data.labels = labels;
+            mobileEnergyChartInstance.data.datasets[0].data = data.map(item => item.heating_consumed);
+            mobileEnergyChartInstance.data.datasets[1].data = data.map(item => item.hot_water_consumed);
+            mobileEnergyChartInstance.data.datasets[2].data = data.map(item => item.heating_produced);
+            mobileEnergyChartInstance.data.datasets[3].data = data.map(item => item.hot_water_produced);
+            mobileEnergyChartInstance.data.datasets[4].data = data.map(item => item.heating_cop);
+            mobileEnergyChartInstance.data.datasets[5].data = data.map(item => item.hot_water_cop);
+            mobileEnergyChartInstance.data.datasets[6].data = data.map(item => {
+                const totalProduced = (item.heating_produced || 0) + (item.hot_water_produced || 0);
+                const totalConsumed = (item.heating_consumed || 0) + (item.hot_water_consumed || 0);
+                return totalConsumed > 0 ? totalProduced / totalConsumed : 0;
+            });
+            
+            mobileEnergyChartInstance.update();
+        }
+
+        function resetMobileEnergyChartZoom() {
+            if (mobileEnergyChartInstance) {
+                mobileEnergyChartInstance.resetZoom();
+                document.getElementById('mobile-energy-chart-reset-zoom-btn').classList.add('hidden');
+            }
+        }
+
+        // Energy fullscreen functions
+        function toggleMobileEnergyFullscreen() {
+            console.log('🔄 toggleMobileEnergyFullscreen called, current mode:', isEnergyFullscreenMode);
+            const fullscreenModal = document.getElementById('mobile-energy-fullscreen');
+            
+            if (!fullscreenModal) {
+                console.error('❌ Energy fullscreen modal not found!');
+                return;
+            }
+            
+            isEnergyFullscreenMode = !isEnergyFullscreenMode;
+            console.log('🔄 New energy fullscreen mode:', isEnergyFullscreenMode);
+            
+            if (isEnergyFullscreenMode) {
+                console.log('✅ Opening energy fullscreen');
+                fullscreenModal.classList.remove('hidden');
+                fullscreenModal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                
+                // Sync period dropdowns
+                const mainDropdown = document.getElementById('mobile-energy-period');
+                const fullscreenDropdown = document.getElementById('fullscreen-energy-period');
+                if (mainDropdown && fullscreenDropdown) {
+                    fullscreenDropdown.value = mainDropdown.value;
+                }
+                
+                setTimeout(() => {
+                    if (!mobileEnergyFullscreenChartInstance) {
+                        console.log('📊 Creating new energy fullscreen chart');
+                        createMobileEnergyFullscreenChart();
+                    } else {
+                        console.log('🔄 Updating existing energy fullscreen chart');
+                        updateMobileEnergyFullscreenChart();
+                    }
+                    
+                    setTimeout(() => {
+                        if (mobileEnergyFullscreenChartInstance) {
+                            console.log('🔄 Resizing energy fullscreen chart');
+                            mobileEnergyFullscreenChartInstance.resize();
+                        }
+                    }, 200);
+                }, 100);
+            } else {
+                console.log('❌ Closing energy fullscreen');
+                fullscreenModal.classList.add('hidden');
+                fullscreenModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function createMobileEnergyFullscreenChart() {
+            console.log('Creating mobile energy fullscreen chart');
+            const canvas = document.getElementById('mobileEnergyChartFullscreen');
+            if (!canvas) {
+                console.error('Mobile energy fullscreen chart canvas not found');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            if (mobileEnergyFullscreenChartInstance) {
+                mobileEnergyFullscreenChartInstance.destroy();
+            }
+            
+            // Copy data from the main mobile energy chart
+            if (mobileEnergyChartInstance && mobileEnergyChartInstance.data.datasets && mobileEnergyChartInstance.data.datasets.length > 0) {
+                console.log('📊 Real energy data available, copying from mobile chart');
+                
+                const datasets = mobileEnergyChartInstance.data.datasets.map(dataset => ({
+                    ...dataset,
+                    data: [...dataset.data]
+                }));
+                
+                mobileEnergyFullscreenChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: [...mobileEnergyChartInstance.data.labels],
+                        datasets: datasets
+                    },
+                    options: {
+                        ...mobileEnergyChartInstance.options,
+                        plugins: {
+                            legend: {
+                                onClick: grafanaLegendClickHandler,
+                                position: 'top',
+                                labels: {
+                                    color: '#f3f4f6',
+                                    font: { size: 12 },
+                                    padding: 10
+                                }
+                            },
+                            tooltip: {
+                                enabled: false
+                            }
+                        }
+                    }
+                });
+                console.log('✅ Energy fullscreen chart created with real data!');
+            } else {
+                console.log('📊 No energy data available, will load when available');
+            }
+        }
+
+        function updateMobileEnergyFullscreenChart() {
+            if (!mobileEnergyFullscreenChartInstance || !mobileEnergyChartInstance) return;
+            
+            // Copy current data from main mobile energy chart
+            mobileEnergyFullscreenChartInstance.data.labels = [...mobileEnergyChartInstance.data.labels];
+            mobileEnergyChartInstance.data.datasets.forEach((dataset, index) => {
+                if (mobileEnergyFullscreenChartInstance.data.datasets[index]) {
+                    mobileEnergyFullscreenChartInstance.data.datasets[index].data = [...dataset.data];
+                    mobileEnergyFullscreenChartInstance.data.datasets[index].label = dataset.label;
+                }
+            });
+            
+            mobileEnergyFullscreenChartInstance.update();
+        }
+
+        function resetMobileEnergyFullscreenChartZoom() {
+            if (mobileEnergyFullscreenChartInstance) {
+                mobileEnergyFullscreenChartInstance.resetZoom();
+                document.getElementById('mobile-energy-fullscreen-reset-zoom-btn').classList.add('hidden');
+            }
+        }
+
+        // Fullscreen energy chart period change handler
+        function onFullscreenEnergyPeriodChange() {
+            console.log('Fullscreen energy period changed');
+            const dropdown = document.getElementById('fullscreen-energy-period');
+            const mainDropdown = document.getElementById('mobile-energy-period');
+            if (dropdown && mainDropdown) {
+                mobileEnergyPeriod = dropdown.value;
+                mainDropdown.value = dropdown.value; // Keep both in sync
+                console.log('New fullscreen energy period:', mobileEnergyPeriod);
+                updateMobileEnergyChart();
+                if (mobileEnergyFullscreenChartInstance) {
+                    setTimeout(() => updateMobileEnergyFullscreenChart(), 500);
+                }
+            }
+        }
+
+        function toggleFullscreenEnergyView(view) {
+            mobileEnergyView = view;
+            const dailyBtn = document.getElementById('fullscreen-daily-toggle');
+            const monthlyBtn = document.getElementById('fullscreen-monthly-toggle');
+            const mainDailyBtn = document.getElementById('mobile-daily-toggle');
+            const mainMonthlyBtn = document.getElementById('mobile-monthly-toggle');
+            
+            // Update fullscreen buttons
+            if (view === 'daily') {
+                dailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                monthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                mainDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                mainMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+            } else {
+                dailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                monthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+                mainDailyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600';
+                mainMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
+            }
+            
+            // Update both main and fullscreen charts
+            updateMobileEnergyChart();
+            if (mobileEnergyFullscreenChartInstance) {
+                setTimeout(() => updateMobileEnergyFullscreenChart(), 500);
+            }
+        }
+
+        // Mobile swipe functionality
+        function setupMobileSwipe() {
+            const container = document.getElementById('mobile-screens');
+            let startX, currentX, isDragging = false;
+            
+            container.addEventListener('touchstart', (e) => {
+                // Don't start swiping if touching a form element (select, input, button)
+                const target = e.target;
+                if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'OPTION') {
+                    console.log('🚫 Not starting swipe - touched form element:', target.tagName);
+                    return;
+                }
+                
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                console.log('👆 Starting swipe at:', startX);
+            });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                
+                // Don't prevent default if touching form elements
+                const target = e.target;
+                if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'OPTION') {
+                    return;
+                }
+                
+                e.preventDefault();
+                currentX = e.touches[0].clientX;
+                const diffX = startX - currentX;
+                const translateX = -(currentMobileScreen * 100) - (diffX / window.innerWidth * 100);
+                container.style.transform = `translateX(${Math.max(-200, Math.min(0, translateX))}%)`;
+            });
+            
+            container.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                const diffX = startX - currentX;
+                const threshold = window.innerWidth * 0.3;
+                
+                console.log('👆 Ending swipe, diffX:', diffX, 'threshold:', threshold);
+                
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0 && currentMobileScreen < 2) {
+                        swipeToMobileScreen(currentMobileScreen + 1);
+                    } else if (diffX < 0 && currentMobileScreen > 0) {
+                        swipeToMobileScreen(currentMobileScreen - 1);
+                    } else {
+                        swipeToMobileScreen(currentMobileScreen);
+                    }
+                } else {
+                    swipeToMobileScreen(currentMobileScreen);
+                }
+            });
+            
+            // Mouse support for desktop testing
+            container.addEventListener('mousedown', (e) => {
+                // Don't start swiping if clicking a form element
+                const target = e.target;
+                if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'OPTION') {
+                    console.log('🚫 Not starting mouse swipe - clicked form element:', target.tagName);
+                    return;
+                }
+                
+                startX = e.clientX;
+                isDragging = true;
+                e.preventDefault();
+            });
+            
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                // Don't prevent default if on form elements
+                const target = e.target;
+                if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'OPTION') {
+                    return;
+                }
+                
+                e.preventDefault();
+                currentX = e.clientX;
+                const diffX = startX - currentX;
+                const translateX = -(currentMobileScreen * 100) - (diffX / window.innerWidth * 100);
+                container.style.transform = `translateX(${Math.max(-200, Math.min(0, translateX))}%)`;
+            });
+            
+            container.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                const diffX = startX - currentX;
+                const threshold = window.innerWidth * 0.3;
+                
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0 && currentMobileScreen < 2) {
+                        swipeToMobileScreen(currentMobileScreen + 1);
+                    } else if (diffX < 0 && currentMobileScreen > 0) {
+                        swipeToMobileScreen(currentMobileScreen - 1);
+                    } else {
+                        swipeToMobileScreen(currentMobileScreen);
+                    }
+                } else {
+                    swipeToMobileScreen(currentMobileScreen);
+                }
+            });
+        }
+        
+        function swipeToMobileScreen(screenIndex) {
+            currentMobileScreen = screenIndex;
+            const container = document.getElementById('mobile-screens');
+            container.style.transform = `translateX(-${screenIndex * 100}%)`;
+            
+            // Update indicators (now we have 3 screens)
+            document.getElementById('indicator-0').classList.toggle('bg-white', screenIndex === 0);
+            document.getElementById('indicator-0').classList.toggle('bg-gray-500', screenIndex !== 0);
+            document.getElementById('indicator-1').classList.toggle('bg-white', screenIndex === 1);
+            document.getElementById('indicator-1').classList.toggle('bg-gray-500', screenIndex !== 1);
+            document.getElementById('indicator-2').classList.toggle('bg-white', screenIndex === 2);
+            document.getElementById('indicator-2').classList.toggle('bg-gray-500', screenIndex !== 2);
+            
+            // Initialize mobile chart when we swipe to the temperature screen
+            if (screenIndex === 1 && !mobileChartInstance) {
+                console.log('Initializing mobile chart on first view');
+                setTimeout(() => {
+                    updateMobileChart();
+                }, 100);
+            }
+            
+            // Initialize mobile energy chart when we swipe to the energy screen
+            if (screenIndex === 2 && !mobileEnergyChartInstance) {
+                console.log('Initializing mobile energy chart on first view');
+                setTimeout(() => {
+                    updateMobileEnergyChart();
+                }, 100);
+            }
+            
+            // Check if we should auto-trigger fullscreen when landing on temperature screen
+            if (screenIndex === 1) {
+                setTimeout(() => {
+                    const isLandscape = window.innerWidth > window.innerHeight;
+                    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    console.log('Landed on temp screen:', {width: window.innerWidth, height: window.innerHeight, isLandscape, isTouchDevice, fullscreen: isFullscreenMode});
+                    
+                    if (isLandscape && isTouchDevice && !isFullscreenMode) {
+                        console.log('AUTO OPENING FULLSCREEN ON NAVIGATION');
+                        toggleMobileFullscreen();
+                    }
+                }, 300);
+            }
+            
+            // Check if we should auto-trigger energy fullscreen when landing on energy screen
+            if (screenIndex === 2) {
+                setTimeout(() => {
+                    const isLandscape = window.innerWidth > window.innerHeight;
+                    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    console.log('Landed on energy screen:', {width: window.innerWidth, height: window.innerHeight, isLandscape, isTouchDevice, fullscreen: isEnergyFullscreenMode});
+                    
+                    if (isLandscape && isTouchDevice && !isEnergyFullscreenMode) {
+                        console.log('AUTO OPENING ENERGY FULLSCREEN ON NAVIGATION');
+                        toggleMobileEnergyFullscreen();
+                    }
+                }, 300);
+            }
+        }
+    </script>
+
+    <!-- Temperature Fullscreen Chart Modal - Outside all containers -->
+    <div id="mobile-chart-fullscreen" class="fixed inset-0 bg-black hidden page-bg" style="z-index: 99999 !important; position: fixed !important;">
+        <div class="flex flex-col h-full">
+            <!-- Fullscreen Header -->
+            <div class="flex items-center justify-between px-3 py-2 panel-bg-mobile">
+                <div class="flex items-center space-x-3">
+                    <h3 class="text-sm font-medium text-white">Temp Data</h3>
+                    <div class="flex items-center space-x-2">
+                        <label for="fullscreen-chart-timeframe" class="text-xs font-medium text-white">Period:</label>
+                        <select id="fullscreen-chart-timeframe" 
+                                class="px-2 py-1 text-xs rounded border border-gray-600 bg-gray-700 text-white"
+                                style="touch-action: manipulation; min-width: 60px;">
+                            <option value="1h">1 Hour</option>
+                            <option value="3h">3 Hours</option>
+                            <option value="6h">6 Hours</option>
+                            <option value="24h" selected>24 Hours</option>
+                            <option value="2d">2 Days</option>
+                            <option value="7d">7 Days</option>
+                            <option value="2w">2 Weeks</option>
+                            <option value="1m">1 Month</option>
+                            <option value="6m">6 Months</option>
+                            <option value="1y">1 Year</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="toggleMobileFullscreen()" 
+                        class="p-1 text-gray-400 hover:text-white transition-colors" title="Exit Fullscreen">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Fullscreen Chart Container -->
+            <div class="flex-1 p-2">
+                <div class="relative w-full h-full rounded-lg panel-bg-mobile">
+                    <canvas id="mobileDataChartFullscreen" class="w-full h-full" style="max-height: calc(100vh - 120px);"></canvas>
+                    <!-- Fullscreen Loading/Error Messages -->
+                    <div id="mobile-chart-fullscreen-loading" class="absolute inset-0 flex items-center justify-center rounded-lg text-gray-400 hidden overlay-bg" style="z-index: 100;">
+                        <p>Loading chart data...</p>
+                    </div>
+                    <div id="mobile-chart-fullscreen-error" class="absolute inset-0 flex items-center justify-center rounded-lg text-red-400 hidden overlay-bg" style="z-index: 100;">
+                        <p>Error loading data</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fullscreen Footer -->
+            <div class="px-2 py-1 text-center panel-bg-mobile">
+                <div class="flex justify-center">
+                    <button id="mobile-fullscreen-reset-zoom-btn" onclick="resetMobileFullscreenChartZoom()" 
+                            class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors duration-200 hidden">
+                        Reset Zoom
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Energy Fullscreen Chart Modal - Outside all containers -->
+    <div id="mobile-energy-fullscreen" class="fixed inset-0 bg-black hidden page-bg" style="z-index: 99999 !important; position: fixed !important;">
+        <div class="flex flex-col h-full">
+            <!-- Fullscreen Header -->
+            <div class="flex items-center justify-between px-3 py-2 panel-bg-mobile">
+                <div class="flex items-center space-x-3">
+                    <h3 class="text-sm font-medium text-white">Energy Data</h3>
+                    <select id="fullscreen-energy-period" 
+                            class="px-2 py-1 text-xs rounded border border-gray-600 bg-gray-700 text-white"
+                            style="touch-action: manipulation; min-width: 60px;" 
+                            onchange="onFullscreenEnergyPeriodChange()">
+                        <option value="7d">7 Days</option>
+                        <option value="14d">14 Days</option>
+                        <option value="1m" selected>1 Month</option>
+                        <option value="3m">3 Months</option>
+                        <option value="6m">6 Months</option>
+                        <option value="1y">1 Year</option>
+                    </select>
+                    <div class="flex items-center bg-gray-700 rounded-lg p-1">
+                        <button id="fullscreen-daily-toggle" onclick="toggleFullscreenEnergyView('daily')" 
+                                class="px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white">
+                            Daily
+                        </button>
+                        <button id="fullscreen-monthly-toggle" onclick="toggleFullscreenEnergyView('monthly')" 
+                                class="px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600">
+                            Monthly
+                        </button>
+                    </div>
+                </div>
+                <button onclick="toggleMobileEnergyFullscreen()" 
+                        class="p-1 text-gray-400 hover:text-white transition-colors" title="Exit Fullscreen">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Fullscreen Chart Container -->
+            <div class="flex-1 p-2">
+                <div class="relative w-full h-full rounded-lg panel-bg-mobile">
+                    <canvas id="mobileEnergyChartFullscreen" class="w-full h-full" style="max-height: calc(100vh - 120px);"></canvas>
+                    <!-- Fullscreen Loading/Error Messages -->
+                    <div id="mobile-energy-fullscreen-loading" class="absolute inset-0 flex items-center justify-center rounded-lg text-gray-400 hidden overlay-bg" style="z-index: 100;">
+                        <p>Loading chart data...</p>
+                    </div>
+                    <div id="mobile-energy-fullscreen-error" class="absolute inset-0 flex items-center justify-center rounded-lg text-red-400 hidden overlay-bg" style="z-index: 100;">
+                        <p>Error loading data</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fullscreen Footer -->
+            <div class="px-2 py-1 text-center panel-bg-mobile">
+                <div class="flex justify-center">
+                    <button id="mobile-energy-fullscreen-reset-zoom-btn" onclick="resetMobileEnergyFullscreenChartZoom()" 
+                            class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors duration-200 hidden">
+                        Reset Zoom
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Temperature Fullscreen Modal -->
+    <div id="desktop-temp-fullscreen" class="fixed inset-0 hidden" style="background-color: rgba(0,0,0,0.7); z-index: 99998;">
+        <div class="flex flex-col h-full">
+            <div class="flex items-center justify-between px-4 py-3" style="background-color: #1f2937;">
+                <div class="flex items-center space-x-3">
+                    <h3 class="text-base font-medium text-white">Temperature Data (Fullscreen)</h3>
+                    <div class="flex items-center space-x-2">
+                        <label for="desktop-fullscreen-chart-timeframe" class="text-xs font-medium text-white">Period:</label>
+                        <select id="desktop-fullscreen-chart-timeframe" onchange="onDesktopFullscreenTempTimeframeChange()" 
+                                class="px-2 py-1 text-xs rounded border border-gray-600 bg-gray-700 text-white"
+                                style="touch-action: manipulation; min-width: 60px;">
+                            <option value="1h">1 Hour</option>
+                            <option value="3h">3 Hours</option>
+                            <option value="6h">6 Hours</option>
+                            <option value="24h" selected>24 Hours</option>
+                            <option value="2d">2 Days</option>
+                            <option value="7d">7 Days</option>
+                            <option value="2w">2 Weeks</option>
+                            <option value="1m">1 Month</option>
+                            <option value="6m">6 Months</option>
+                            <option value="1y">1 Year</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="toggleDesktopTempFullscreen()" class="p-1 text-gray-400 hover:text-white" title="Exit Fullscreen">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex-1 p-3">
+                <div class="relative w-full h-full rounded-lg" style="background-color: #1f2937;">
+                    <canvas id="desktopDataChartFullscreen" class="w-full h-full" style="max-height: calc(100vh - 120px);"></canvas>
+                </div>
+            </div>
+            <div class="px-3 py-2 text-center" style="background-color: #1f2937;">
+                <button id="desktop-temp-fullscreen-reset-zoom-btn" onclick="resetDesktopTempFullscreenChartZoom()" 
+                        class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors duration-200 hidden">
+                    Reset Zoom
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Energy Fullscreen Modal -->
+    <div id="desktop-energy-fullscreen" class="fixed inset-0 hidden" style="background-color: rgba(0,0,0,0.7); z-index: 99998;">
+        <div class="flex flex-col h-full">
+            <div class="flex items-center justify-between px-4 py-3" style="background-color: #1f2937;">
+                <div class="flex items-center space-x-3">
+                    <h3 class="text-base font-medium text-white">Energy Data (Fullscreen)</h3>
+                    <div class="flex items-center space-x-2">
+                        <label for="desktop-fullscreen-energy-period" class="text-xs font-medium text-white">Period:</label>
+                        <select id="desktop-fullscreen-energy-period" onchange="onDesktopFullscreenEnergyPeriodChange()" 
+                                class="px-2 py-1 text-xs rounded border border-gray-600 bg-gray-700 text-white"
+                                style="touch-action: manipulation; min-width: 60px;">
+                            <option value="7d">7 Days</option>
+                            <option value="14d">14 Days</option>
+                            <option value="1m" selected>1 Month</option>
+                            <option value="3m">3 Months</option>
+                            <option value="6m">6 Months</option>
+                            <option value="1y">1 Year</option>
+                        </select>
+                        <div class="flex items-center bg-gray-700 rounded p-0.5">
+                            <button id="desktop-fullscreen-daily-toggle" onclick="toggleDesktopFullscreenEnergyView('daily')" 
+                                    class="px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white">
+                                Daily
+                            </button>
+                            <button id="desktop-fullscreen-monthly-toggle" onclick="toggleDesktopFullscreenEnergyView('monthly')" 
+                                    class="px-2 py-1 text-xs font-medium rounded transition-colors duration-200 text-gray-300 hover:bg-gray-600">
+                                Monthly
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="toggleDesktopEnergyFullscreen()" class="p-1 text-gray-400 hover:text-white" title="Exit Fullscreen">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex-1 p-3">
+                <div class="relative w-full h-full rounded-lg" style="background-color: #1f2937;">
+                    <canvas id="desktopEnergyChartFullscreen" class="w-full h-full" style="max-height: calc(100vh - 120px);"></canvas>
+                </div>
+            </div>
+            <div class="px-3 py-2 text-center" style="background-color: #1f2937;">
+                <button id="desktop-energy-fullscreen-reset-zoom-btn" onclick="resetDesktopEnergyFullscreenChartZoom()" 
+                        class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors duration-200 hidden">
+                    Reset Zoom
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    <!-- Status and User Component (Desktop Fixed Bottom Left) -->
+    <div class="hidden md:block fixed bottom-4 left-4 z-[9999]">
+        <div class="flex items-center space-x-3">
+            <!-- Countdown Status Component -->
+            <div class="relative w-6 h-6" title="Connection Status">
+                <!-- Progress Ring -->
+                <svg class="absolute inset-0 w-6 h-6 transform -rotate-90">
+                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                    <circle id="progress-ring-desktop" cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" 
+                            opacity="0.8" stroke-dasharray="62.83" stroke-dashoffset="62.83" 
+                            class="transition-all duration-1000 ease-linear"/>
+                </svg>
+                <!-- Status Dot (centered) -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div id="connection-status-dot-desktop" class="w-4 h-4 rounded-full bg-gray-500 transition-colors duration-200"></div>
+                </div>
+            </div>
+            
+            <!-- User Dropdown -->
+            <div class="relative">
+                <button onclick="toggleUserDropdown()" class="bg-transparent hover:bg-white/10 text-white px-3 py-2 rounded-lg font-medium text-sm transition-colors duration-200 border border-white/20 hover:border-white/40 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span id="user-info"></span>
+                    <svg class="w-4 h-4 transition-transform duration-200" id="user-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <!-- Dropdown Menu - positioned upward -->
+                <div id="user-dropdown" class="hidden absolute bottom-full mb-2 left-0 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                    <div class="py-1">
+                        <button onclick="logout()" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

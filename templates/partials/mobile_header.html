@@ -1,0 +1,58 @@
+{% set page_title = page_title or 'MELCloud' %}
+<div class="mobile-header flex items-center justify-between p-5 page-bg relative">
+  <div class="flex items-center space-x-3">
+    <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain">
+    <span class="text-xl font-semibold">{{ page_title }}</span>
+  </div>
+
+  <!-- Status and User (aligned to header center) -->
+  <div class="header-overlay md:hidden">
+    <div class="flex items-center space-x-2">
+      <!-- Countdown Status Component -->
+      <div class="relative w-6 h-6" title="Connection Status">
+        <!-- Progress Ring -->
+        <svg class="absolute inset-0 w-6 h-6 transform -rotate-90">
+          <circle cx="12" cy="12" r="10" stroke="#6B7280" stroke-width="2" fill="none" opacity="0.3"/>
+          <circle id="progress-ring-mobile" cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" 
+                  opacity="0.9" stroke-dasharray="62.83" stroke-dashoffset="62.83" 
+                  class="transition-all duration-1000 ease-linear"/>
+        </svg>
+        <!-- Status Dot (centered) -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div id="connection-status-dot-mobile" class="w-4 h-4 rounded-full bg-gray-500 transition-colors duration-200"></div>
+        </div>
+      </div>
+
+      <!-- Mobile User Dropdown -->
+      <div class="relative">
+        <button onclick="toggleUserDropdownMobile()" class="header-icon-btn bg-transparent hover:bg-white/10 text-white p-2 rounded-lg transition-colors duration-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </button>
+        
+        <!-- Mobile Dropdown Menu -->
+        <div id="user-dropdown-mobile" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+          <div class="py-1">
+            <div class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+              <span id="user-info-mobile"></span>
+            </div>
+            <a href="/help" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Help
+            </a>
+            <button onclick="logout()" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

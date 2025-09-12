@@ -1,0 +1,38 @@
+# Log files
+melcloud.log
+app.log
+logs/
+backups/
+migration_*.log
+
+# Database files
+#melcloud.db
+instance/*.db
+instance/*.key
+data/*.db
+data/*.key
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+#Folders
+/dist
+melcloud.log
+instance/melcloud.db

@@ -1,0 +1,101 @@
+# MELCloud Integration - Docker Build Ignore
+# Exclude files and directories from Docker build context
+
+# Development files
+.git/
+.gitignore
+.vscode/
+.idea/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.swp
+*.swo
+*~
+
+# Local development data
+dev-data/
+dev-logs/
+dev-backups/
+data/
+logs/
+backups/
+
+# Instance data and logs (will be created in container)
+instance/
+melcloud.log
+*.log
+
+# Distribution and build artifacts
+dist/
+build/
+*.egg-info/
+.coverage
+.pytest_cache/
+.tox/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation drafts
+*.draft.md
+TODO.md
+NOTES.md
+
+# Test files and test data
+test_*.py
+tests/
+# Note: melcloud_test.py is needed in production for API testing
+test_cache.json
+test_localStorage.html
+test_output.md
+
+# Local configuration overrides
+local_config.json
+.env.local
+.env.development
+
+# Docker related files (don't include other docker files)
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+
+# Build artifacts
+melcloud_backup_*.db
+*.backup
+
+# IDE and editor files
+*.sublime-*
+.vscode/settings.json
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Node modules (if any future frontend tooling)
+node_modules/
+npm-debug.log*
+
+# System files
+.directory
+desktop.ini
+
+# Cache directories
+.cache/
+.npm/
+.yarn/

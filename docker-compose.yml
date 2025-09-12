@@ -1,0 +1,86 @@
+# MELCloud Integration - Docker Compose Configuration
+# Easy deployment and development setup
+
+version: '3.8'
+
+services:
+  melcloud:
+    build: .
+    image: melcloud-integration:latest
+    container_name: melcloud
+    restart: unless-stopped
+    
+    # Port mapping
+    ports:
+      - "8000:8000"
+    
+    # Environment variables for configuration
+    environment:
+      - MELCLOUD_PORT=8000
+      # Note: Auto-fetch interval is now configured through the web UI settings
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+    
+    # Volume mounts for persistence
+    volumes:
+      # Database persistence
+      - melcloud-data:/app/instance
+      # Log persistence  
+      - melcloud-logs:/app/logs
+      # Backup storage
+      - melcloud-backups:/app/backups
+      # Optional: Mount custom config
+      # - ./custom_config.json:/app/production_config.json:ro
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.2'
+    
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+# Named volumes for data persistence
+volumes:
+  melcloud-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+  
+  melcloud-logs:
+    driver: local
+    driver_opts:
+      type: none  
+      o: bind
+      device: ./logs
+  
+  melcloud-backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./backups
+
+# Networks (default bridge is sufficient for single service)
+networks:
+  default:
+    name: melcloud-network

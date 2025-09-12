@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <title>Data History - MELCloud Dashboard</title>
+    {% set app_title = 'MELCloud Data History' %}
+    {% include 'partials/head.html' %}
+    </script>
+    
+</head>
+<body class="text-white overflow-x-hidden page-bg">
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+        {% set page_title = 'MELCloud' %}
+        {% include 'partials/mobile_header.html' %}
+
+        <!-- Content Area -->
+        <div style="height: calc(100svh - 200px); overflow: hidden;" class="relative">
+            <div class="h-full overflow-y-auto px-5 pt-5">
+                <div class="pb-20">
+                    <!-- Mobile Data History -->
+                    <div class="rounded-xl p-4 mb-4 panel-bg-mobile">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-white">Recent Data</h2>
+                            <button onclick="refreshDataHistory()" class="px-3 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                                Refresh
+                            </button>
+                        </div>
+                        <div id="mobile-data-history" class="space-y-3">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Mobile Pagination Controls (copied from v1) -->
+                        <div id="mobile-pagination-controls" class="hidden mt-4 flex flex-row items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <label for="mobile-records-per-page" class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <span class="hidden sm:inline">Records per page:</span>
+                                    <span class="sm:hidden">Per page:</span>
+                                </label>
+                                <select id="mobile-records-per-page" onchange="changeRecordsPerPage()"
+                                        class="px-2 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+                            
+                            <div id="mobile-pagination-info" class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex-1 text-center">
+                                <span class="hidden sm:inline">Page <span id="mobile-current-page">1</span> of <span id="mobile-total-pages">1</span> (Showing <span id="mobile-showing-records">0</span> of <span id="mobile-total-records">0</span> records)</span>
+                                <span class="sm:hidden">P<span id="mobile-current-page-mobile">1</span>/<span id="mobile-total-pages-mobile">1</span> (<span id="mobile-showing-records-mobile">0</span>/<span id="mobile-total-records-mobile">0</span>)</span>
+                            </div>
+                            
+                            <div class="flex gap-1 sm:gap-2">
+                                <button id="mobile-prev-page" onclick="previousPage()" disabled
+                                        class="px-6 sm:px-3 py-2 sm:py-1 text-sm sm:text-sm bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded transition-colors duration-200">
+                                    <span class="hidden sm:inline">Previous</span>
+                                    <span class="sm:hidden">← Prev</span>
+                                </button>
+                                <button id="mobile-next-page" onclick="nextPage()" disabled
+                                        class="px-6 sm:px-3 py-2 sm:py-1 text-sm sm:text-sm bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded transition-colors duration-200">
+                                    <span class="hidden sm:inline">Next</span>
+                                    <span class="sm:hidden">Next →</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L5 9.414V17a1 1 0 002 0v-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 002 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/schedules'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">Schedule</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/energy'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span class="text-xs">Energy</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-orange-500" onclick="window.location.href='/data-history'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/settings'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="hidden md:block">
+        <div class="container-desktop">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Static menu to prevent flash - enhanced by menu.js -->
+                <div class="flex items-center space-x-3 mb-6">
+                        <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain" width="40" height="40" decoding="async">
+                    <span class="text-xl font-semibold">MELCloud Dashboard</span>
+                </div>
+                <nav class="space-y-2">
+                    <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Schedules</span>
+                    </a>
+                    <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span>Energy</span>
+                    </a>
+                    <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        <span>Data History</span>
+                    </a>
+                    
+                    <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                    <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Help</span>
+                    </a>
+                </nav>
+
+                <!-- Status and User Component (Desktop Fixed Bottom Left) -->
+                <div class="fixed bottom-4 left-4 z-50">
+                    <div class="flex items-center space-x-3">
+                        <!-- Countdown Status Component -->
+                        <div class="relative w-6 h-6" title="Connection Status">
+                            <!-- Progress Ring -->
+                            <svg class="absolute inset-0 w-6 h-6 transform -rotate-90">
+                                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                                <circle id="progress-ring-desktop" cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" 
+                                        opacity="0.8" stroke-dasharray="62.83" stroke-dashoffset="62.83" 
+                                        class="transition-all duration-1000 ease-linear"/>
+                            </svg>
+                            <!-- Status Dot (centered) -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div id="connection-status-dot-desktop" class="w-4 h-4 rounded-full bg-gray-500 transition-colors duration-200"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- User Dropdown -->
+                        <div class="relative">
+                            <button onclick="toggleUserDropdown()" class="bg-transparent hover:bg-white/10 text-white px-3 py-2 rounded-lg font-medium text-sm transition-colors duration-200 border border-white/20 hover:border-white/40 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span id="user-info"></span>
+                                <svg class="w-4 h-4 transition-transform duration-200" id="user-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Dropdown Menu (positioned to go UP instead of down) -->
+                            <div id="user-dropdown" class="hidden absolute left-0 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                                <div class="py-1">
+                                    <button onclick="logout()" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="max-w-6xl mx-auto">
+                    <h1 class="text-3xl font-bold mb-8">Data History</h1>
+                    
+                    <!-- Data History Content -->
+                    <div class="rounded-3xl p-8 panel-bg">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-semibold">Historical Device Data</h2>
+                            <button id="history-refresh-btn" onclick="refreshDataHistory()"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+                                    title="Refresh history data">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
+                        
+                        <!-- Date Filters -->
+                        <div class="bg-gray-800 rounded-lg p-4 mb-6">
+                            <div class="flex flex-wrap items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <label for="date-from" class="text-sm font-medium text-gray-300">From:</label>
+                                    <input type="date" id="date-from" onchange="applyDateFilter()"
+                                           class="px-3 py-2 text-sm rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label for="date-to" class="text-sm font-medium text-gray-300">To:</label>
+                                    <input type="date" id="date-to" onchange="applyDateFilter()"
+                                           class="px-3 py-2 text-sm rounded-lg border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <button onclick="clearDateFilter()" class="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="data-history-container" class="text-center p-12 text-gray-400">
+                            <div class="flex flex-col items-center">
+                                <svg class="w-12 h-12 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <p class="text-lg">Loading historical data...</p>
+                            </div>
+                        </div>
+                        
+                        <div id="data-table-container" style="display: none;">
+                            <div class="overflow-x-auto">
+                                <table id="data-table" class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-gray-600">
+                                            <th class="px-4 py-3 text-left font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Timestamp</span>
+                                                <span class="sm:hidden">Time</span>
+                                            </th>
+                                            <th class="px-4 py-3 text-center font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Room Temp</span>
+                                                <span class="sm:hidden">Room</span>
+                                            </th>
+                                            <th class="px-4 py-3 text-center font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Outdoor Temp</span>
+                                                <span class="sm:hidden">Out</span>
+                                            </th>
+                                            <th class="px-4 py-3 text-center font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Tank Temp</span>
+                                                <span class="sm:hidden">Tank</span>
+                                            </th>
+                                            <th class="px-4 py-3 text-center font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Flow Temp</span>
+                                                <span class="sm:hidden">Flow</span>
+                                            </th>
+                                            <th class="px-4 py-3 text-center font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Return Temp</span>
+                                                <span class="sm:hidden">Return</span>
+                                            </th>
+                                            <th class="px-4 py-3 text-center font-semibold text-gray-200 text-sm">
+                                                <span class="hidden sm:inline">Delta T</span>
+                                                <span class="sm:hidden">ΔT</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="data-table-body">
+                                        <!-- Data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Pagination -->
+                            <div id="pagination-controls" class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div class="text-sm text-gray-400">
+                                    Showing <span id="records-start" class="font-semibold text-white">0</span> to <span id="records-end" class="font-semibold text-white">0</span> of <span id="records-total" class="font-semibold text-white">0</span> records
+                                </div>
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button onclick="previousPage()" id="prev-btn" class="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 disabled:bg-gray-700 disabled:opacity-50 text-white rounded-lg transition-colors duration-200">
+                                        Previous
+                                    </button>
+                                    <span class="px-4 py-2 text-sm text-gray-300">
+                                        Page <span id="current-page" class="font-semibold text-white">1</span> of <span id="total-pages" class="font-semibold text-white">1</span>
+                                    </span>
+                                    <button onclick="nextPage()" id="next-btn" class="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 disabled:bg-gray-700 disabled:opacity-50 text-white rounded-lg transition-colors duration-200">
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data history variables
+        let currentPage = 1;
+        let recordsPerPage = 20;
+        let totalRecords = 0;
+        let dateFrom = '';
+        let dateTo = '';
+
+        // User functions handled by shared-ui.js
+        
+        // Data history functions
+        function buildHistoryUrl(limit, offset) {
+            let url = `/api/data/history?limit=${limit}&offset=${offset}`;
+            if (dateFrom) url += `&date_from=${dateFrom}`;
+            if (dateTo) url += `&date_to=${dateTo}`;
+            return url;
+        }
+
+        function loadDataHistory() {
+            const historyContainer = document.getElementById('data-history-container');
+            const dataTableContainer = document.getElementById('data-table-container');
+            const paginationControls = document.getElementById('pagination-controls');
+            const mobileHistoryContainer = document.getElementById('mobile-data-history');
+            
+            const offset = (currentPage - 1) * recordsPerPage;
+            
+            fetch(buildHistoryUrl(recordsPerPage, offset))
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // Use server-provided total count to avoid fetching all rows
+                        if (typeof result.total === 'number') {
+                            totalRecords = result.total;
+                            if (document.getElementById('records-start')) {
+                                updatePaginationInfo();
+                            }
+                        }
+                        if (result.data.length > 0) {
+                            displayDataHistory(result.data);
+                            displayMobileDataHistory(result.data); // Show paginated data on mobile
+                            if (historyContainer) {
+                                historyContainer.style.display = 'none';
+                                dataTableContainer.style.display = 'block';
+                                paginationControls.classList.remove('hidden');
+                            }
+                            // Show mobile pagination controls
+                            document.getElementById('mobile-pagination-controls').classList.remove('hidden');
+                        } else {
+                            if (historyContainer) {
+                                historyContainer.innerHTML = `
+                                    <div class="flex flex-col items-center">
+                                        <svg class="w-12 h-12 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        <p class="text-lg text-gray-400">No data available for the selected period</p>
+                                    </div>
+                                `;
+                                historyContainer.style.display = 'block';
+                                dataTableContainer.style.display = 'none';
+                                paginationControls.classList.add('hidden');
+                            }
+                            if (mobileHistoryContainer) {
+                                mobileHistoryContainer.innerHTML = '<div class="text-center text-gray-400 py-4">No recent data available</div>';
+                            }
+                        }
+                    } else {
+                        const errorHtml = `
+                            <div class="flex flex-col items-center">
+                                <svg class="w-12 h-12 mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <p class="text-lg text-red-400">Error: ${result.error || 'Failed to load data'}</p>
+                            </div>
+                        `;
+                        if (historyContainer) {
+                            historyContainer.innerHTML = errorHtml;
+                            dataTableContainer.style.display = 'none';
+                            paginationControls.classList.add('hidden');
+                        }
+                        if (mobileHistoryContainer) {
+                            mobileHistoryContainer.innerHTML = '<div class="text-center text-red-400 py-4">Error loading data</div>';
+                        }
+                    }
+                })
+                .catch(error => {
+                    const errorHtml = `
+                        <div class="flex flex-col items-center">
+                            <svg class="w-12 h-12 mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-lg text-red-400">Network error: ${error.message}</p>
+                        </div>
+                    `;
+                    if (historyContainer) {
+                        historyContainer.innerHTML = errorHtml;
+                        dataTableContainer.style.display = 'none';
+                        paginationControls.style.display = 'none';
+                    }
+                    if (mobileHistoryContainer) {
+                        mobileHistoryContainer.innerHTML = '<div class="text-center text-red-400 py-4">Network error</div>';
+                    }
+                });
+        }
+        
+        function displayMobileDataHistory(data) {
+            const mobileContainer = document.getElementById('mobile-data-history');
+            if (!mobileContainer) return;
+            
+            if (data.length === 0) {
+                mobileContainer.innerHTML = '<div class="text-center text-gray-400 py-4">No recent data available</div>';
+                return;
+            }
+            
+            // Create table structure (copied from v1)
+            const tableHtml = data.map(item => {
+                // Calculate Delta T (Flow Temp - Return Temp)
+                let deltaT = 'N/A';
+                if (item.flow_temperature !== null && item.return_temperature !== null) {
+                    deltaT = (item.flow_temperature - item.return_temperature).toFixed(1) + '°C';
+                }
+                
+                // Format timestamp - compact but includes date (dd/mm format)
+                const date = new Date(item.timestamp);
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const mobileTime = `${day}/${month} ${hours}:${minutes}`;
+                const fullTime = date.toLocaleString();
+                
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">
+                            <span class="hidden sm:inline">${fullTime}</span>
+                            <span class="sm:hidden">${mobileTime}</span>
+                        </td>
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">${item.room_temperature ? item.room_temperature + '°' : '--'}</td>
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">${item.outdoor_temperature ? item.outdoor_temperature + '°' : '--'}</td>
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">${item.tank_temperature ? item.tank_temperature + '°' : '--'}</td>
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">${item.flow_temperature ? item.flow_temperature + '°' : '--'}</td>
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">${item.return_temperature ? item.return_temperature + '°' : '--'}</td>
+                        <td class="px-0.5 py-1 md:p-3 text-xs md:text-sm text-gray-100 dark:text-gray-100 border-b border-orange-200 dark:border-orange-600 text-center">${deltaT === 'N/A' ? '--' : deltaT}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Create complete table with headers (copied from v1)
+            mobileContainer.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-orange-500 dark:bg-orange-600">
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden sm:inline">Timestamp</span>
+                                    <span class="sm:hidden">Time</span>
+                                </th>
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden sm:inline">Room Temp</span>
+                                    <span class="sm:hidden">Room</span>
+                                </th>
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden sm:inline">Outdoor Temp</span>
+                                    <span class="sm:hidden">Out</span>
+                                </th>
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden sm:inline">Tank Temp</span>
+                                    <span class="sm:hidden">Tank</span>
+                                </th>
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden lg:inline">Flow Temp</span>
+                                    <span class="lg:hidden">Flow</span>
+                                </th>
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden lg:inline">Return Temp</span>
+                                    <span class="lg:hidden">Return</span>
+                                </th>
+                                <th class="px-0.5 py-1 md:p-3 text-center font-semibold text-white border-b-2 border-orange-600 dark:border-orange-700 text-xs md:text-sm">
+                                    <span class="hidden sm:inline">Delta T</span>
+                                    <span class="sm:hidden">ΔT</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-orange-200 dark:divide-orange-600">
+                            ${tableHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function displayDataHistory(data) {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach((item, index) => {
+                // Calculate Delta T (Flow Temp - Return Temp)
+                let deltaT = 'N/A';
+                if (item.flow_temperature !== null && item.return_temperature !== null) {
+                    deltaT = (item.flow_temperature - item.return_temperature).toFixed(1) + '°C';
+                }
+                
+                const row = tbody.insertRow();
+                row.className = `hover:bg-gray-700 transition-colors duration-200 ${index % 2 === 0 ? 'bg-gray-800/50' : 'bg-transparent'}`;
+                
+                // Format timestamp - compact but includes date
+                let timestamp = 'N/A';
+                if (item.timestamp) {
+                    const date = new Date(item.timestamp);
+                    timestamp = date.toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: '2-digit',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                }
+                
+                // Helper function to format temperature values
+                const formatTemp = (temp) => {
+                    if (temp === null || temp === undefined) return '<span class="text-gray-500">N/A</span>';
+                    return `<span class="text-blue-400 font-mono">${temp.toFixed(1)}°C</span>`;
+                };
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-left text-sm border-b border-gray-600 text-gray-300 font-mono">${timestamp}</td>
+                    <td class="px-4 py-3 text-center text-sm border-b border-gray-600">${formatTemp(item.room_temperature)}</td>
+                    <td class="px-4 py-3 text-center text-sm border-b border-gray-600">${formatTemp(item.outdoor_temperature)}</td>
+                    <td class="px-4 py-3 text-center text-sm border-b border-gray-600">${formatTemp(item.tank_temperature)}</td>
+                    <td class="px-4 py-3 text-center text-sm border-b border-gray-600">${formatTemp(item.flow_temperature)}</td>
+                    <td class="px-4 py-3 text-center text-sm border-b border-gray-600">${formatTemp(item.return_temperature)}</td>
+                    <td class="px-4 py-3 text-center text-sm border-b border-gray-600">${deltaT !== 'N/A' ? `<span class="text-green-400 font-mono font-semibold">${deltaT}</span>` : '<span class="text-gray-500">N/A</span>'}</td>
+                `;
+            });
+        }
+
+        function refreshDataHistory() {
+            currentPage = 1;
+            loadDataHistory();
+        }
+
+        function applyDateFilter() {
+            const fromInput = document.getElementById('date-from');
+            const toInput = document.getElementById('date-to');
+            
+            dateFrom = fromInput.value;
+            dateTo = toInput.value;
+            
+            currentPage = 1;
+            loadDataHistory();
+        }
+
+        function clearDateFilter() {
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            dateFrom = '';
+            dateTo = '';
+            
+            currentPage = 1;
+            loadDataHistory();
+        }
+
+        function updatePaginationInfo() {
+            const totalPages = Math.ceil(totalRecords / recordsPerPage);
+            const recordsStart = (currentPage - 1) * recordsPerPage + 1;
+            const recordsEnd = Math.min(currentPage * recordsPerPage, totalRecords);
+            
+            // Update desktop pagination
+            if (document.getElementById('records-start')) {
+                document.getElementById('records-start').textContent = recordsStart;
+                document.getElementById('records-end').textContent = recordsEnd;
+                document.getElementById('records-total').textContent = totalRecords;
+                document.getElementById('current-page').textContent = currentPage;
+                document.getElementById('total-pages').textContent = totalPages;
+            }
+            
+            // Update mobile pagination (copied from v1)
+            if (document.getElementById('mobile-current-page')) {
+                document.getElementById('mobile-current-page').textContent = currentPage;
+                document.getElementById('mobile-total-pages').textContent = totalPages;
+                document.getElementById('mobile-showing-records').textContent = `${recordsStart}-${recordsEnd}`;
+                document.getElementById('mobile-total-records').textContent = totalRecords;
+            }
+            
+            if (document.getElementById('mobile-current-page-mobile')) {
+                document.getElementById('mobile-current-page-mobile').textContent = currentPage;
+                document.getElementById('mobile-total-pages-mobile').textContent = totalPages;
+                document.getElementById('mobile-showing-records-mobile').textContent = `${recordsStart}-${recordsEnd}`;
+                document.getElementById('mobile-total-records-mobile').textContent = totalRecords;
+            }
+            
+            // Update button states for both desktop and mobile
+            if (document.getElementById('prev-btn')) {
+                document.getElementById('prev-btn').disabled = currentPage <= 1;
+            }
+            if (document.getElementById('next-btn')) {
+                document.getElementById('next-btn').disabled = currentPage >= totalPages;
+            }
+            if (document.getElementById('mobile-prev-page')) {
+                document.getElementById('mobile-prev-page').disabled = currentPage <= 1;
+            }
+            if (document.getElementById('mobile-next-page')) {
+                document.getElementById('mobile-next-page').disabled = currentPage >= totalPages;
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadDataHistory();
+            }
+        }
+
+        function changeRecordsPerPage() {
+            // Check if desktop select exists and get its value
+            const desktopSelect = document.getElementById('records-per-page');
+            const mobileSelect = document.getElementById('mobile-records-per-page');
+            
+            let newValue;
+            if (desktopSelect && desktopSelect.value) {
+                newValue = parseInt(desktopSelect.value);
+                if (mobileSelect) mobileSelect.value = newValue;
+            } else if (mobileSelect) {
+                newValue = parseInt(mobileSelect.value);
+            }
+            
+            if (newValue) {
+                recordsPerPage = newValue;
+                currentPage = 1; // Reset to first page
+                loadDataHistory();
+            }
+        }
+        function nextPage() {
+            const totalPages = Math.ceil(totalRecords / recordsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadDataHistory();
+            }
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            displayUserInfo(); // Load current user info
+            loadDataHistory(); // Load data history
+            
+            // Initialize shared connection status widget
+            StatusWidget.init();
+        });
+    </script>
+</body>
+</html>

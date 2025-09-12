@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <title>Help - MELCloud Dashboard</title>
+    {% set app_title = 'MELCloud Help' %}
+    {% include 'partials/head.html' %}
+    
+    <script>
+        // Status handled by shared StatusWidget
+
+        function restoreStatusFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('connectionStatusData');
+                if (!stored) return false;
+                const data = JSON.parse(stored);
+                const now = Date.now();
+                const age = (now - data.fetchTime) / 1000;
+                if (age < 120) {
+                    const adjustedData = { ...data, countdown_seconds: Math.max(0, data.countdown_seconds - Math.floor(age)), next_request_time: data.next_request_time - age/1000 };
+                    lastStatusData = adjustedData;
+                    StatusWidget.setConnectionStatus(data.color, data.detail, adjustedData);
+                    startCountdownTimer();
+                    return true;
+                }
+            } catch {}
+            return false;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayUserInfo();
+            StatusWidget.init();
+        });
+    </script>
+</head>
+<body class="text-white overflow-x-hidden page-bg">
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+        {% set page_title = 'Help' %}
+        {% include 'partials/mobile_header.html' %}
+
+        <div class="p-5 pb-24 space-y-4">
+            <!-- Intro -->
+            <div class="rounded-xl p-4 panel-bg-mobile">
+                <h1 class="text-2xl font-bold mb-2">Help & Support</h1>
+                <p class="text-gray-300 text-sm">This guide explains how to use the MELCloud Dashboard to monitor and control your Mitsubishi heat pump, view energy insights, manage schedules, and keep the service healthy.</p>
+            </div>
+
+            <!-- On this page -->
+            <div class="rounded-xl p-4 panel-bg-mobile">
+                <h2 class="text-xl font-semibold mb-2">On This Page</h2>
+                <div class="flex flex-wrap gap-2 text-sm">
+                    <a href="#getting-started" class="text-primary-500 hover:underline">Getting Started</a>
+                    <a href="#navigation" class="text-primary-500 hover:underline">Navigation</a>
+                    <a href="#schedules" class="text-primary-500 hover:underline">Schedules</a>
+                    <a href="#energy" class="text-primary-500 hover:underline">Energy & History</a>
+                    <a href="#api" class="text-primary-500 hover:underline">API</a>
+                    <a href="#monitoring" class="text-primary-500 hover:underline">Monitoring</a>
+                    <a href="#troubleshooting" class="text-primary-500 hover:underline">Troubleshooting</a>
+                    <a href="#docker" class="text-primary-500 hover:underline">Docker</a>
+                    <a href="#security" class="text-primary-500 hover:underline">Security</a>
+                    <a href="#faq" class="text-primary-500 hover:underline">FAQ</a>
+                </div>
+            </div>
+
+            <!-- Getting Started -->
+            <div id="getting-started" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Getting Started</h2>
+                <ol class="list-decimal list-inside text-gray-300 text-sm space-y-1">
+                    <li>Open the app at <code>http://localhost:8000</code> (or your server URL).</li>
+                    <li>Complete initial Setup when prompted (Settings → MELCloud API).</li>
+                    <li>Sign in and verify the status indicators are green.</li>
+                    <li>Use the sidebar to visit Home, Energy, Schedules, and Data History.</li>
+                </ol>
+            </div>
+
+            <!-- Navigation guide -->
+            <div id="navigation" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Navigation</h2>
+                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                    <li><b>Home</b>: Live temperatures, quick modes (Boost, Holiday), and device status.</li>
+                    <li><b>Energy</b>: Daily and monthly energy summaries with production/consumption metrics.</li>
+                    <li><b>Schedules</b>: Create weekly schedules for temperatures, hot water, and holiday mode.</li>
+                    <li><b>Data History</b>: Browse recent readings and paginate through historical records.</li>
+                    <li><b>Settings</b>: Profile, users, and MELCloud API configuration (auto-fetch interval, auth).</li>
+                </ul>
+            </div>
+
+            <!-- Schedules -->
+            <div id="schedules" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Schedules</h2>
+                <p class="text-gray-300 text-sm">Automate your heat pump with weekly recurring rules. From Schedule.md:</p>
+                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                    <li><b>Types</b>: Temperature targets (Zone 1), Hot Water boost, Holiday mode.</li>
+                    <li><b>Weekly Pattern</b>: Mon–Sun timeline with 24-hour coverage.</li>
+                    <li><b>Overlap</b>: Multiple schedules can stack; priority rules resolve conflicts.</li>
+                    <li><b>Actions</b>: Add/edit/delete, toggle active state, and “Run Now”.</li>
+                    <li><b>History</b>: View execution logs under “Schedules → History”.</li>
+                </ul>
+                <p class="text-gray-300 text-sm">Tip: Use the calendar timeline to click and add blocks at exact times. The execution engine runs continuously and respects MELCloud rate limits.</p>
+            </div>
+
+            <!-- Energy & History -->
+            <div id="energy" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Energy & Data History</h2>
+                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                    <li><b>Energy</b>: Daily/Monthly summaries; check heating, cooling, hot water trends.</li>
+                    <li><b>Data History</b>: Paginated device readings (temperatures, statuses, COP, etc.).</li>
+                    <li><b>Auto-Fetch</b>: Background collection at configured intervals (Settings → MELCloud API).</li>
+                    <li><b>COP</b>: Efficiency ratio (heat output ÷ electricity input); higher is better.</li>
+                    <li><b>SCOP</b>: Seasonal average efficiency over time (e.g., last 12 months).</li>
+                    <li><b>Operating Modes</b>: Heat, Cool (if supported), Auto, Holiday, and Defrost.</li>
+                    <li><b>Key Temperatures</b>: Room, Set Point, Flow, Return, and Outdoor sensors.</li>
+                </ul>
+            </div>
+
+            <!-- API quick reference -->
+            <div id="api" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">API Quick Reference</h2>
+                <p class="text-gray-300 text-sm">Useful endpoints (see README for the full list):</p>
+                <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>GET  /api/health                   # Service health summary
+GET  /api/status                   # Auth + rate limit status
+GET  /api/data                     # Cached latest data
+GET  /api/data/history             # Historical data
+GET  /api/data/daily-energy-summary
+POST /api/refresh                  # Refresh (rate-limited)
+POST /api/refresh-and-store        # Refresh + persist
+GET  /api/auto-fetch/status        # Auto-fetch status
+POST /api/auto-fetch/toggle        # Enable/disable auto-fetch
+POST /api/auto-fetch/trigger       # Manual data collection
+POST /api/database/recover         # Attempt DB recovery
+</code></pre>
+            </div>
+
+            <!-- Monitoring -->
+            <div id="monitoring" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Monitoring</h2>
+                <p class="text-gray-300 text-sm">Use the built-in health scripts and endpoints (from README):</p>
+                <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code># One-off check
+python monitor_health.py
+
+# Continuous with auto-recovery
+python monitor_health.py --continuous --recover
+
+# Docker: view health + logs
+docker ps                      # look for (healthy)
+curl http://localhost:8000/api/health
+docker logs melcloud -f
+</code></pre>
+            </div>
+
+            <!-- Troubleshooting -->
+            <div id="troubleshooting" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Troubleshooting</h2>
+                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                    <li><b>Service won’t start</b>: Check <code>melcloud.log</code>, verify credentials, ensure port 8000 is free.</li>
+                    <li><b>Database readonly</b>: Run <code>POST /api/database/recover</code>, check disk space (>100MB), inspect logs.</li>
+                    <li><b>Rate limited</b>: See <code>/api/status</code>; normal interval is ~60 seconds.</li>
+                    <li><b>Auto-fetch not running</b>: Check <code>/api/auto-fetch/status</code> or trigger manually.</li>
+                </ul>
+            </div>
+
+            <!-- Docker -->
+            <div id="docker" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Docker Basics</h2>
+                <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code># Start
+docker-compose up -d
+
+# Update
+docker-compose pull && docker-compose up -d
+
+# Rebuild with local changes
+docker-compose up -d --build
+</code></pre>
+            </div>
+
+            <!-- Security -->
+            <div id="security" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Security & Privacy</h2>
+                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                    <li>Keep MELCloud credentials in the app’s secure settings only.</li>
+                    <li>Review logs before sharing; they may contain sensitive info.</li>
+                    <li>Back up <code>instance/melcloud.db</code> securely; it contains device data.</li>
+                    <li>Rotate credentials if you suspect exposure.</li>
+                </ul>
+            </div>
+
+            <!-- FAQ -->
+            <div id="faq" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">FAQ</h2>
+                <div class="text-gray-300 text-sm space-y-2">
+                    <p><b>How often does data refresh?</b> Auto-fetch runs on an interval configured in Settings (default ~5 minutes) and respects a ~60 second minimum between MELCloud API calls.</p>
+                    <p><b>Can I run commands immediately?</b> Yes — use “Run Now” in Schedules or the controls on Home. Commands still respect rate limiting.</p>
+                    <p><b>Where are my historical records?</b> See Data History for a paginated view; Energy shows daily/monthly aggregates.</p>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="rounded-xl p-4 space-y-3 panel-bg-mobile">
+                <h2 class="text-xl font-semibold">Quick Links</h2>
+                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                    <li><a class="text-primary-500 hover:underline" href="/">Home</a></li>
+                    <li><a class="text-primary-500 hover:underline" href="/schedules">Schedules</a></li>
+                    <li><a class="text-primary-500 hover:underline" href="/energy">Energy</a></li>
+                    <li><a class="text-primary-500 hover:underline" href="/data-history">Data History</a></li>
+                    <li><a class="text-primary-500 hover:underline" href="/settings">Settings</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->  
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L5 9.414V17a1 1 0 002 0v-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 002 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/schedules'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">Schedule</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/energy'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span class="text-xs">Energy</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/data-history'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/settings'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="hidden md:block">
+        <div class="container-desktop">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="flex items-center space-x-3 mb-6">
+                    <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain">
+                    <span class="text-xl font-semibold">MELCloud Dashboard</span>
+                </div>
+                <nav class="space-y-2">
+                    <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Schedules</span>
+                    </a>
+                    <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span>Energy</span>
+                    </a>
+                    <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        <span>Data History</span>
+                    </a>
+                    <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>Settings</span>
+                    </a>
+                    <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Help</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="max-w-6xl mx-auto space-y-6">
+                    <h1 class="text-3xl font-bold">Help & Support</h1>
+
+                    <!-- Desktop: On this page -->
+                    <div class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-3">On This Page</h2>
+                        <div class="flex flex-wrap gap-3 text-sm">
+                            <a href="#ds-getting-started" class="text-primary-500 hover:underline">Getting Started</a>
+                            <a href="#ds-navigation" class="text-primary-500 hover:underline">Navigation</a>
+                            <a href="#ds-schedules" class="text-primary-500 hover:underline">Schedules</a>
+                            <a href="#ds-energy" class="text-primary-500 hover:underline">Energy & History</a>
+                            <a href="#ds-api" class="text-primary-500 hover:underline">API</a>
+                            <a href="#ds-monitoring" class="text-primary-500 hover:underline">Monitoring</a>
+                            <a href="#ds-troubleshooting" class="text-primary-500 hover:underline">Troubleshooting</a>
+                            <a href="#ds-docker" class="text-primary-500 hover:underline">Docker</a>
+                            <a href="#ds-security" class="text-primary-500 hover:underline">Security</a>
+                            <a href="#ds-faq" class="text-primary-500 hover:underline">FAQ</a>
+                        </div>
+                    </div>
+
+                    <!-- Desktop: Sections -->
+                    <div id="ds-getting-started" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Getting Started</h2>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1 text-sm">
+                            <li>Open <code>http://localhost:8000</code> and complete Setup in Settings.</li>
+                            <li>Sign in; confirm status indicators are healthy.</li>
+                            <li>Use the sidebar to access the main pages.</li>
+                        </ol>
+                    </div>
+
+                    <div id="ds-navigation" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Navigation</h2>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                            <li><b>Home</b>: Live readings and quick actions.</li>
+                            <li><b>Energy</b>: Aggregated daily/monthly usage and production.</li>
+                            <li><b>Schedules</b>: Weekly rules for temperature, hot water, holiday mode.</li>
+                            <li><b>Data History</b>: Detailed historical records with pagination.</li>
+                            <li><b>Settings</b>: Profile, users, MELCloud API configuration.</li>
+                        </ul>
+                    </div>
+
+                    <div id="ds-schedules" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Schedules</h2>
+                        <p class="text-gray-300 text-sm mb-2">From Schedule.md — implemented highlights:</p>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                            <li><b>Types</b>: Temperature, Hot Water, Holiday mode.</li>
+                            <li><b>Weekly</b>: Mon–Sun timeline; add blocks by clicking the timeline.</li>
+                            <li><b>Overlap</b>: Supports stacked schedules with priorities.</li>
+                            <li><b>Controls</b>: Activate/deactivate, edit rules, and “Run Now”.</li>
+                            <li><b>History</b>: Inspect execution logs and results.</li>
+                        </ul>
+                    </div>
+
+                    <div id="ds-energy" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Energy & Data History</h2>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                            <li><b>Energy</b>: Daily/monthly summaries of heating, cooling, hot water.</li>
+                            <li><b>Data History</b>: Time-series device readings and status values.</li>
+                            <li><b>Auto-Fetch</b>: Continuous collection at your configured interval.</li>
+                            <li><b>COP</b>: Efficiency ratio (heat output ÷ electricity input); higher is better.</li>
+                            <li><b>SCOP</b>: Seasonal average efficiency for longer-term performance.</li>
+                            <li><b>Operating Modes</b>: Heat, Cool (if supported), Auto, Holiday, Defrost.</li>
+                            <li><b>Key Temperatures</b>: Room, Set Point, Flow, Return, Outdoor.</li>
+                        </ul>
+                    </div>
+
+                    <div id="ds-api" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">API Quick Reference</h2>
+                        <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>GET  /api/health
+GET  /api/status
+GET  /api/data
+GET  /api/data/history
+GET  /api/data/daily-energy-summary
+POST /api/refresh
+POST /api/refresh-and-store
+GET  /api/auto-fetch/status
+POST /api/auto-fetch/toggle
+POST /api/auto-fetch/trigger
+POST /api/database/recover
+</code></pre>
+                    </div>
+
+                    <div id="ds-monitoring" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Monitoring</h2>
+                        <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>python monitor_health.py --continuous --recover
+curl http://localhost:8000/api/health
+docker logs melcloud -f
+</code></pre>
+                    </div>
+
+                    <div id="ds-troubleshooting" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Troubleshooting</h2>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                            <li>Use <code>/api/database/recover</code> for readonly/corruption issues; check disk space.</li>
+                            <li>See <code>/api/status</code> for rate limiting; normal minimum ~60s.</li>
+                            <li>Use <code>/api/auto-fetch/status</code> and manual trigger when needed.</li>
+                        </ul>
+                    </div>
+
+                    <div id="ds-docker" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Docker</h2>
+                        <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>docker-compose up -d --build
+docker logs melcloud -f
+</code></pre>
+                    </div>
+
+                    <div id="ds-security" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">Security & Privacy</h2>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                            <li>Store credentials only in Settings; never commit them.</li>
+                            <li>Review logs before sharing; scrub sensitive details.</li>
+                            <li>Back up <code>instance/melcloud.db</code> securely.</li>
+                        </ul>
+                    </div>
+
+                    <div id="ds-faq" class="rounded-xl p-6 panel-bg">
+                        <h2 class="text-xl font-semibold mb-2">FAQ</h2>
+                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                            <li><b>Refresh cadence?</b> Auto-fetch interval is configured in Settings; MELCloud minimum ~60s.</li>
+                            <li><b>Immediate commands?</b> Use “Run Now” in Schedules or Home controls.</li>
+                            <li><b>Where is history?</b> “Data History” for detail; “Energy” for aggregates.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

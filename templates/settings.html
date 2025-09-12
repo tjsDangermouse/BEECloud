@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Settings - MELCloud Dashboard</title>
+    <link rel="icon" type="image/png" href="/static/Beelogo.png">
+    <link rel="shortcut icon" type="image/png" href="/static/Beelogo.png">
+    
+    <!-- iOS Full Screen Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MELCloud Settings">
+    <link rel="apple-touch-icon" href="/static/Beelogo.png">
+    <link rel="apple-touch-startup-image" href="/static/Beelogo.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
+    <script defer src="/static/js/sw-register.js"></script>
+    <script src="/static/js/menu.js"></script>
+    <script src="/static/js/status.js"></script>
+    <script src="/static/js/shared-ui.js"></script>
+    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                50: '#fef7ed',
+                                100: '#fdeacc', 
+                                200: '#fad394',
+                                300: '#f7b85c',
+                                400: '#f59e0b',
+                                500: '#f59e0b',
+                                600: '#d97706',
+                                700: '#b45309',
+                                800: '#92400e',
+                                900: '#78350f'
+                            },
+                            success: {
+                                400: '#4ade80',
+                                500: '#22c55e',
+                                600: '#16a34a'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+</head>
+<body class="text-white overflow-x-hidden page-bg">
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+        {% set page_title = 'MELCloud' %}
+        {% include 'partials/mobile_header.html' %}
+
+        <!-- Content Area with Swipe -->
+        <div style="height: calc(100svh - 200px); overflow: hidden;" class="relative">
+            <!-- Flash Messages -->
+            <div id="flash-messages" class="absolute top-0 left-0 right-0 z-10 p-5 space-y-2"></div>
+
+            <!-- Main Content Container with Swipe -->
+            <div class="swipe-container h-full" id="swipe-container">
+                <div class="flex h-full transition-transform duration-300 ease-out" id="swipe-content" style="transform: translateX(0%);">
+                    
+                    <!-- Profile Settings Screen -->
+                    <div class="w-full flex-shrink-0 overflow-y-auto p-4">
+                            <h2 class="text-lg font-semibold mb-3 text-center">Profile Settings</h2>
+                            
+                            <!-- Current User Info -->
+                            <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-3 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-blue-100 text-sm" id="current-user-info">Loading...</p>
+                                        <p class="text-xs text-blue-300" id="current-user-role">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Change Password Form -->
+                            <form id="change-password-form" class="space-y-3">
+                                <h3 class="text-base font-medium mb-3">Change Password</h3>
+                                
+                                <div>
+                                    <label for="current-password" class="block text-xs font-medium text-gray-300 mb-1">Current Password</label>
+                                    <input type="password" id="current-password" name="current_password" required 
+                                           class="w-full px-3 py-2 text-sm border border-gray-600 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                </div>
+                                
+                                <div>
+                                    <label for="new-password" class="block text-xs font-medium text-gray-300 mb-1">New Password</label>
+                                    <input type="password" id="new-password" name="new_password" required 
+                                           class="w-full px-3 py-2 text-sm border border-gray-600 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                </div>
+                                
+                                <div>
+                                    <label for="confirm-password" class="block text-xs font-medium text-gray-300 mb-1">Confirm New Password</label>
+                                    <input type="password" id="confirm-password" name="confirm_password" required 
+                                           class="w-full px-3 py-2 text-sm border border-gray-600 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                </div>
+                                
+                                <button type="submit" id="change-password-btn"
+                                        class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 text-sm rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span id="change-password-text">Change Password</span>
+                                </button>
+                            </form>
+                    </div>
+
+                    <!-- User Management Screen (Admin Only) -->
+                    <div class="w-full flex-shrink-0 overflow-y-auto p-5 pb-12" id="users-screen">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-semibold text-center">User Management</h2>
+                                <button onclick="openCreateUserModal()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200">
+                                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add User
+                                </button>
+                            </div>
+                            
+                            <!-- Users Cards -->
+                            <div class="space-y-4" id="users-cards">
+                                <!-- User cards will be loaded here -->
+                            </div>
+                    </div>
+
+                    <!-- Device Settings Screen -->
+                    <div class="w-full flex-shrink-0 overflow-y-auto p-5 pb-12" id="device-screen">
+                        <h2 class="text-xl font-semibold mb-6 text-center">Device Settings</h2>
+                        
+                        <!-- Device Timezone Form -->
+                        <form id="device-timezone-form" class="space-y-4 mb-6">
+                            <h3 class="text-lg font-medium mb-4">Timezone Configuration</h3>
+                            
+                            <div>
+                                <label for="device-timezone" class="block text-sm font-medium text-gray-300 mb-2">Device Timezone</label>
+                                <select id="device-timezone" name="timezone" required
+                                        class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-400">
+                                    This is the timezone where your heat pump is physically located. Schedule times will be shown in this timezone.
+                                </p>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-700 rounded-md p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-blue-300">Important Note</h4>
+                                        <div class="mt-2 text-sm text-blue-200">
+                                            <p>Changing the timezone will affect how schedule times are displayed and when they execute. All existing schedules will be automatically converted to maintain the same actual execution times.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <button type="submit" id="device-timezone-btn"
+                                        class="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span id="device-timezone-text">Update Timezone</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- MELCloud API Settings Screen (Admin Only) -->
+                    <div class="w-full flex-shrink-0 overflow-y-auto p-5 pb-12" id="melcloud-screen">
+                            <h2 class="text-xl font-semibold mb-6 text-center">MELCloud API</h2>
+                            
+                            <!-- MELCloud Credentials Form -->
+                        <form id="melcloud-form" class="space-y-4 mb-6">
+                                <div>
+                                    <label for="melcloud-email" class="block text-sm font-medium text-gray-300 mb-2">MELCloud Email</label>
+                                    <input type="email" id="melcloud-email" name="email" 
+                                           class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white"
+                                           placeholder="your.email@example.com">
+                               </div>
+                               
+                               <div>
+                                    <label for="melcloud-password" class="block text-sm font-medium text-gray-300 mb-2">MELCloud Password</label>
+                                    <input type="password" id="melcloud-password" name="password" 
+                                           class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white"
+                                           placeholder="Leave blank to keep current password">
+                               </div>
+                                
+                                <!-- App Version (Mobile) -->
+                                <div class="mt-6 text-xs text-gray-400 text-center">
+                                    Version: {{ APP_VERSION }}
+                                </div>
+                                
+                                <div class="flex gap-3">
+                                    <button type="submit" id="melcloud-update-btn"
+                                            class="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span id="melcloud-update-text">Update</span>
+                                    </button>
+                                    <button type="button" onclick="testMelCloudConnection()"
+                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200">
+                                        Test
+                                    </button>
+                                </div>
+                        </form>
+
+                        <!-- Encryption Status (mobile) -->
+                        <div class="mt-6 p-4 rounded-lg border border-gray-600 bg-gray-700">
+                            <h3 class="text-sm font-semibold text-gray-200 mb-2">Security: Credential Encryption</h3>
+                            <div id="encryption-status" class="text-sm text-gray-300">
+                                Loading encryption status...
+                            </div>
+                        </div>
+
+                            <hr class="border-gray-700 my-6">
+
+                            <!-- API Settings -->
+                            <form id="api-settings-form" class="space-y-4">
+                                <h3 class="text-lg font-medium mb-4">API Settings</h3>
+                                
+                                <div>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="checkbox" id="api-enabled" class="sr-only">
+                                        <div class="relative">
+                                            <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <span class="text-sm font-medium">Enable API Communications</span>
+                                            <p class="text-xs text-gray-400">When disabled, no data will be fetched from MELCloud</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div>
+                                    <label for="fetch-interval" class="block text-sm font-medium text-gray-300 mb-2">
+                                        Fetch Interval (minutes)
+                                    </label>
+                                    <input type="number" id="fetch-interval" name="fetch_interval" min="5" max="1440" 
+                                           class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white"
+                                           placeholder="10">
+                                    <p class="text-xs text-gray-400 mt-1">Minimum 5 minutes. Higher values reduce API usage but delay updates.</p>
+                                </div>
+                                
+                                <button type="submit" id="api-settings-btn"
+                                        class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span id="api-settings-text">Update Settings</span>
+                                </button>
+                                <p id="api-settings-status" class="text-sm text-gray-400 text-center"></p>
+                            </form>
+
+                            <hr class="border-gray-700 my-6">
+
+                            <!-- Danger Zone -->
+                            <div class="bg-red-900/20 border border-red-800 rounded-lg p-4">
+                                <h3 class="text-lg font-medium text-red-100 mb-4">Remove MELCloud User</h3>
+                                <p class="text-sm text-red-300 mb-4">This will remove the MELCloud API credentials and optionally delete all stored device data.</p>
+                                
+                                <div class="mb-4">
+                                    <label class="flex items-start cursor-pointer">
+                                        <input type="checkbox" id="delete-data-checkbox" class="mt-1 mr-2 h-4 w-4 text-red-600 rounded">
+                                        <span class="text-red-200 text-sm">Also delete all stored device data (cannot be undone)</span>
+                                    </label>
+                                    <small class="text-red-400 text-xs ml-6 block mt-1">
+                                        If unchecked, your historical data will be preserved
+                                    </small>
+                                </div>
+                                
+                                <button onclick="removeMelCloudUser()" 
+                                        class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200">
+                                    Remove MELCloud User
+                                </button>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dedicated space for screen indicators -->
+        <div class="flex justify-center items-center py-3 page-bg">
+            <div class="flex space-x-2">
+                <div class="w-2 h-2 rounded-full bg-white" id="settings-indicator-0"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-1" style="display: none;"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-2" style="display: none;"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-3" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->  
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L5 9.414V17a1 1 0 002 0v-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 002 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/schedules'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">Schedule</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/energy'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span class="text-xs">Energy</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/data-history'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-primary-500">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="hidden md:block">
+        <div class="container-desktop">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Static menu to prevent flash - enhanced by menu.js -->
+                <div class="flex items-center space-x-3 mb-6">
+                    <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain">
+                    <span class="text-xl font-semibold">MELCloud Dashboard</span>
+                </div>
+
+                <nav class="space-y-2">
+                    <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Schedules</span>
+                    </a>
+                    <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span>Energy</span>
+                    </a>
+                    <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        <span>Data History</span>
+                    </a>
+                    
+                    <div class="settings-section">
+                        <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                        
+                        <!-- Settings Sub-menu -->
+                        <div class="submenu-container collapsed ml-6 space-y-1" id="settings-submenu">
+                            <a href="#" onclick="window.menuComponent?.showTab('profile'); return false;" class="submenu-item submenu-item-active flex items-center space-x-3 px-3 py-2 rounded-lg" id="profile-submenu">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span class="text-sm">Profile</span>
+                            </a>
+                            <a href="#" onclick="window.menuComponent?.showTab('users'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="users-submenu" style="display: none;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
+                                <span class="text-sm">Users</span>
+                            </a>
+                            <a href="#" onclick="window.menuComponent?.showTab('device'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="device-submenu">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-sm">Device</span>
+                            </a>
+                            <a href="#" onclick="window.menuComponent?.showTab('melcloud'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="melcloud-submenu" style="display: none;">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="text-sm">MELCloud</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Help</span>
+                    </a>
+                    
+                    
+                    <!-- Status and User Component (Desktop Fixed Bottom Left) -->
+                    <div class="hidden md:block fixed bottom-4 left-4 z-50">
+                        <div class="flex items-center space-x-3">
+                            <!-- Countdown Status Component -->
+                            <div class="relative w-6 h-6" title="Connection Status">
+                                <!-- Progress Ring -->
+                                <svg class="absolute inset-0 w-6 h-6 transform -rotate-90">
+                                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                                    <circle id="progress-ring-desktop" cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" 
+                                            opacity="0.8" stroke-dasharray="62.83" stroke-dashoffset="62.83" 
+                                            class="transition-all duration-1000 ease-linear"/>
+                                </svg>
+                                <!-- Status Dot (centered) -->
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div id="connection-status-dot-desktop" class="w-4 h-4 rounded-full bg-gray-500 transition-colors duration-200"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- User Dropdown -->
+                            <div class="relative">
+                                <button onclick="toggleUserDropdown()" class="bg-transparent hover:bg-white/10 text-white px-3 py-2 rounded-lg font-medium text-sm transition-colors duration-200 border border-white/20 hover:border-white/40 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span id="user-info"></span>
+                                    <svg class="w-4 h-4 transition-transform duration-200" id="user-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Dropdown Menu - positioned upward -->
+                                <div id="user-dropdown" class="hidden absolute bottom-full mb-2 left-0 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                                    <div class="py-1">
+                                        <button onclick="logout()" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                            </svg>
+                                            Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="max-w-6xl mx-auto">
+                    <h1 class="text-3xl font-bold mb-8">Settings</h1>
+                    
+                    <!-- Flash Messages -->
+                    <div id="flash-messages-desktop" class="mb-6 space-y-2"></div>
+
+                    <!-- Desktop Tab Contents -->
+                    <div id="profile-desktop" class="tab-content active">
+                        <div class="rounded-3xl p-8 panel-bg">
+                            <h2 class="text-2xl font-semibold mb-6">Profile Settings</h2>
+                            
+                            <!-- Current User Info -->
+                            <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-6 mb-8">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-blue-800 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-blue-100 text-lg" id="current-user-info-desktop">Loading...</p>
+                                        <p class="text-blue-300" id="current-user-role-desktop">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Change Password Form -->
+                            <form id="change-password-form-desktop" class="space-y-6">
+                                <h3 class="text-xl font-medium mb-6">Change Password</h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label for="current-password-desktop" class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+                                        <input type="password" id="current-password-desktop" name="current_password" required 
+                                               class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="new-password-desktop" class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                                        <input type="password" id="new-password-desktop" name="new_password" required 
+                                               class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="confirm-password-desktop" class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                                        <input type="password" id="confirm-password-desktop" name="confirm_password" required 
+                                               class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="change-password-btn-desktop"
+                                        class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span id="change-password-text-desktop">Change Password</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="users-desktop" class="tab-content">
+                        <div class="rounded-3xl p-8 panel-bg">
+                            <div class="flex justify-between items-center mb-8">
+                                <div>
+                                    <h2 class="text-2xl font-semibold">User Management</h2>
+                                    <p class="text-gray-400 mt-2">Create and manage user accounts</p>
+                                </div>
+                                <button onclick="openCreateUserModal()" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add User
+                                </button>
+                            </div>
+                            
+                            <!-- Users Grid -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" id="users-cards-desktop">
+                                <!-- User cards will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="device-desktop" class="tab-content">
+                        <div class="rounded-3xl p-8 panel-bg">
+                            <h2 class="text-2xl font-semibold mb-8">Device Settings</h2>
+                            
+                            <div class="space-y-8">
+                                <!-- Device Timezone Form -->
+                                <div>
+                                    <h3 class="text-xl font-medium mb-6">Timezone Configuration</h3>
+                                    <form id="device-timezone-form-desktop" class="space-y-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label for="device-timezone-desktop" class="block text-sm font-medium text-gray-300 mb-2">Device Timezone</label>
+                                                <select id="device-timezone-desktop" name="timezone" required
+                                                        class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                                                    <option value="">Loading...</option>
+                                                </select>
+                                                <p class="mt-1 text-sm text-gray-400">
+                                                    This is the timezone where your heat pump is physically located. Schedule times will be shown in this timezone.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-blue-900/20 border border-blue-700 rounded-lg p-6">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <svg class="h-6 w-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <h4 class="text-lg font-medium text-blue-300 mb-2">Important Note</h4>
+                                                    <div class="text-blue-200">
+                                                        <p>Changing the timezone will affect how schedule times are displayed and when they execute. All existing schedules will be automatically converted to maintain the same actual execution times.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex gap-4">
+                                            <button type="submit" id="device-timezone-btn-desktop"
+                                                    class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <span id="device-timezone-text-desktop">Update Timezone</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="melcloud-desktop" class="tab-content">
+                        <div class="rounded-3xl p-8 panel-bg">
+                            <div class="flex items-center justify-between mb-8">
+                                <h2 class="text-2xl font-semibold">MELCloud API Settings</h2>
+                                <div class="text-xs text-gray-400">Version: {{ APP_VERSION }}</div>
+                            </div>
+                            
+                            <div class="space-y-8">
+                                <!-- MELCloud Credentials Form -->
+                                <div>
+                                    <h3 class="text-xl font-medium mb-6">Credentials</h3>
+                                <form id="melcloud-form-desktop" class="space-y-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label for="melcloud-email-desktop" class="block text-sm font-medium text-gray-300 mb-2">MELCloud Email</label>
+                                                <input type="email" id="melcloud-email-desktop" name="email" 
+                                                       class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white"
+                                                       placeholder="your.email@example.com">
+                                            </div>
+                                            
+                                            <div>
+                                                <label for="melcloud-password-desktop" class="block text-sm font-medium text-gray-300 mb-2">MELCloud Password</label>
+                                                <input type="password" id="melcloud-password-desktop" name="password" 
+                                                       class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white"
+                                                       placeholder="Leave blank to keep current password">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex gap-4">
+                                            <button type="submit" id="melcloud-update-btn-desktop"
+                                                    class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <span id="melcloud-update-text-desktop">Update Credentials</span>
+                                            </button>
+                                            <button type="button" onclick="testMelCloudConnection()"
+                                                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                                                Test Connection
+                                            </button>
+                                        </div>
+                                </form>
+
+                                <!-- Encryption Status (desktop) -->
+                                <div class="mt-6 p-4 rounded-lg border border-gray-600 bg-gray-700">
+                                    <h3 class="text-sm font-semibold text-gray-200 mb-2">Security: Credential Encryption</h3>
+                                    <div id="encryption-status-desktop" class="text-sm text-gray-300">
+                                        Loading encryption status...
+                                    </div>
+                                </div>
+                                </div>
+
+                                <hr class="border-gray-700">
+
+                                <!-- API Settings -->
+                                <div>
+                                    <h3 class="text-xl font-medium mb-6">API Connection Settings</h3>
+                                    <form id="api-settings-form-desktop" class="space-y-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div>
+                                                <label class="flex items-center cursor-pointer">
+                                                    <input type="checkbox" id="api-enabled-desktop" class="sr-only">
+                                                    <div class="relative">
+                                                        <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                                        <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <span class="font-medium">Enable API Communications</span>
+                                                        <p class="text-sm text-gray-400">When disabled, no data will be fetched from MELCloud</p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            
+                                            <div>
+                                                <label for="fetch-interval-desktop" class="block font-medium text-gray-300 mb-2">
+                                                    Fetch Interval (minutes)
+                                                </label>
+                                                <input type="number" id="fetch-interval-desktop" name="fetch_interval" min="5" max="1440" 
+                                                       class="w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white"
+                                                       placeholder="10">
+                                                <p class="text-xs text-gray-400 mt-2">Minimum 5 minutes. Higher values reduce API usage but delay updates.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-4">
+                                            <button type="submit" id="api-settings-btn-desktop"
+                                                    class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <span id="api-settings-text-desktop">Update Settings</span>
+                                            </button>
+                                            <span id="api-settings-status-desktop" class="text-gray-400"></span>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <hr class="border-gray-700">
+
+                                <!-- Danger Zone -->
+                                <div class="bg-red-900/20 border border-red-800 rounded-lg p-6">
+                                    <h3 class="text-lg font-medium text-red-100 mb-4">Danger Zone</h3>
+                                    
+                                    <div>
+                                        <h4 class="text-sm font-medium text-red-200">Remove MELCloud User</h4>
+                                        <p class="text-sm text-red-300 mb-4">This will remove the MELCloud API credentials and optionally delete all stored device data.</p>
+                                        
+                                        <div class="mb-4">
+                                            <label class="flex items-start cursor-pointer">
+                                                <input type="checkbox" id="delete-data-checkbox-desktop" class="mt-1 mr-2 h-4 w-4 text-red-600 rounded">
+                                                <span class="text-red-200 text-sm">Also delete all stored device data (cannot be undone)</span>
+                                            </label>
+                                            <small class="text-red-400 text-xs ml-6 block mt-1">
+                                                If unchecked, your historical data will be preserved
+                                            </small>
+                                        </div>
+                                        
+                                        <button onclick="removeMelCloudUser()" 
+                                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200">
+                                            Remove MELCloud User
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div id="userModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden p-4">
+        <div class="rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto panel-bg">
+            <div class="p-6 border-b border-gray-700">
+                <h3 class="text-lg font-semibold text-white" id="user-modal-title">Create User</h3>
+            </div>
+            
+            <form id="user-form" class="p-6 space-y-4">
+                <input type="hidden" id="user-id" name="user_id">
+                
+                <div>
+                    <label for="user-username" class="block text-sm font-medium text-gray-300">Username</label>
+                    <input type="text" id="user-username" name="username" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                </div>
+                
+                <div>
+                    <label for="user-email" class="block text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="user-email" name="email" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                </div>
+                
+                <div>
+                    <label for="user-password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <input type="password" id="user-password" name="password" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                    <p class="text-xs text-gray-400 mt-1" id="password-help">Leave blank to keep current password</p>
+                </div>
+                
+                <div>
+                    <label for="user-role" class="block text-sm font-medium text-gray-300">Role</label>
+                    <select id="user-role" name="role" 
+                            class="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-700 text-white">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                
+                <div id="user-active-div" class="hidden">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="user-active" name="is_active" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-600 rounded bg-gray-700">
+                        <span class="ml-2 block text-sm text-gray-300">Account is active</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeUserModal()" 
+                            class="px-4 py-2 border border-gray-600 rounded-md text-gray-300 hover:bg-gray-700 transition-colors duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" id="user-submit-btn"
+                            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="user-submit-text">Create User</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let isAdmin = false;
+        let csrfToken = '{{ csrf_token }}';
+        let currentSlide = 0;
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+
+        // Mobile swipe functionality
+        function initializeSwipe() {
+            const swipeContainer = document.getElementById('swipe-container');
+            if (!swipeContainer) return;
+
+            swipeContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+            swipeContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+            swipeContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+        }
+
+        function handleTouchStart(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging) return;
+            
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const diffX = startX - currentX;
+            const diffY = startY - currentY;
+            
+            // Only handle horizontal swipes
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                e.preventDefault();
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const endX = e.changedTouches[0].clientX;
+            const diffX = startX - endX;
+            
+            // Minimum swipe distance
+            if (Math.abs(diffX) > 50) {
+                if (diffX > 0 && currentSlide < getTotalSlides() - 1) {
+                    goToSlide(currentSlide + 1);
+                } else if (diffX < 0 && currentSlide > 0) {
+                    goToSlide(currentSlide - 1);
+                }
+            }
+        }
+
+        function getTotalSlides() {
+            return isAdmin ? 4 : 1;
+        }
+
+        function goToSlide(slideIndex) {
+            const totalSlides = getTotalSlides();
+            if (slideIndex < 0 || slideIndex >= totalSlides) return;
+            
+            currentSlide = slideIndex;
+            const swipeContent = document.getElementById('swipe-content');
+            const translateX = -(slideIndex * 100);
+            swipeContent.style.transform = `translateX(${translateX}%)`;
+            
+            // Update dots
+            updateDots();
+        }
+
+        function updateDots() {
+            const indicators = document.querySelectorAll('[id^="settings-indicator-"]');
+            indicators.forEach((indicator, index) => {
+                if (index === currentSlide) {
+                    indicator.classList.remove('bg-gray-500');
+                    indicator.classList.add('bg-white');
+                } else {
+                    indicator.classList.remove('bg-white');
+                    indicator.classList.add('bg-gray-500');
+                }
+            });
+        }
+
+        // Flash message handling (works for both mobile and desktop)
+        function showFlash(message, type = 'info') {
+            const flashContainers = [
+                document.getElementById('flash-messages'),
+                document.getElementById('flash-messages-desktop')
+            ];
+            
+            flashContainers.forEach(flashContainer => {
+                if (!flashContainer) return;
+                
+                const alertDiv = document.createElement('div');
+                
+                let bgColor = 'bg-blue-900/20 border-blue-800 text-blue-200';
+                let iconSvg = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>';
+                
+                if (type === 'error') {
+                    bgColor = 'bg-red-900/20 border-red-800 text-red-200';
+                    iconSvg = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
+                } else if (type === 'success') {
+                    bgColor = 'bg-green-900/20 border-green-800 text-green-200';
+                    iconSvg = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+                } else if (type === 'warning') {
+                    bgColor = 'bg-yellow-900/20 border-yellow-800 text-yellow-200';
+                    iconSvg = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>';
+                }
+                
+                alertDiv.className = `rounded-md border p-4 ${bgColor}`;
+                alertDiv.innerHTML = `
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            ${iconSvg}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm">${message}</p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <div class="-mx-1.5 -my-1.5">
+                                <button type="button" class="inline-flex rounded-md p-1.5 hover:bg-gray-700 focus:outline-none" onclick="this.closest('.rounded-md').remove()">
+                                    <span class="sr-only">Dismiss</span>
+                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                flashContainer.appendChild(alertDiv);
+                
+                // Auto-remove after 10 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 10000);
+            });
+        }
+
+
+        // Desktop tab navigation
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all submenu items
+            const submenus = document.querySelectorAll('[id$="-submenu"]');
+            submenus.forEach(submenu => {
+                submenu.classList.remove('submenu-item-active');
+                submenu.classList.add('submenu-item-inactive');
+            });
+            
+            // Show selected tab content
+            const tabContent = document.getElementById(tabName + '-desktop');
+            if (tabContent) tabContent.classList.add('active');
+            
+            // Activate the correct submenu item
+            const activeSubmenu = document.getElementById(tabName + '-submenu');
+            if (activeSubmenu) {
+                activeSubmenu.classList.add('submenu-item-active');
+                activeSubmenu.classList.remove('submenu-item-inactive');
+            }
+        }
+
+        // Deep link handler for opening specific section via query/hash
+        function applyDeepLinkTab() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                let tab = params.get('tab');
+                if (!tab && window.location.hash) {
+                    tab = window.location.hash.replace('#', '');
+                }
+                if (!tab) return;
+                tab = String(tab).toLowerCase();
+
+                // Map to mobile slides
+                const slideIndexMap = { profile: 0, users: 1, device: 2, melcloud: 3 };
+
+                // Desktop: show requested tab (guard melcloud behind admin)
+                if (tab === 'melcloud') {
+                    if (isAdmin) {
+                        showTab('melcloud');
+                    }
+                } else if (['profile', 'users', 'device'].includes(tab)) {
+                    showTab(tab);
+                }
+
+                // Mobile: go to appropriate slide when available
+                const idx = slideIndexMap[tab];
+                if (typeof idx === 'number') {
+                    // Only allow admin-only slides if admin
+                    if ((tab === 'users' || tab === 'melcloud') && !isAdmin) return;
+                    goToSlide(idx);
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        // Load current user info
+        async function loadCurrentUserInfo() {
+            try {
+                const response = await fetch('/api/users');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.users) {
+                        isAdmin = true;
+                        showAdminSections();
+                        loadUsers();
+                        loadMelCloudCredentials();
+                        // Apply deep link after admin sections are revealed
+                        applyDeepLinkTab();
+                    }
+                } else if (response.status === 403) {
+                    isAdmin = false;
+                }
+                
+                // Update user info display
+                const userInfoElements = ['current-user-info', 'current-user-info-desktop'];
+                const roleElements = ['current-user-role', 'current-user-role-desktop'];
+                
+                userInfoElements.forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem) elem.textContent = 'Current User';
+                });
+                
+                roleElements.forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem) elem.textContent = isAdmin ? 'Administrator' : 'User';
+                });
+                
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+
+        function showAdminSections() {
+            // Show admin submenu items on desktop
+            const adminElements = [
+                'users-submenu', 'melcloud-submenu'
+            ];
+            
+            adminElements.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) elem.style.display = 'flex';
+            });
+            
+            // Show admin indicators on mobile
+            const adminIndicators = document.querySelectorAll('.admin-indicator');
+            adminIndicators.forEach(indicator => {
+                indicator.style.display = 'block';
+            });
+        }
+
+        // Load users for admin panel
+        async function loadUsers() {
+            if (!isAdmin) return;
+            
+            try {
+                const response = await fetch('/api/users');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const containers = ['users-cards', 'users-cards-desktop'];
+                    
+                    containers.forEach(containerId => {
+                        const container = document.getElementById(containerId);
+                        if (!container) return;
+                        
+                        container.innerHTML = '';
+                        
+                        data.users.forEach(user => {
+                            const card = document.createElement('div');
+                            card.className = 'bg-gray-700 rounded-lg border border-gray-600 p-4 hover:bg-gray-600 transition-colors duration-200';
+                            card.innerHTML = `
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <div class="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="text-sm font-semibold text-white truncate">${user.username}</h3>
+                                            <p class="text-xs text-gray-400 truncate">${user.email}</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-900/40 text-purple-300' : 'bg-gray-600 text-gray-300'}">
+                                        ${user.role === 'admin' ? 'Admin' : 'User'}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-900/40 text-green-300' : 'bg-red-900/40 text-red-300'}">
+                                        ${user.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                    <div class="text-xs text-gray-400">
+                                        ${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-2 pt-2 border-t border-gray-600">
+                                    <button onclick="editUser(${user.id})" class="flex-1 bg-indigo-900/40 text-indigo-300 hover:bg-indigo-900/60 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                        Edit
+                                    </button>
+                                    <button onclick="deleteUser(${user.id}, '${user.username}')" class="flex-1 bg-red-900/40 text-red-300 hover:bg-red-900/60 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                        Delete
+                                    </button>
+                                </div>
+                            `;
+                            container.appendChild(card);
+                        });
+                    });
+                } else {
+                    showFlash(data.error || 'Failed to load users', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showFlash('Error loading users', 'error');
+            }
+        }
+
+        // Load MELCloud credentials
+        async function loadMelCloudCredentials() {
+            if (!isAdmin) return;
+            
+            try {
+                const response = await fetch('/api/user/get');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.user) {
+                        const emailFields = ['melcloud-email', 'melcloud-email-desktop'];
+                        emailFields.forEach(id => {
+                            const elem = document.getElementById(id);
+                            if (elem) elem.value = data.user.email || '';
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading MELCloud credentials:', error);
+            }
+        }
+
+        // User modal functions
+        function openCreateUserModal() {
+            document.getElementById('user-modal-title').textContent = 'Create User';
+            document.getElementById('user-submit-text').textContent = 'Create User';
+            document.getElementById('password-help').style.display = 'none';
+            document.getElementById('user-active-div').classList.add('hidden');
+            document.getElementById('user-form').reset();
+            document.getElementById('user-id').value = '';
+            document.getElementById('user-password').required = true;
+            document.getElementById('userModal').classList.remove('hidden');
+        }
+
+        async function editUser(userId) {
+            try {
+                const response = await fetch('/api/users');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const user = data.users.find(u => u.id === userId);
+                    if (user) {
+                        document.getElementById('user-modal-title').textContent = 'Edit User';
+                        document.getElementById('user-submit-text').textContent = 'Update User';
+                        document.getElementById('password-help').style.display = 'block';
+                        document.getElementById('user-active-div').classList.remove('hidden');
+                        
+                        document.getElementById('user-id').value = user.id;
+                        document.getElementById('user-username').value = user.username;
+                        document.getElementById('user-email').value = user.email;
+                        document.getElementById('user-password').value = '';
+                        document.getElementById('user-password').required = false;
+                        document.getElementById('user-role').value = user.role;
+                        document.getElementById('user-active').checked = user.is_active;
+                        
+                        document.getElementById('userModal').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Edit user error:', error);
+                showFlash('Error loading user data', 'error');
+            }
+        }
+
+        async function deleteUser(userId, username) {
+            if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+                try {
+                    const response = await fetch(`/api/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ csrf_token: csrfToken })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showFlash(result.message, 'success');
+                        loadUsers();
+                    } else {
+                        showFlash(result.error, 'error');
+                    }
+                } catch (error) {
+                    console.error('Delete user error:', error);
+                    showFlash('Error deleting user', 'error');
+                }
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.add('hidden');
+        }
+
+        // Test MELCloud connection
+        async function testMelCloudConnection() {
+            try {
+                showFlash('Testing MELCloud connection...', 'info');
+                
+                // Full initial-load performs login + device fetch with built-in bypass
+                const response = await fetch('/api/initial-load', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showFlash('MELCloud connection test successful!', 'success');
+                    // Force status widget to refresh now (update dot immediately)
+                    try { StatusWidget.refresh(); } catch {}
+                    // Also trigger background store to DB using existing auto-fetch flow
+                    try { await fetch('/api/auto-fetch/trigger', { method: 'POST' }); } catch {}
+                } else {
+                    showFlash(`Connection test failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Connection test error:', error);
+                showFlash('Connection test failed due to network error', 'error');
+            }
+        }
+
+        // Remove MELCloud user function
+        async function removeMelCloudUser() {
+            const deleteDataMobile = document.getElementById('delete-data-checkbox');
+            const deleteDataDesktop = document.getElementById('delete-data-checkbox-desktop');
+            const deleteData = (deleteDataMobile && deleteDataMobile.checked) || (deleteDataDesktop && deleteDataDesktop.checked);
+            
+            const confirmMessage = deleteData 
+                ? 'Are you sure you want to remove MELCloud credentials and DELETE ALL stored device data? This action cannot be undone!'
+                : 'Are you sure you want to remove MELCloud credentials? Historical data will be preserved.';
+                
+            if (confirm(confirmMessage)) {
+                try {
+                    const response = await fetch('/api/user/remove', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ deleteData: deleteData, csrf_token: csrfToken })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showFlash(result.message, 'success');
+                        // Clear the forms
+                        const emailFields = ['melcloud-email', 'melcloud-email-desktop'];
+                        const passwordFields = ['melcloud-password', 'melcloud-password-desktop'];
+                        
+                        emailFields.forEach(id => {
+                            const elem = document.getElementById(id);
+                            if (elem) elem.value = '';
+                        });
+                        
+                        passwordFields.forEach(id => {
+                            const elem = document.getElementById(id);
+                            if (elem) elem.value = '';
+                        });
+                        
+                        if (deleteDataMobile) deleteDataMobile.checked = false;
+                        if (deleteDataDesktop) deleteDataDesktop.checked = false;
+                    } else {
+                        showFlash(result.error, 'error');
+                    }
+                } catch (error) {
+                    console.error('Remove MELCloud user error:', error);
+                    showFlash('Error removing MELCloud user', 'error');
+                }
+            }
+        }
+
+        // User form submission
+        document.getElementById('user-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = document.getElementById('user-submit-btn');
+            const buttonText = document.getElementById('user-submit-text');
+            const originalText = buttonText.textContent;
+            const userId = document.getElementById('user-id').value;
+            
+            button.disabled = true;
+            buttonText.textContent = userId ? 'Updating...' : 'Creating...';
+            
+            try {
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                data.is_active = document.getElementById('user-active').checked;
+                data.csrf_token = csrfToken;
+                
+                const url = userId ? `/api/users/${userId}` : '/api/users';
+                const method = userId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showFlash(result.message, 'success');
+                    closeUserModal();
+                    loadUsers();
+                } else {
+                    showFlash(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('User form error:', error);
+                showFlash('Error saving user', 'error');
+            } finally {
+                button.disabled = false;
+                buttonText.textContent = originalText;
+            }
+        });
+
+        // Device Settings Functions
+        async function loadDeviceTimezones() {
+            try {
+                const response = await fetch('/api/timezones');
+                const result = await response.json();
+                
+                if (result.success && result.timezones) {
+                    const selects = ['device-timezone', 'device-timezone-desktop'];
+
+                    // Build grouped options once per render
+                    const buildOptions = (select) => {
+                        // Reset with placeholder
+                        select.innerHTML = '<option value="">Select timezone...</option>';
+
+                        const available = new Set(result.timezones);
+                        const added = new Set();
+
+                        const popular = [
+                            'UTC',
+                            // Europe
+                            'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Amsterdam', 'Europe/Madrid', 'Europe/Rome',
+                            // North America
+                            'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'America/Vancouver',
+                            // Asia / Middle East / India
+                            'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Kolkata', 'Asia/Dubai',
+                            // AU / NZ
+                            'Australia/Sydney', 'Australia/Melbourne', 'Australia/Perth', 'Pacific/Auckland'
+                        ];
+
+                        const makeOption = (tz) => {
+                            const opt = document.createElement('option');
+                            opt.value = tz;
+                            opt.textContent = tz.replace(/_/g, ' ');
+                            return opt;
+                        };
+
+                        const groupPopular = document.createElement('optgroup');
+                        groupPopular.label = 'Popular';
+                        const groupAll = document.createElement('optgroup');
+                        groupAll.label = 'All Timezones';
+
+                        popular.forEach(tz => {
+                            if (available.has(tz) && !added.has(tz)) {
+                                groupPopular.appendChild(makeOption(tz));
+                                added.add(tz);
+                            }
+                        });
+
+                        const rest = result.timezones
+                            .filter(tz => !added.has(tz))
+                            .sort((a, b) => a.localeCompare(b));
+                        rest.forEach(tz => groupAll.appendChild(makeOption(tz)));
+
+                        if (groupPopular.children.length > 0) select.appendChild(groupPopular);
+                        select.appendChild(groupAll);
+                    };
+
+                    selects.forEach(selectId => {
+                        const select = document.getElementById(selectId);
+                        if (select) buildOptions(select);
+                    });
+                    
+                    // Load current device timezone
+                    await loadCurrentDeviceTimezone();
+                } else {
+                    console.error('Failed to load timezones');
+                }
+            } catch (error) {
+                console.error('Error loading timezones:', error);
+                // Fallback minimal list for both selects
+                const selects = ['device-timezone', 'device-timezone-desktop'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (!select) return;
+                    select.innerHTML = '<option value="">Select timezone...</option>';
+                    ['UTC', 'Europe/London', 'Europe/Paris', 'America/New_York', 'America/Los_Angeles'].forEach(tz => {
+                        const option = document.createElement('option');
+                        option.value = tz;
+                        option.textContent = tz.replace(/_/g, ' ');
+                        select.appendChild(option);
+                    });
+                });
+            }
+        }
+
+        async function loadCurrentDeviceTimezone() {
+            try {
+                // Assume device_id = 1 for now (first device)
+                const response = await fetch('/api/device-config/1');
+                const result = await response.json();
+                
+                if (result.success && result.config) {
+                    const timezone = result.config.timezone || 'UTC';
+                    const selects = ['device-timezone', 'device-timezone-desktop'];
+                    
+                    selects.forEach(selectId => {
+                        const select = document.getElementById(selectId);
+                        if (select) {
+                            select.value = timezone;
+                        }
+                    });
+                } else {
+                    console.log('Device config not found, showing UTC as default');
+                }
+            } catch (error) {
+                console.error('Error loading device timezone:', error);
+            }
+        }
+
+        // API Settings Functions
+        async function loadAPISettings() {
+            try {
+                const response = await fetch('/api/settings/api');
+                if (response.ok) {
+                    const settings = await response.json();
+                    const apiEnabledElements = ['api-enabled', 'api-enabled-desktop'];
+                    const fetchIntervalElements = ['fetch-interval', 'fetch-interval-desktop'];
+                    
+                    apiEnabledElements.forEach(id => {
+                        const elem = document.getElementById(id);
+                        if (elem) elem.checked = settings.api_enabled;
+                    });
+                    
+                    fetchIntervalElements.forEach(id => {
+                        const elem = document.getElementById(id);
+                        if (elem) elem.value = settings.fetch_interval_minutes;
+                    });
+                    
+                    updateToggleUI();
+                }
+            } catch (error) {
+                console.error('Error loading API settings:', error);
+            }
+        }
+
+        function updateToggleUI() {
+            const toggles = ['api-enabled', 'api-enabled-desktop'];
+            
+            toggles.forEach(id => {
+                const toggle = document.getElementById(id);
+                if (!toggle) return;
+                
+                // Find the toggle container elements
+                const toggleContainer = toggle.parentElement;
+                if (!toggleContainer) return;
+                
+                const sliderContainer = toggleContainer.querySelector('div.relative');
+                if (!sliderContainer) return;
+                
+                const slider = sliderContainer.querySelector('div.block');
+                const dot = sliderContainer.querySelector('div.dot');
+                
+                if (!slider || !dot) return;
+                
+                if (toggle.checked) {
+                    slider.classList.remove('bg-gray-600');
+                    slider.classList.add('bg-green-600');
+                    dot.style.transform = 'translateX(24px)';
+                } else {
+                    slider.classList.remove('bg-green-600');
+                    slider.classList.add('bg-gray-600');
+                    dot.style.transform = 'translateX(0px)';
+                }
+            });
+        }
+
+        // MELCloud form handlers
+        const melcloudForms = ['melcloud-form', 'melcloud-form-desktop'];
+        melcloudForms.forEach(formId => {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const button = document.getElementById(formId === 'melcloud-form' ? 'melcloud-update-btn' : 'melcloud-update-btn-desktop');
+                    const buttonText = document.getElementById(formId === 'melcloud-form' ? 'melcloud-update-text' : 'melcloud-update-text-desktop');
+                    const originalText = buttonText.textContent;
+                    
+                    button.disabled = true;
+                    buttonText.textContent = 'Updating...';
+                    
+                    try {
+                        const formData = new FormData(this);
+                        const data = Object.fromEntries(formData.entries());
+                        data.csrf_token = csrfToken;
+                        
+                        const response = await fetch('/api/user/update', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showFlash(result.message + ' — fetching data now...', 'success');
+                            // Immediately fetch to verify and then trigger store to DB
+                            try {
+                                const r = await fetch('/api/initial-load', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+                                const rj = await r.json();
+                                if (r.ok && rj.success) {
+                                    showFlash('MELCloud data fetched successfully.', 'success');
+                                    // Update connection status indicator immediately
+                                    try { StatusWidget.refresh(); } catch {}
+                                    // Kick off background store via existing auto-fetch pipeline (bypasses once)
+                                    try { await fetch('/api/auto-fetch/trigger', { method: 'POST' }); } catch {}
+                                } else {
+                                    showFlash('Fetch after update failed: ' + (rj.error || 'Unknown error'), 'error');
+                                }
+                            } catch (e) {
+                                console.error('Immediate fetch failed', e);
+                                showFlash('Immediate fetch failed due to network error', 'error');
+                            }
+                            // Clear password fields after successful update
+                            const passwordFields = ['melcloud-password', 'melcloud-password-desktop'];
+                            passwordFields.forEach(id => {
+                                const elem = document.getElementById(id);
+                                if (elem) elem.value = '';
+                            });
+                        } else {
+                            showFlash(result.error, 'error');
+                        }
+                    } catch (error) {
+                        console.error('MELCloud update error:', error);
+                        showFlash('Error updating MELCloud credentials', 'error');
+                    } finally {
+                        button.disabled = false;
+                        buttonText.textContent = originalText;
+                    }
+                });
+            }
+        });
+
+        // Encryption status loader
+        async function loadEncryptionStatus() {
+            try {
+                const resp = await fetch('/api/security/encryption-status');
+                if (!resp.ok) throw new Error('Status request failed');
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+                const s = data.status || {};
+                const enabled = s.enabled ? 'Enabled' : 'Disabled';
+                const source = s.source === 'env' ? 'Environment Variable' : (s.source === 'file' ? 'Key File' : 'None');
+                const keyPath = s.key_file_path ? s.key_file_path : 'N/A';
+                const keyPresent = s.key_file_present ? 'present' : 'missing';
+                const usersInfo = `Encrypted users: ${s.users_encrypted}/${s.users_total}` + (s.users_with_plaintext ? ` (plaintext pending: ${s.users_with_plaintext})` : '');
+
+                const html = `
+                    <div><span class="text-gray-400">Encryption:</span> <span class="font-medium">${enabled}</span></div>
+                    <div><span class="text-gray-400">Key source:</span> <span class="font-medium">${source}</span></div>
+                    ${s.source === 'file' ? `<div><span class="text-gray-400">Key file:</span> <span class="font-mono">${keyPath}</span> <span class="text-xs text-gray-400">(${keyPresent})</span></div>` : ''}
+                    <div><span class="text-gray-400">Users:</span> <span class="font-medium">${usersInfo}</span></div>
+                `;
+
+                ['encryption-status', 'encryption-status-desktop'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = html;
+                });
+            } catch (err) {
+                ['encryption-status', 'encryption-status-desktop'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = 'Failed to load encryption status';
+                });
+                console.error('Encryption status error:', err);
+            }
+        }
+
+        // Also refresh encryption status on load
+        document.addEventListener('DOMContentLoaded', loadEncryptionStatus);
+
+        // Device Settings form handlers
+        const deviceTimezoneForms = ['device-timezone-form', 'device-timezone-form-desktop'];
+        deviceTimezoneForms.forEach(formId => {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const button = document.getElementById(formId === 'device-timezone-form' ? 'device-timezone-btn' : 'device-timezone-btn-desktop');
+                    const buttonText = document.getElementById(formId === 'device-timezone-form' ? 'device-timezone-text' : 'device-timezone-text-desktop');
+                    const originalText = buttonText.textContent;
+                    
+                    button.disabled = true;
+                    buttonText.textContent = 'Updating...';
+                    
+                    try {
+                        const formData = new FormData(this);
+                        const timezone = formData.get('timezone');
+                        
+                        if (!timezone) {
+                            showFlash('Please select a timezone', 'error');
+                            return;
+                        }
+                        
+                        const response = await fetch('/api/device-config/1', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                timezone: timezone
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showFlash('Device timezone updated successfully! Schedules will now use the new timezone.', 'success');
+                        } else {
+                            showFlash(result.error || 'Failed to update timezone', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error updating device timezone:', error);
+                        showFlash('Network error. Please try again.', 'error');
+                    } finally {
+                        button.disabled = false;
+                        buttonText.textContent = originalText;
+                    }
+                });
+            }
+        });
+
+        // API Settings form handlers
+        const apiSettingsForms = ['api-settings-form', 'api-settings-form-desktop'];
+        apiSettingsForms.forEach(formId => {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Show confirmation dialog
+                    if (!confirm('Updating API settings will restart the data collection service. This may briefly interrupt data gathering. Continue?')) {
+                        return;
+                    }
+                    
+                    const btn = document.getElementById(formId === 'api-settings-form' ? 'api-settings-btn' : 'api-settings-btn-desktop');
+                    const btnText = document.getElementById(formId === 'api-settings-form' ? 'api-settings-text' : 'api-settings-text-desktop');
+                    const statusText = document.getElementById(formId === 'api-settings-form' ? 'api-settings-status' : 'api-settings-status-desktop');
+                    
+                    const originalText = btnText.textContent;
+                    btn.disabled = true;
+                    btnText.textContent = 'Updating & Restarting Service...';
+                    statusText.textContent = '';
+                    
+                    try {
+                        const formData = new FormData(e.target);
+                        const apiEnabledId = formId === 'api-settings-form' ? 'api-enabled' : 'api-enabled-desktop';
+                        const data = {
+                            api_enabled: document.getElementById(apiEnabledId).checked,
+                            fetch_interval_minutes: parseInt(formData.get('fetch_interval')),
+                            csrf_token: csrfToken
+                        };
+                        
+                        const response = await fetch('/api/settings/api', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            const serviceStatus = result.service_restarted ? ' (Service restarted)' : ' (Service restart failed)';
+                            statusText.textContent = 'Settings updated successfully' + serviceStatus;
+                            statusText.className = 'text-sm text-green-600 dark:text-green-400';
+                            
+                            const flashMessage = result.service_restarted 
+                                ? 'API settings updated and service restarted - new settings are now active'
+                                : 'API settings updated but service restart failed - settings will apply on next restart';
+                            showFlash(flashMessage, result.service_restarted ? 'success' : 'warning');
+                        } else {
+                            statusText.textContent = result.error || 'Failed to update settings';
+                            statusText.className = 'text-sm text-red-600 dark:text-red-400';
+                            showFlash('Failed to update API settings: ' + (result.error || 'Unknown error'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error updating API settings:', error);
+                        statusText.textContent = 'Network error';
+                        statusText.className = 'text-sm text-red-600 dark:text-red-400';
+                        showFlash('Network error while updating API settings', 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btnText.textContent = originalText;
+                        
+                        // Clear status after 5 seconds
+                        setTimeout(() => {
+                            statusText.textContent = '';
+                            statusText.className = 'text-sm text-gray-400';
+                        }, 5000);
+                    }
+                });
+            }
+        });
+
+        // Status handled by shared StatusWidget
+        
+        // Display user info function (v1 style)
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSwipe();
+            loadCurrentUserInfo();
+            loadDeviceTimezones();
+            loadAPISettings();
+            displayUserInfo(); // Load current user info for status bar
+            // Apply deep link promptly (will run again after admin check)
+            applyDeepLinkTab();
+            
+            // Initialize shared connection status widget
+            StatusWidget.init();
+            
+            // Add event listeners for API toggle switches
+            const toggles = ['api-enabled', 'api-enabled-desktop'];
+            toggles.forEach(id => {
+                const toggle = document.getElementById(id);
+                if (toggle) {
+                    toggle.addEventListener('change', updateToggleUI);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

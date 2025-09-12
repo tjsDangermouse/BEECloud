@@ -1,0 +1,24 @@
+{
+  "name": "MELCloud Dashboard",
+  "short_name": "MELCloud",
+  "description": "Mitsubishi Heat Pump Monitoring Dashboard",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait-primary",
+  "theme_color": "#2d2e2d",
+  "background_color": "#2d2e2d",
+  "icons": [
+    {
+      "src": "/static/Beelogo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/Beelogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

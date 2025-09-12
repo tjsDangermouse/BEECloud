@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MELCloud Schedules</title>
+    <link rel="icon" type="image/png" href="/static/Beelogo.png">
+    <link rel="shortcut icon" type="image/png" href="/static/Beelogo.png">
+    <!-- Networking hints -->
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- iOS Full Screen Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MELCloud Schedules">
+    <link rel="apple-touch-icon" href="/static/Beelogo.png">
+    <link rel="apple-touch-startup-image" href="/static/Beelogo.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
+    <script defer src="/static/js/sw-register.js"></script>
+    <script defer src="/static/js/menu.js"></script>
+    <script defer src="/static/js/status.js"></script>
+    <script src="/static/js/shared-ui.js"></script>
+    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                50: '#fef7ed',
+                                100: '#fdeacc', 
+                                200: '#fad394',
+                                300: '#f7b85c',
+                                400: '#f59e0b',
+                                500: '#f59e0b',
+                                600: '#d97706',
+                                700: '#b45309',
+                                800: '#92400e',
+                                900: '#78350f'
+                            },
+                            success: {
+                                400: '#4ade80',
+                                500: '#22c55e',
+                                600: '#16a34a'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script>
+        // Dropdown helpers and user info
+    </script>
+</head>
+<body class="text-white overflow-x-hidden page-bg">
+    <!-- Mobile Layout -->
+    <div class="md:hidden">
+        {% set page_title = 'MELCloud' %}
+        {% include 'partials/mobile_header.html' %}
+
+        <!-- Content Area -->
+        <div id="mobile-content-area" style="height: calc(100svh - 180px); overflow: hidden;" class="relative">
+            <!-- Mobile content -->
+            <div class="h-full overflow-y-auto px-4 pt-2">
+
+                <!-- Quick Stats Bar (Mobile) -->
+        <div id="mobile-stats" class="flex justify-between items-center rounded-lg p-3 mb-4 text-xs panel-bg-mobile">
+                    <div class="text-center">
+                        <div class="text-white font-medium" id="total-schedules-mobile">0</div>
+                        <div style="color: #9ca3af;">Total</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-green-400 font-medium" id="active-schedules-mobile">0</div>
+                        <div style="color: #9ca3af;">Active</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-blue-400 font-medium" id="total-rules-mobile">0</div>
+                        <div style="color: #9ca3af;">Rules</div>
+                    </div>
+                </div>
+
+
+                <!-- Mobile Schedule Cards -->
+                <div id="schedules-mobile" class="space-y-3 pb-20">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Bottom Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L5 9.414V17a1 1 0 002 0v-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 002 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-orange-500" onclick="window.location.href='/schedules'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xs">Schedule</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/energy'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span class="text-xs">Energy</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/data-history'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/settings'">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="hidden md:block">
+        <div class="container-desktop">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="space-y-6">
+                    <!-- Logo -->
+                    <div class="flex items-center space-x-3">
+                        <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain" width="40" height="40" decoding="async">
+                        <span class="text-xl font-semibold">MELCloud Dashboard</span>
+                    </div>
+                    <!-- Navigation -->
+                    <nav class="space-y-2">
+                        <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                            </svg>
+                            <span>Home</span>
+                        </a>
+                        <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Schedules</span>
+                        </a>
+                        <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span>Energy</span>
+                        </a>
+                        <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                            <span>Data History</span>
+                        </a>
+                        <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                        <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Help</span>
+                        </a>
+
+                        <!-- Status and User Component (Desktop Fixed Bottom Left) -->
+                        <div class="hidden md:block fixed bottom-4 left-4 z-50">
+                            <div class="flex items-center space-x-3">
+                                <!-- Countdown Status Component -->
+                                <div class="relative w-6 h-6" title="Connection Status">
+                                    <!-- Progress Ring -->
+                        <svg class="absolute inset-0 w-6 h-6 transform -rotate-90">
+                            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+                            <circle id="progress-ring-desktop" cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none" 
+                                    opacity="0.8" stroke-dasharray="62.83" stroke-dashoffset="62.83" 
+                                    class="transition-all duration-1000 ease-linear"/>
+                        </svg>
+                                    <!-- Status Dot (centered) -->
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div id="connection-status-dot-desktop" class="w-4 h-4 rounded-full bg-gray-500 transition-colors duration-200"></div>
+                                    </div>
+                                </div>
+
+                                <!-- User Info with Logout (Desktop) -->
+                                <div class="relative">
+                                    <button onclick="toggleUserDropdown()" class="bg-transparent hover:bg-white/10 text-white px-3 py-2 rounded-lg font-medium text-sm transition-colors duration-200 border border-white/20 hover:border-white/40 flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                        <span id="user-info"></span>
+                                        <svg class="w-4 h-4 transition-transform duration-200" id="user-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    
+                                    <!-- Dropdown Menu (positioned to go UP instead of down) -->
+                                    <div id="user-dropdown" class="hidden absolute left-0 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                                        <div class="py-1">
+                                            <button onclick="logout()" class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                                </svg>
+                                                Logout
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="max-w-6xl mx-auto">
+                    <div class="mb-8">
+                        <h1 class="text-3xl font-bold">Schedules</h1>
+                    </div>
+
+
+                    <!-- Visual Schedule Calendar -->
+                    <div class="mb-8">
+                        <div class="rounded-3xl p-8" style="background-color: #111827;">
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h2 class="text-2xl font-semibold text-gray-300">Weekly Schedule (Mon-Sun)</h2>
+                                        <p class="text-sm text-gray-400 mt-1">Set your heating schedule for the week - applies to all weeks</p>
+                                    </div>
+                                    <div id="copyModeHeader" class="hidden">
+                                        <button onclick="cancelCopyMode()" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm font-medium transition-colors">
+                                            Done
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Block Schedule Timeline -->
+                            <div id="block-schedule" class="space-y-3">
+                                <!-- Populated by JavaScript -->
+                            </div>
+
+                            <!-- Calendar Legend -->
+                            <div class="mt-6 flex items-center justify-center space-x-6">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-orange-500"></div>
+                                    <span class="text-sm text-gray-400">Temperature</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-blue-500"></div>
+                                    <span class="text-sm text-gray-400">Hot Water</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-purple-500"></div>
+                                    <span class="text-sm text-gray-400">Holiday Mode</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-gray-600 border border-gray-400"></div>
+                                    <span class="text-sm text-gray-400">Empty Slot (Click to Add)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedules Overview -->
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold text-white">Schedule Overview</h2>
+                        </div>
+                        
+                        <!-- Schedule Stats Cards -->
+                        <div id="schedule-stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Schedules Grid -->
+                        <div id="schedules-grid" class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Add Rule Modal -->
+    <div id="addRuleModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <!-- Desktop Modal -->
+        <div class="hidden md:block relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-xl panel-bg-mobile border border-muted">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-white mb-4">Add Schedule Rule</h3>
+                <form id="addRuleForm">
+                    <div class="mb-4">
+                        <label for="ruleScheduleType" class="block text-sm font-medium text-gray-300 mb-2">Schedule Type</label>
+                        <select id="ruleScheduleType" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-primary-600">
+                            <option value="">Select schedule type...</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="ruleDayOfWeek" class="block text-sm font-medium text-gray-300 mb-2">Day</label>
+                        <select id="ruleDayOfWeek" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-primary-600">
+                            <option value="">Daily</option>
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="ruleTimeOfDay" class="block text-sm font-medium text-gray-300 mb-2">Time</label>
+                        <input type="time" id="ruleTimeOfDay" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-primary-600">
+                    </div>
+                    <div class="mb-6" id="targetValueContainer">
+                        <label for="ruleTargetValue" id="targetValueLabel" class="block text-sm font-medium text-gray-300 mb-2">Target Temperature (°C)</label>
+                        <input type="number" id="ruleTargetValue" placeholder="e.g. 22" min="5" max="35" step="0.5" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-primary-600">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hideAddRuleModal()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">Add Rule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Sheet -->
+        <div class="md:hidden flex items-end justify-center min-h-full">
+            <div class="rounded-t-3xl w-full max-h-[90vh] overflow-hidden panel-bg-mobile">
+                <!-- Handle -->
+                <div class="flex justify-center pt-3 pb-2">
+                    <div class="w-12 h-1 bg-gray-600 rounded-full"></div>
+                </div>
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 class="text-xl font-semibold text-white">Add Rule</h3>
+                    <button onclick="hideAddRuleModal()" class="p-2 text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Form -->
+                <div class="p-4 overflow-y-auto">
+                    <form id="addRuleFormMobile">
+                        <div class="mb-6" id="ruleScheduleTypeMobileContainer">
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Schedule Type</label>
+                            <select id="ruleScheduleTypeMobile" class="w-full px-4 py-4 border input-border rounded-xl text-white text-lg focus:outline-none focus:ring-2 focus:ring-primary-600 input-bg">
+                                <option value="">Select schedule type...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Day</label>
+                            <div class="grid grid-cols-4 gap-2 mb-3">
+                                <button type="button" onclick="setRuleDay('')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="">Daily</button>
+                                <button type="button" onclick="setRuleDay('0')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="0">Mon</button>
+                                <button type="button" onclick="setRuleDay('1')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="1">Tue</button>
+                                <button type="button" onclick="setRuleDay('2')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="2">Wed</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" onclick="setRuleDay('3')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="3">Thu</button>
+                                <button type="button" onclick="setRuleDay('4')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="4">Fri</button>
+                                <button type="button" onclick="setRuleDay('5')" class="rule-day-btn py-3 px-2 text-white rounded-lg font-medium text-sm active:scale-95 transition-all input-bg" data-day="5">Sat</button>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" onclick="setRuleDay('6')" class="rule-day-btn py-3 px-4 text-white rounded-lg font-medium text-sm active:scale-95 transition-all w-1/3 input-bg" data-day="6">Sun</button>
+                            </div>
+                            <input type="hidden" id="ruleDayOfWeekMobile" value="">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Time</label>
+                            <input type="time" id="ruleTimeOfDayMobile" required class="w-full px-4 py-4 border input-border rounded-xl text-white text-lg focus:outline-none focus:ring-2 focus:ring-primary-600 input-bg">
+                        </div>
+                        
+                        <div class="mb-8" id="targetValueContainerMobile">
+                            <label id="targetValueLabelMobile" class="block text-sm font-medium text-gray-300 mb-3">Target Temperature (°C)</label>
+                            <input type="number" id="ruleTargetValueMobile" placeholder="e.g. 22" min="5" max="35" step="0.5" class="w-full px-4 py-4 border input-border rounded-xl text-white text-lg focus:outline-none focus:ring-2 focus:ring-primary-600 input-bg">
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <button type="submit" class="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium text-lg active:scale-98 transition-all">
+                                Add Rule
+                            </button>
+                            <button type="button" onclick="hideAddRuleModal()" class="w-full py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium text-lg active:scale-98 transition-all">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="rounded-lg p-6 flex items-center space-x-4 panel-bg-mobile">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <span class="text-white">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let schedules = [];
+        let devices = [];
+        let deviceTimezone = 'UTC';  // Will be loaded from device config
+
+        // Timezone conversion functions
+        function convertUTCToDeviceTime(utcTimeString) {
+            if (deviceTimezone === 'UTC') {
+                return utcTimeString.substring(0, 5); // HH:MM format
+            }
+            
+            try {
+                // Parse UTC time string (HH:MM:SS or HH:MM)
+                const [hours, minutes] = utcTimeString.split(':').map(num => parseInt(num));
+                
+                // Create a date object for today with the UTC time
+                const today = new Date();
+                const utcDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), hours, minutes, 0));
+                
+                // Format in device timezone
+                return utcDate.toLocaleTimeString('en-GB', {
+                    timeZone: deviceTimezone,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+            } catch (error) {
+                console.error('Error converting UTC to device time:', error);
+                return utcTimeString.substring(0, 5); // Fallback to original
+            }
+        }
+
+        function convertDeviceTimeToUTC(deviceTimeString) {
+            if (deviceTimezone === 'UTC') {
+                return deviceTimeString;
+            }
+            
+            try {
+                // Parse device time string (HH:MM)
+                const [hours, minutes] = deviceTimeString.split(':').map(num => parseInt(num));
+                
+                // Create a date object for today in device timezone
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth();
+                const day = today.getDate();
+                
+                // Create date assuming it's in the device timezone
+                // We need to construct a string that represents the time in the device timezone
+                const deviceDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+                
+                // Create a temporary div to use Intl.DateTimeFormat to parse this
+                const tempDate = new Date(deviceDateStr);
+                
+                // Get the timezone offset for the device timezone
+                const deviceFormatter = new Intl.DateTimeFormat('sv', { 
+                    timeZone: deviceTimezone,
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+                
+                const utcFormatter = new Intl.DateTimeFormat('sv', { 
+                    timeZone: 'UTC',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+                
+                // Create a reference date
+                const refDate = new Date();
+                const deviceTime = deviceFormatter.format(refDate);
+                const utcTime = utcFormatter.format(refDate);
+                
+                // Calculate offset by comparing formatted times
+                const deviceParts = deviceTime.split(' ')[1].split(':');
+                const utcParts = utcTime.split(' ')[1].split(':');
+                
+                const deviceMinutes = parseInt(deviceParts[0]) * 60 + parseInt(deviceParts[1]);
+                const utcMinutes = parseInt(utcParts[0]) * 60 + parseInt(utcParts[1]);
+                
+                let offsetMinutes = utcMinutes - deviceMinutes;
+                
+                // Handle day boundary crossing
+                if (offsetMinutes > 12 * 60) offsetMinutes -= 24 * 60;
+                if (offsetMinutes < -12 * 60) offsetMinutes += 24 * 60;
+                
+                // Apply offset to input time
+                const inputMinutes = hours * 60 + minutes;
+                const utcMinutesResult = inputMinutes + offsetMinutes;
+                
+                // Handle day boundary
+                let finalMinutes = utcMinutesResult;
+                if (finalMinutes < 0) finalMinutes += 24 * 60;
+                if (finalMinutes >= 24 * 60) finalMinutes -= 24 * 60;
+                
+                const utcHours = Math.floor(finalMinutes / 60);
+                const utcMins = finalMinutes % 60;
+                
+                return `${String(utcHours).padStart(2, '0')}:${String(utcMins).padStart(2, '0')}`;
+                
+            } catch (error) {
+                console.error('Error converting device time to UTC:', error);
+                return deviceTimeString; // Fallback to original
+            }
+        }
+
+        // Load device configuration
+        async function loadDeviceConfig() {
+            try {
+                // Assume device_id = 1 for now (first device)
+                const response = await fetch('/api/device-config/1');
+                const result = await response.json();
+                
+                if (result.success && result.config) {
+                    deviceTimezone = result.config.timezone || 'UTC';
+                    console.log('Device timezone loaded:', deviceTimezone);
+                    
+                    // Update UI to show timezone context
+                    updateTimezoneDisplay();
+                } else {
+                    deviceTimezone = 'UTC';
+                    console.log('Device config not found, using UTC');
+                }
+            } catch (error) {
+                console.error('Error loading device config:', error);
+                deviceTimezone = 'UTC';
+            }
+        }
+
+        function updateTimezoneDisplay() {
+            // Add timezone context to time input labels
+            const timezoneText = ` (${deviceTimezone.replace('_', ' ')} Time)`;
+            
+            // Update desktop labels
+            const desktopTimeLabel = document.querySelector('label[for="ruleTimeOfDay"]');
+            if (desktopTimeLabel && !desktopTimeLabel.textContent.includes('Time)')) {
+                desktopTimeLabel.textContent = 'Time' + timezoneText;
+            }
+            
+            // Update mobile labels
+            const mobileTimeLabel = document.querySelector('label[for="ruleTimeOfDayMobile"]');
+            if (mobileTimeLabel && !mobileTimeLabel.textContent.includes('Time)')) {
+                mobileTimeLabel.textContent = 'Time' + timezoneText;
+            }
+            
+            // Update simple form labels
+            const simpleTimeLabel = document.querySelector('label[for="simpleRuleTimeOfDay"]');
+            if (simpleTimeLabel && !simpleTimeLabel.textContent.includes('Time)')) {
+                simpleTimeLabel.textContent = 'Time' + timezoneText;
+            }
+        }
+
+        // API functions
+        async function fetchSchedules() {
+            try {
+                console.log('fetchSchedules called');
+                const response = await fetch('/api/schedules?active_only=false');
+                console.log('fetchSchedules response status:', response.status);
+                const data = await response.json();
+                console.log('fetchSchedules data:', data);
+                if (data.success) {
+                    schedules = data.schedules;
+                    console.log('Schedules loaded:', schedules.length);
+                    renderSchedules();
+                    // If a mobile detail view is open, refresh it with latest data
+                    try {
+                        if (typeof openScheduleDetailId !== 'undefined' && openScheduleDetailId !== null) {
+                            const sheet = document.getElementById('mobileDetailSheet');
+                            const sched = schedules.find(s => s.id === openScheduleDetailId);
+                            if (sheet && sched) {
+                                sheet.remove();
+                                showScheduleDetailSheet(sched);
+                            }
+                        }
+                    } catch (e) { /* no-op */ }
+                } else {
+                    console.error('Error fetching schedules:', data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching schedules:', error);
+            }
+        }
+
+
+        async function fetchDevices() {
+            try {
+                const response = await fetch('/api/devices/minimal');
+                const data = await response.json();
+                if (data.success && Array.isArray(data.devices)) {
+                    devices = data.devices.map(d => ({ device_id: d.device_id, device_name: d.device_name }));
+                } else {
+                    console.error('Error fetching devices:', data.error || 'No devices found');
+                }
+            } catch (error) {
+                console.error('Error fetching devices:', error);
+            }
+        }
+
+        // Render functions
+        function renderSchedules() {
+            const desktopGrid = document.getElementById('schedules-grid');
+            const mobileGrid = document.getElementById('schedules-mobile');
+            const statsContainer = document.getElementById('schedule-stats');
+            
+            // Always render the 3 fixed cards regardless of whether schedules exist
+            // Render stats
+            if (statsContainer) {
+                statsContainer.innerHTML = renderScheduleStats();
+            }
+
+            // Update mobile stats
+            updateMobileStats();
+
+            // Render the 3 fixed schedule type cards
+            const fixedCards = renderFixedScheduleCards();
+            if (desktopGrid) desktopGrid.innerHTML = fixedCards;
+            if (mobileGrid) mobileGrid.innerHTML = fixedCards;
+            
+            // Update calendar when schedules change (both desktop and mobile)
+            renderCalendar();
+        }
+        
+        function renderFixedScheduleCards() {
+            const scheduleTypes = [
+                {
+                    type: 'temperature',
+                    name: 'Heating Schedule',
+                    emoji: '🌡️',
+                    color: 'orange',
+                    description: 'Control heating temperature'
+                },
+                {
+                    type: 'hot_water',
+                    name: 'Hot Water Schedule',
+                    emoji: '🚿',
+                    color: 'blue', 
+                    description: 'Schedule hot water heating'
+                },
+                {
+                    type: 'holiday',
+                    name: 'Holiday Mode',
+                    emoji: '🏖️',
+                    color: 'purple',
+                    description: 'Schedule holiday periods'
+                }
+            ];
+            
+            return scheduleTypes.map(scheduleType => {
+                // Find the corresponding schedule from the loaded schedules
+                const schedule = schedules.find(s => s.schedule_type === scheduleType.type) || {
+                    id: null,
+                    name: scheduleType.name,
+                    schedule_type: scheduleType.type,
+                    is_active: false,
+                    rules: [],
+                    priority: 1
+                };
+                
+                return createFixedScheduleCard(schedule, scheduleType);
+            }).join('');
+        }
+        
+        function createFixedScheduleCard(schedule, typeInfo) {
+            const nextRule = schedule.rules.length > 0 ? getNextRuleForSchedule(schedule) : null;
+            const rulesCount = schedule.rules.length;
+            
+            // Check if mobile
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                return createMobileFixedScheduleCard(schedule, typeInfo, nextRule, rulesCount);
+            } else {
+                return createDesktopFixedScheduleCard(schedule, typeInfo, nextRule, rulesCount);
+            }
+        }
+
+        function updateMobileStats() {
+            const totalSchedules = schedules.length;
+            const activeSchedules = schedules.filter(s => s.is_active).length;
+            const totalRules = schedules.reduce((sum, s) => sum + s.rules.length, 0);
+            
+            const totalElement = document.getElementById('total-schedules-mobile');
+            const activeElement = document.getElementById('active-schedules-mobile');
+            const rulesElement = document.getElementById('total-rules-mobile');
+            
+            if (totalElement) totalElement.textContent = totalSchedules;
+            if (activeElement) activeElement.textContent = activeSchedules;
+            if (rulesElement) rulesElement.textContent = totalRules;
+        }
+        
+        function renderScheduleStats() {
+            const totalSchedules = schedules.length;
+            const activeSchedules = schedules.filter(s => s.is_active).length;
+            const totalRules = schedules.reduce((sum, s) => sum + s.rules.length, 0);
+            const typeCount = {
+                temperature: schedules.filter(s => s.schedule_type === 'temperature').length,
+                hot_water: schedules.filter(s => s.schedule_type === 'hot_water').length,
+                holiday: schedules.filter(s => s.schedule_type === 'holiday').length
+            };
+            
+            return `
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-400">Total</p>
+                            <p class="text-lg font-semibold text-white">${totalSchedules}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-400">Active</p>
+                            <p class="text-lg font-semibold text-white">${activeSchedules}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-400">Rules</p>
+                            <p class="text-lg font-semibold text-white">${totalRules}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01.293.707V12a1 1 0 102 0V9a3 3 0 00-3-3H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-400">Types</p>
+                            <p class="text-lg font-semibold text-white">${Object.values(typeCount).filter(v => v > 0).length}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createScheduleCard(schedule) {
+            const typeIcons = {
+                'temperature': { emoji: '🌡️', color: 'orange', name: 'Heating' },
+                'hot_water': { emoji: '🚿', color: 'blue', name: 'Hot Water' },
+                'holiday': { emoji: '🏖️', color: 'purple', name: 'Holiday Mode' }
+            };
+            
+            const typeInfo = typeIcons[schedule.schedule_type] || { emoji: '⚙️', color: 'gray', name: 'Unknown' };
+            
+            // Check if mobile
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                return createMobileScheduleCard(schedule, typeInfo);
+            } else {
+                return createDesktopScheduleCard(schedule, typeInfo);
+            }
+        }
+
+        function createMobileScheduleCard(schedule, typeInfo) {
+            // Get next rule for quick preview
+            const nextRule = getNextRule(schedule);
+            const rulesCount = schedule.rules.length;
+            
+            return `
+                <div class="rounded-2xl p-4 active:scale-95 transition-all panel-bg-mobile" 
+                     onclick="showMobileScheduleDetails(${schedule.id})"
+                     ontouchstart="this.style.transform='scale(0.98)'"
+                     ontouchend="this.style.transform='scale(1)'">
+                    
+                    <!-- Main Content -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-${typeInfo.color}-500 rounded-xl flex items-center justify-center text-white text-xl shadow-lg">
+                                ${typeInfo.emoji}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-white text-lg">${schedule.name}</h3>
+                                <p class="text-sm" style="color: #9ca3af;">${typeInfo.name}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            ${schedule.is_active ? 
+                                '<div class="w-3 h-3 bg-green-400 rounded-full shadow-lg"></div>' :
+                                '<div class="w-3 h-3 bg-gray-500 rounded-full"></div>'
+                            }
+                            <button onclick="event.stopPropagation(); toggleScheduleMobile(${schedule.id})" 
+                                    class="p-2 ${schedule.is_active ? 'text-green-400' : 'text-gray-500'} active:scale-95 transition-all">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Next Rule Preview -->
+                    <div class="rounded-lg p-3 mb-3 input-bg">
+                        ${nextRule ? `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-${typeInfo.color}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-sm" style="color: #d1d5db;">Next: ${nextRule.dayText}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg font-mono text-white">${nextRule.timeText}</span>
+                                    <span class="text-sm text-${typeInfo.color}-400 font-medium">${nextRule.targetText}</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" style="color: #6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-sm" style="color: #6b7280;">No rules configured</span>
+                            </div>
+                        `}
+                    </div>
+                    
+                    <!-- Bottom Stats -->
+                    <div class="flex items-center justify-between text-xs">
+                        <span style="color: #6b7280;">${rulesCount} rule${rulesCount !== 1 ? 's' : ''}</span>
+                        <span style="color: #6b7280;">Priority ${schedule.priority}</span>
+                        <div class="flex items-center space-x-2">
+                            ${schedule.is_active ? 
+                                '<span class="text-green-400 font-medium">Active</span>' :
+                                '<span style="color: #6b7280;">Inactive</span>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createDesktopFixedScheduleCard(schedule, typeInfo, nextRule, rulesCount) {
+            return `
+                <div class="rounded-xl p-5 border border-gray-700 hover:border-${typeInfo.color}-500 transition-all duration-200" style="${(() => {
+                    switch(typeInfo.color) {
+                        case 'orange': return 'background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%)';
+                        case 'blue': return 'background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%)';
+                        case 'purple': return 'background: linear-gradient(135deg, #7c2d92 0%, #a855f7 100%)';
+                        default: return 'background: linear-gradient(135deg, #374151 0%, #4b5563 100%)';
+                    }
+                })()};">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-${typeInfo.color}-500 rounded-lg flex items-center justify-center text-white text-lg">
+                                ${typeInfo.emoji}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-white">${typeInfo.name}</h3>
+                                <p class="text-xs text-gray-400">${typeInfo.description}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${schedule.is_active ? 
+                                '<div class="w-2 h-2 bg-green-400 rounded-full"></div><span class="text-xs text-green-400">Active</span>' :
+                                '<div class="w-2 h-2 bg-gray-500 rounded-full"></div><span class="text-xs text-gray-500">Inactive</span>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Next Rule or Status -->
+                    <div class="mb-4 p-3 bg-gray-800 rounded-lg">
+                        ${nextRule ? `
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-400">Next: ${nextRule.dayText}</span>
+                                <span class="text-sm text-${typeInfo.color}-400 font-medium">${nextRule.timeText} → ${nextRule.targetText}</span>
+                            </div>
+                        ` : `
+                            <div class="text-sm text-gray-500">No rules configured</div>
+                        `}
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-700">
+                        <span class="text-xs text-gray-500">${rulesCount} rule${rulesCount !== 1 ? 's' : ''}</span>
+                        <div class="flex space-x-1">
+                            <button onclick="toggleScheduleType('${schedule.schedule_type}')" class="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+                                ${schedule.is_active ? 'Disable' : 'Enable'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createMobileFixedScheduleCard(schedule, typeInfo, nextRule, rulesCount) {
+            return `
+                <div class="rounded-2xl p-4 active:scale-95 transition-all panel-bg-mobile" 
+                     onclick="showMobileScheduleTypeDetails('${schedule.schedule_type}')"
+                     ontouchstart="this.style.transform='scale(0.98)'"
+                     ontouchend="this.style.transform='scale(1)'">
+                    
+                    <!-- Main Content -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-${typeInfo.color}-500 rounded-xl flex items-center justify-center text-white text-xl shadow-lg">
+                                ${typeInfo.emoji}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-white text-lg">${typeInfo.name}</h3>
+                                <p class="text-sm" style="color: #9ca3af;">${typeInfo.description}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            ${schedule.is_active ? 
+                                '<div class="w-3 h-3 bg-green-400 rounded-full shadow-lg"></div>' :
+                                '<div class="w-3 h-3 bg-gray-500 rounded-full"></div>'
+                            }
+                            <button onclick="event.stopPropagation(); toggleScheduleType('${schedule.schedule_type}')" 
+                                    class="p-2 ${schedule.is_active ? 'text-green-400' : 'text-gray-500'} active:scale-95 transition-all">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Next Rule Preview -->
+                    <div class="rounded-lg p-3 mb-3 input-bg">
+                        ${nextRule ? `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-${typeInfo.color}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-sm" style="color: #d1d5db;">Next: ${nextRule.dayText}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg font-mono text-white">${nextRule.timeText}</span>
+                                    <span class="text-sm text-${typeInfo.color}-400 font-medium">${nextRule.targetText}</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" style="color: #6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-sm" style="color: #6b7280;">No rules configured</span>
+                            </div>
+                        `}
+                    </div>
+                    
+                    <!-- Bottom Stats -->
+                    <div class="flex items-center justify-between text-xs">
+                        <span style="color: #6b7280;">${rulesCount} rule${rulesCount !== 1 ? 's' : ''}</span>
+                        <div class="flex items-center space-x-2">
+                            ${schedule.is_active ? 
+                                '<span class="text-green-400 font-medium">Active</span>' :
+                                '<span style="color: #6b7280;">Inactive</span>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createDesktopScheduleCard(schedule, typeInfo) {
+            const rulesHtml = schedule.rules.length ? schedule.rules.map(rule => {
+                const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const dayText = rule.day_of_week !== null ? dayNames[rule.day_of_week] : 'Daily';
+                const timeText = convertUTCToDeviceTime(rule.time_of_day);
+                const targetText = (schedule.schedule_type === 'hot_water' || schedule.schedule_type === 'holiday') ? 'ON' : 
+                                 (rule.target_value ? `${rule.target_value}°C` : 'ON');
+                
+                return `
+                    <div class="flex items-center justify-between text-sm group py-2 px-3 rounded-lg hover:bg-gray-700 transition-colors">
+                        <div class="flex items-center space-x-2 text-gray-300">
+                            <div class="w-2 h-2 bg-${typeInfo.color}-400 rounded-full"></div>
+                            <span>${dayText}</span>
+                            <span class="text-gray-500">at</span>
+                            <span class="font-mono text-white">${timeText}</span>
+                            <span class="text-gray-500">→</span>
+                            <span class="text-${typeInfo.color}-400 font-medium">${targetText}</span>
+                        </div>
+                        <button onclick="deleteRule(${schedule.id}, ${rule.id})" 
+                                class="opacity-0 group-hover:opacity-100 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-all"
+                                title="Delete rule">
+                            Delete
+                        </button>
+                    </div>
+                `;
+            }).join('') : '<div class="text-sm text-gray-400 py-2">No rules configured</div>';
+
+            return `
+                <div class="rounded-xl p-5 border border-gray-700 hover:border-${typeInfo.color}-500 transition-all duration-200" style="background-color: #1e3a8a;">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-${typeInfo.color}-500 rounded-lg flex items-center justify-center text-white text-lg">
+                                ${typeInfo.emoji}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-white">${schedule.name}</h3>
+                                <p class="text-xs text-gray-400">${typeInfo.name}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${schedule.is_active ? 
+                                '<div class="w-2 h-2 bg-green-400 rounded-full"></div><span class="text-xs text-green-400">Active</span>' :
+                                '<div class="w-2 h-2 bg-gray-500 rounded-full"></div><span class="text-xs text-gray-500">Inactive</span>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Rules -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Rules (${schedule.rules.length})</span>
+                            <button onclick="addRule(${schedule.id})" class="text-xs text-${typeInfo.color}-400 hover:text-${typeInfo.color}-300 transition-colors">
+                                + Add
+                            </button>
+                        </div>
+                        <div class="space-y-1 max-h-24 overflow-y-auto">
+                            ${rulesHtml}
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-700">
+                        <span class="text-xs text-gray-500">Priority ${schedule.priority}</span>
+                        <div class="flex space-x-1">
+                            <button onclick="toggleSchedule(${schedule.id})" class="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+                                ${schedule.is_active ? 'Disable' : 'Enable'}
+                            </button>
+                            <button onclick="executeSchedule(${schedule.id})" class="px-2 py-1 text-xs bg-${typeInfo.color}-600 hover:bg-${typeInfo.color}-700 text-white rounded transition-colors">
+                                Run
+                            </button>
+                            <button onclick="deleteSchedule(${schedule.id})" class="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // Device selection removed - automatically use the first available device
+
+        // Modal functions
+        function showCreateScheduleModal() {
+            // Remove any existing modal
+            const existingModal = document.getElementById('simpleCreateModal');
+            if (existingModal) {
+                document.body.removeChild(existingModal);
+            }
+
+            // Create simple modal using the same approach as the red test overlay
+            const modal = document.createElement('div');
+            modal.id = 'simpleCreateModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.8);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: #2d2e2d; border-radius: 16px; padding: 24px; width: 90%; max-width: 400px; color: white;">
+                    <h2 style="font-size: 24px; margin-bottom: 20px;">Create Schedule</h2>
+                    <form id="simpleCreateForm">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px;">Schedule Name</label>
+                            <input type="text" id="simpleScheduleName" required 
+                                   style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px;">Schedule Type</label>
+                            <select id="simpleScheduleType" required 
+                                    style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                                <option value="temperature">Temperature Control</option>
+                                <option value="hot_water">Hot Water Control</option>
+                                <option value="holiday">Holiday Mode</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px;">Priority (1-10)</label>
+                            <input type="number" id="simpleSchedulePriority" min="1" max="10" value="1" 
+                                   style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" onclick="hideCreateScheduleModal()" 
+                                    style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #6b7280; color: white; font-size: 16px; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #f59e0b; color: white; font-size: 16px; cursor: pointer;">
+                                Create
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Add form handler for the simple form
+            document.getElementById('simpleCreateForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!devices || devices.length === 0) {
+                    alert('No devices available. Please refresh the page and try again.');
+                    return;
+                }
+                
+                const formData = {
+                    name: document.getElementById('simpleScheduleName').value,
+                    device_id: devices[0].device_id,
+                    schedule_type: document.getElementById('simpleScheduleType').value,
+                    priority: parseInt(document.getElementById('simpleSchedulePriority').value)
+                };
+
+                try {
+                    const response = await fetch('/api/schedules', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        hideCreateScheduleModal();
+                        await fetchSchedules();
+                    } else {
+                        alert('Error creating schedule: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Error creating schedule:', error);
+                    alert('Error creating schedule');
+                }
+            });
+        }
+
+        function hideCreateScheduleModal() {
+            // Remove the simple modal
+            const simpleModal = document.getElementById('simpleCreateModal');
+            if (simpleModal) {
+                document.body.removeChild(simpleModal);
+            }
+            
+            // Also hide the old modal if it exists
+            const oldModal = document.getElementById('createScheduleModal');
+            if (oldModal) {
+                oldModal.classList.add('hidden');
+            }
+        }
+
+        let currentScheduleId = null;
+
+        function addRule(scheduleId) {
+            currentScheduleId = scheduleId;
+            
+            // Remove any existing add rule modal
+            const existingModal = document.getElementById('simpleAddRuleModal');
+            if (existingModal) {
+                document.body.removeChild(existingModal);
+            }
+
+            // Create simple add rule modal using the same approach
+            const modal = document.createElement('div');
+            modal.id = 'simpleAddRuleModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.8);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            // Get the current schedule info for display
+            const currentSchedule = scheduleId ? schedules.find(s => s.id == scheduleId) : null;
+            
+            modal.innerHTML = `
+                <div style="background: #2d2e2d; border-radius: 16px; padding: 24px; width: 90%; max-width: 400px; color: white;">
+                    <h2 style="font-size: 24px; margin-bottom: 20px;">Add Rule${currentSchedule ? ' to ' + currentSchedule.name : ''}</h2>
+                    <form id="simpleAddRuleForm">
+                        ${!currentSchedule ? `
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px;">Schedule</label>
+                            <select id="simpleRuleScheduleType" required 
+                                    style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                                <option value="">Select schedule...</option>
+                            </select>
+                        </div>
+                        ` : ''}
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px;">Day</label>
+                            <select id="simpleRuleDayOfWeek" 
+                                    style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                                <option value="">Daily</option>
+                                <option value="0">Monday</option>
+                                <option value="1">Tuesday</option>
+                                <option value="2">Wednesday</option>
+                                <option value="3">Thursday</option>
+                                <option value="4">Friday</option>
+                                <option value="5">Saturday</option>
+                                <option value="6">Sunday</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px;">Time</label>
+                            <input type="time" id="simpleRuleTimeOfDay" required 
+                                   style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                        </div>
+                        <div style="margin-bottom: 20px;" id="simpleTargetValueContainer">
+                            <label style="display: block; margin-bottom: 8px;" id="simpleTargetValueLabel">Target Temperature (°C)</label>
+                            <input type="number" id="simpleRuleTargetValue" placeholder="e.g. 22" min="5" max="35" step="0.5" required
+                                   style="width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1f2937; color: white; font-size: 16px;">
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" onclick="hideAddRuleModal()" 
+                                    style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #6b7280; color: white; font-size: 16px; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #f59e0b; color: white; font-size: 16px; cursor: pointer;">
+                                Add Rule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Populate schedule dropdown if not pre-selected
+            if (!currentSchedule) {
+                populateSimpleScheduleDropdown();
+            }
+            
+            // Add form handler for the simple add rule form
+            document.getElementById('simpleAddRuleForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const selectedScheduleId = scheduleId || document.getElementById('simpleRuleScheduleType').value;
+                
+                if (!selectedScheduleId) {
+                    alert('Please select a schedule');
+                    return;
+                }
+                
+                const dayOfWeek = document.getElementById('simpleRuleDayOfWeek').value;
+                let targetValue = document.getElementById('simpleRuleTargetValue').value;
+                
+                const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+                if (selectedSchedule && (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday')) {
+                    targetValue = '1';
+                } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
+                    alert('Please enter a temperature value for heating schedules');
+                    return;
+                }
+                
+                const formData = {
+                    day_of_week: dayOfWeek === '' ? null : parseInt(dayOfWeek),
+                    time_of_day: convertDeviceTimeToUTC(document.getElementById('simpleRuleTimeOfDay').value),
+                    target_value: targetValue === '' ? null : parseFloat(targetValue)
+                };
+
+                try {
+                    const response = await fetch(`/api/schedules/${selectedScheduleId}/rules`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        hideAddRuleModal();
+                        await fetchSchedules();
+                        // If mobile detail is open for this schedule, refresh it and keep it open
+                        try {
+                            const currentId = parseInt(selectedScheduleId);
+                            if (typeof openScheduleDetailId !== 'undefined' && openScheduleDetailId === currentId) {
+                                const sheet = document.getElementById('mobileDetailSheet');
+                                const sched = schedules.find(s => s.id === currentId);
+                                if (sheet && sched) {
+                                    sheet.remove();
+                                    showScheduleDetailSheet(sched);
+                                }
+                            }
+                        } catch (e) { /* no-op */ }
+                    } else {
+                        alert('Error adding rule: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Error adding rule:', error);
+                    alert('Error adding rule');
+                }
+            });
+        }
+
+        function hideAddRuleModal() {
+            // Remove the simple add rule modal
+            const simpleModal = document.getElementById('simpleAddRuleModal');
+            if (simpleModal) {
+                document.body.removeChild(simpleModal);
+            }
+            
+            // Also hide the old modal if it exists
+            const oldModal = document.getElementById('addRuleModal');
+            if (oldModal) {
+                oldModal.classList.add('hidden');
+            }
+            
+            currentScheduleId = null;
+        }
+
+        function populateSimpleScheduleDropdown() {
+            const dropdown = document.getElementById('simpleRuleScheduleType');
+            if (!dropdown) return;
+            
+            const typeNames = {
+                'temperature': 'Heating',
+                'hot_water': 'Hot Water',
+                'holiday': 'Holiday Mode'
+            };
+            
+            dropdown.innerHTML = '<option value="">Select schedule...</option>';
+            
+            Object.keys(typeNames).forEach(type => {
+                const schedule = schedules.find(s => s.schedule_type === type);
+                if (schedule) {
+                    const option = document.createElement('option');
+                    option.value = schedule.id;
+                    option.textContent = `${typeNames[type]} (${schedule.name})`;
+                    dropdown.appendChild(option);
+                }
+            });
+        }
+
+        // Helper functions for fixed schedule cards
+        function getNextRuleForSchedule(schedule) {
+            return getNextRule(schedule);
+        }
+        
+        async function toggleScheduleType(scheduleType) {
+            // Find the schedule of this type
+            const schedule = schedules.find(s => s.schedule_type === scheduleType);
+            if (schedule) {
+                await toggleSchedule(schedule.id);
+            } else {
+                console.log(`No schedule found for type: ${scheduleType}`);
+            }
+        }
+        
+        function showMobileScheduleTypeDetails(scheduleType) {
+            const schedule = schedules.find(s => s.schedule_type === scheduleType);
+            if (schedule) {
+                showMobileScheduleDetails(schedule.id);
+            }
+        }
+
+        // Action functions
+        async function toggleSchedule(scheduleId) {
+            try {
+                const response = await fetch(`/api/schedules/${scheduleId}/toggle`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await fetchSchedules();
+                } else {
+                    alert('Error toggling schedule: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error toggling schedule:', error);
+                alert('Error toggling schedule');
+            }
+        }
+
+        async function executeSchedule(scheduleId) {
+            try {
+                const response = await fetch(`/api/schedules/${scheduleId}/execute`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Schedule execution requested');
+                } else {
+                    alert('Error executing schedule: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error executing schedule:', error);
+                alert('Error executing schedule');
+            }
+        }
+
+        async function deleteSchedule(scheduleId) {
+            if (!confirm('Are you sure you want to delete this schedule?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/schedules/${scheduleId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await fetchSchedules();
+                } else {
+                    alert('Error deleting schedule: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error deleting schedule:', error);
+                alert('Error deleting schedule');
+            }
+        }
+
+        async function deleteRule(scheduleId, ruleId) {
+            if (!confirm('Are you sure you want to delete this rule?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/schedules/${scheduleId}/rules/${ruleId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await fetchSchedules();
+                    // Keep the mobile detail sheet open and refresh
+                    try {
+                        if (typeof openScheduleDetailId !== 'undefined' && openScheduleDetailId === scheduleId) {
+                            const sheet = document.getElementById('mobileDetailSheet');
+                            const sched = schedules.find(s => s.id === scheduleId);
+                            if (sheet && sched) {
+                                sheet.remove();
+                                showScheduleDetailSheet(sched);
+                            }
+                        }
+                    } catch (e) { /* no-op */ }
+                } else {
+                    alert('Error deleting rule: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error deleting rule:', error);
+                alert('Error deleting rule');
+            }
+        }
+
+
+        // Add rule form handler
+        document.getElementById('addRuleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Ensure target value field is properly configured before submission
+            handleScheduleTypeChange();
+            
+            // Get schedule ID from dropdown if not already set
+            const selectedScheduleId = currentScheduleId || document.getElementById('ruleScheduleType').value;
+            
+            if (!selectedScheduleId) {
+                alert('Please select a schedule type');
+                return;
+            }
+            
+            const dayOfWeek = document.getElementById('ruleDayOfWeek').value;
+            let targetValue = document.getElementById('ruleTargetValue').value;
+            
+            // Check if this is a hot water or holiday schedule and ensure target_value=1
+            const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+            if (selectedSchedule && (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday')) {
+                targetValue = '1'; // Force hot water/holiday mode to be enabled
+            } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
+                alert('Please enter a temperature value for heating schedules');
+                return;
+            }
+            
+            const formData = {
+                day_of_week: dayOfWeek === '' ? null : parseInt(dayOfWeek),
+                time_of_day: convertDeviceTimeToUTC(document.getElementById('ruleTimeOfDay').value),
+                target_value: targetValue === '' ? null : parseFloat(targetValue)
+            };
+
+            try {
+                const response = await fetch(`/api/schedules/${selectedScheduleId}/rules`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    hideAddRuleModal();
+                    await fetchSchedules();
+                } else {
+                    alert('Error adding rule: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding rule:', error);
+                alert('Error adding rule');
+            }
+        });
+
+        // Mobile add rule form handler
+        document.getElementById('addRuleFormMobile').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Ensure target value field is properly configured before submission
+            handleScheduleTypeChangeMobile();
+            
+            const selectedScheduleId = currentScheduleId || document.getElementById('ruleScheduleTypeMobile').value;
+            
+            if (!selectedScheduleId) {
+                alert('Please select a schedule type');
+                return;
+            }
+            
+            const dayOfWeek = document.getElementById('ruleDayOfWeekMobile').value;
+            let targetValue = document.getElementById('ruleTargetValueMobile').value;
+            
+            const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+            if (selectedSchedule && (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday')) {
+                targetValue = '1';
+            } else if (selectedSchedule && selectedSchedule.schedule_type === 'temperature' && (!targetValue || targetValue.trim() === '')) {
+                alert('Please enter a temperature value for heating schedules');
+                return;
+            }
+            
+            const formData = {
+                day_of_week: dayOfWeek === '' ? null : parseInt(dayOfWeek),
+                time_of_day: convertDeviceTimeToUTC(document.getElementById('ruleTimeOfDayMobile').value),
+                target_value: targetValue === '' ? null : parseFloat(targetValue)
+            };
+
+            try {
+                const response = await fetch(`/api/schedules/${selectedScheduleId}/rules`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    hideAddRuleModal();
+                    await fetchSchedules();
+                } else {
+                    alert('Error adding rule: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding rule:', error);
+                alert('Error adding rule');
+            }
+        });
+
+        // Simple Weekly Schedule Functions
+
+        function renderCalendar() {
+            const container = document.getElementById('block-schedule');
+            
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            
+            // Only render desktop calendar if container exists
+            if (!container) return;
+            
+            // Debug: Check if schedules data exists
+            console.log('renderCalendar called, schedules length:', schedules ? schedules.length : 'undefined');
+            
+            // Clear existing content to prevent duplication
+            container.innerHTML = '';
+            
+            dayNames.forEach((dayName, dayIndex) => {
+                const dayContainer = document.createElement('div');
+                dayContainer.className = 'day-schedule flex items-center space-x-4';
+                
+                // Day label (inline with timeline)
+                const dayLabel = document.createElement('div');
+                dayLabel.className = 'text-sm font-medium text-gray-300 w-20 flex-shrink-0';
+                dayLabel.textContent = dayName;
+                
+                // Timeline container
+                const timelineContainer = document.createElement('div');
+                timelineContainer.className = 'flex-1 relative';
+                
+                // Timeline bar (24 hours: 0-23) - dynamic height for better visibility
+                const timeline = document.createElement('div');
+                timeline.className = 'relative h-20 bg-gray-800 rounded-lg overflow-visible';
+                timeline.style.position = 'relative';
+                
+                // Add time markers (24 hours: 0-23)
+                for (let hour = 0; hour <= 23; hour++) {
+                    const marker = document.createElement('div');
+                    marker.className = 'absolute top-0 h-full border-l border-gray-600';
+                    marker.style.left = `${(hour / 24) * 100}%`;
+                    
+                    // Add hour labels every 6 hours
+                    if (hour % 6 === 0) {
+                        const label = document.createElement('div');
+                        label.className = 'absolute -top-5 text-xs text-gray-500 transform -translate-x-1/2';
+                        label.textContent = `${hour.toString().padStart(2, '0')}:00`;
+                        marker.appendChild(label);
+                    }
+                    
+                    timeline.appendChild(marker);
+                }
+                
+                // Add schedule blocks for this day
+                const dayRules = getDayRules(dayIndex);
+                const rulesByTime = groupRulesByTime(dayRules);
+                
+                Object.keys(rulesByTime).forEach(timeKey => {
+                    const timeRules = rulesByTime[timeKey];
+                    const startDecimal = parseFloat(timeKey);
+                    const endDecimal = startDecimal + 1; // Default 1 hour duration
+                    
+                    timeRules.forEach((ruleGroup, stackIndex) => {
+                        const block = document.createElement('div');
+                        block.className = `absolute rounded cursor-pointer transition-all hover:shadow-lg`;
+                        
+                        // Color based on schedule type
+                        const colors = {
+                            'temperature': 'bg-orange-500 hover:bg-orange-400',
+                            'hot_water': 'bg-blue-500 hover:bg-blue-400',
+                            'holiday': 'bg-purple-500 hover:bg-purple-400'
+                        };
+                        block.className += ` ${colors[ruleGroup.scheduleType] || 'bg-gray-500'}`;
+                        
+                        // Dynamic height based on number of schedules at this time
+                        const totalHeight = 72; // Total available height (80px - padding)
+                        const blockHeight = Math.floor(totalHeight / timeRules.length) - 2; // -2 for spacing between blocks
+                        const topOffset = stackIndex * (blockHeight + 2) + 4;
+                        
+                        block.style.left = `${(startDecimal / 24) * 100}%`;
+                        block.style.width = `${((endDecimal - startDecimal) / 24) * 100}%`;
+                        block.style.top = `${topOffset}px`;
+                        block.style.height = `${blockHeight}px`;
+                        
+                        // Block content
+                        const content = document.createElement('div');
+                        content.className = 'flex items-center justify-center h-full px-1 text-white text-xs font-medium';
+                        // Show 'ON' for hot water and holiday mode, temperature value for temperature schedules
+                        if (ruleGroup.scheduleType === 'hot_water' || ruleGroup.scheduleType === 'holiday') {
+                            content.textContent = 'ON';
+                        } else {
+                            content.textContent = ruleGroup.targetValue ? `${ruleGroup.targetValue}°C` : 'ON';
+                        }
+                        
+                        block.appendChild(content);
+                        
+                        // Click handler for edit/delete
+                        block.title = `${ruleGroup.scheduleName}: ${ruleGroup.targetValue || 'Toggle'} at ${ruleGroup.startTime} (Click to delete)`;
+                        block.onclick = () => deleteRule(ruleGroup.scheduleId, ruleGroup.ruleId);
+                        
+                        timeline.appendChild(block);
+                    });
+                });
+                
+                // Create hover tooltip
+                const hoverTooltip = document.createElement('div');
+                hoverTooltip.className = 'absolute -top-8 bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10 hidden pointer-events-none';
+                hoverTooltip.style.transform = 'translateX(-50%)';
+                timeline.appendChild(hoverTooltip);
+
+                // Hover handler to show time tooltip
+                timeline.onmousemove = (e) => {
+                    if (e.target === timeline) {
+                        const rect = timeline.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const hourDecimal = (x / rect.width) * 24;
+                        const hour = Math.floor(hourDecimal);
+                        
+                        // Format time as HH:00 (only show hour blocks)
+                        const timeText = `${hour.toString().padStart(2, '0')}:00`;
+                        
+                        hoverTooltip.textContent = timeText;
+                        hoverTooltip.style.left = `${x}px`;
+                        hoverTooltip.classList.remove('hidden');
+                    }
+                };
+
+                // Hide tooltip when mouse leaves
+                timeline.onmouseleave = () => {
+                    hoverTooltip.classList.add('hidden');
+                };
+
+                // Click handler for empty areas (24-hour scale)
+                timeline.onclick = (e) => {
+                    if (e.target === timeline) {
+                        const rect = timeline.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const hour = Math.floor((x / rect.width) * 24);
+                        createQuickRule(dayIndex, hour);
+                    }
+                };
+                
+                // Add controls - simple Copy/Source/Paste buttons
+                const controlsContainer = document.createElement('div');
+                controlsContainer.className = 'ml-2 flex-shrink-0';
+                controlsContainer.style.minWidth = '60px'; // Consistent width for all buttons
+                
+                if (copyModeActive) {
+                    if (dayIndex === sourceDay) {
+                        // Source day - show "Source" button (non-clickable indicator)
+                        const sourceButton = document.createElement('div');
+                        sourceButton.className = 'text-xs text-green-400 px-2 py-1 rounded bg-green-900/20';
+                        sourceButton.textContent = 'Source';
+                        controlsContainer.appendChild(sourceButton);
+                    } else {
+                        // Target day - show "Paste" button that immediately executes
+                        const pasteButton = document.createElement('button');
+                        pasteButton.className = 'text-xs text-blue-400 hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-900/20';
+                        pasteButton.textContent = 'Paste';
+                        pasteButton.onclick = () => executeDesktopPaste(dayIndex);
+                        controlsContainer.appendChild(pasteButton);
+                    }
+                } else {
+                    // Normal mode - show Copy button
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'text-xs text-orange-400 hover:text-orange-300 px-2 py-1 rounded hover:bg-orange-900/20';
+                    copyButton.textContent = 'Copy';
+                    copyButton.onclick = () => showDayCopySelector(dayIndex);
+                    controlsContainer.appendChild(copyButton);
+                }
+                
+                timelineContainer.appendChild(timeline);
+                dayContainer.appendChild(dayLabel);
+                dayContainer.appendChild(timelineContainer);
+                dayContainer.appendChild(controlsContainer);
+                container.appendChild(dayContainer);
+            });
+        }
+
+        function getDayRules(dayIndex) {
+            const dayRules = [];
+            
+            for (const schedule of schedules) {
+                if (!schedule.is_active) continue; // Only show active schedules
+                
+                for (const rule of schedule.rules) {
+                    const ruleDayOfWeek = rule.day_of_week;
+                    
+                    // Check if rule applies to this day
+                    if (ruleDayOfWeek === null || ruleDayOfWeek === dayIndex) {
+                        dayRules.push({
+                            scheduleName: schedule.name,
+                            scheduleType: schedule.schedule_type,
+                            targetValue: rule.target_value,
+                            startTime: convertUTCToDeviceTime(rule.time_of_day),
+                            originalUTCTime: rule.time_of_day, // Store original UTC time for copy/paste
+                            endTime: null, // Could be enhanced later for duration-based rules
+                            ruleId: rule.id,
+                            scheduleId: schedule.id,
+                            priority: schedule.priority
+                        });
+                    }
+                }
+            }
+            
+            // Sort by time
+            dayRules.sort((a, b) => a.startTime.localeCompare(b.startTime));
+            
+            return dayRules;
+        }
+
+        function groupRulesByTime(dayRules) {
+            const rulesByTime = {};
+            
+            dayRules.forEach(rule => {
+                const startHour = parseInt(rule.startTime.split(':')[0]);
+                const startMinute = parseInt(rule.startTime.split(':')[1]);
+                const startDecimal = startHour + (startMinute / 60);
+                const timeKey = startDecimal.toString();
+                
+                if (!rulesByTime[timeKey]) {
+                    rulesByTime[timeKey] = [];
+                }
+                
+                rulesByTime[timeKey].push(rule);
+            });
+            
+            // Sort rules within each time slot by priority
+            Object.keys(rulesByTime).forEach(timeKey => {
+                rulesByTime[timeKey].sort((a, b) => a.priority - b.priority);
+            });
+            
+            return rulesByTime;
+        }
+
+        function findRuleForSlot(dayIndex, hour) {
+            for (const schedule of schedules) {
+                for (const rule of schedule.rules) {
+                    const deviceTime = convertUTCToDeviceTime(rule.time_of_day);
+                const ruleHour = parseInt(deviceTime.split(':')[0]);
+                    const ruleDayOfWeek = rule.day_of_week;
+                    
+                    // Check if rule matches this slot
+                    if (ruleHour === hour) {
+                        // If rule.day_of_week is null, it applies to all days
+                        if (ruleDayOfWeek === null || ruleDayOfWeek === dayIndex) {
+                            return {
+                                scheduleName: schedule.name,
+                                scheduleType: schedule.schedule_type,
+                                targetValue: rule.target_value,
+                                ruleId: rule.id,
+                                scheduleId: schedule.id
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function createQuickRule(dayIndex, hour) {
+            if (schedules.length === 0) {
+                alert('Please create a schedule first');
+                return;
+            }
+            
+            // Clear current selection and populate schedule type dropdown
+            currentScheduleId = null;
+            populateScheduleTypeDropdown();
+            
+            // Pre-fill the form
+            document.getElementById('ruleDayOfWeek').value = dayIndex;
+            document.getElementById('ruleTimeOfDay').value = `${hour.toString().padStart(2, '0')}:00`;
+            document.getElementById('ruleTargetValue').value = '';
+            
+            // Show the modal
+            document.getElementById('addRuleModal').classList.remove('hidden');
+            
+            // Initialize form field visibility and required attributes
+            setTimeout(() => handleScheduleTypeChange(), 50);
+        }
+        
+        function populateScheduleTypeDropdown() {
+            const dropdown = document.getElementById('ruleScheduleType');
+            const mobileDropdown = document.getElementById('ruleScheduleTypeMobile');
+            const typeNames = {
+                'temperature': 'Heating',
+                'hot_water': 'Hot Water',
+                'holiday': 'Holiday Mode'
+            };
+            
+            // Clear existing options except the first one
+            const defaultOption = '<option value="">Select schedule type...</option>';
+            if (dropdown) dropdown.innerHTML = defaultOption;
+            if (mobileDropdown) mobileDropdown.innerHTML = defaultOption;
+            
+            // Show all schedule types, creating options for each existing schedule
+            Object.keys(typeNames).forEach(type => {
+                const schedule = schedules.find(s => s.schedule_type === type);
+                if (schedule) {
+                    const optionText = `${typeNames[type]} (${schedule.name})`;
+                    
+                    // Desktop dropdown
+                    if (dropdown) {
+                        const option = document.createElement('option');
+                        option.value = schedule.id;
+                        option.textContent = optionText;
+                        dropdown.appendChild(option);
+                    }
+                    
+                    // Mobile dropdown
+                    if (mobileDropdown) {
+                        const mobileOption = document.createElement('option');
+                        mobileOption.value = schedule.id;
+                        mobileOption.textContent = optionText;
+                        mobileDropdown.appendChild(mobileOption);
+                    }
+                } else {
+                    // If no schedule of this type exists, show disabled option
+                    const optionText = `${typeNames[type]} (No schedule created)`;
+                    
+                    // Desktop dropdown
+                    if (dropdown) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.disabled = true;
+                        option.textContent = optionText;
+                        dropdown.appendChild(option);
+                    }
+                    
+                    // Mobile dropdown  
+                    if (mobileDropdown) {
+                        const mobileOption = document.createElement('option');
+                        mobileOption.value = '';
+                        mobileOption.disabled = true;
+                        mobileOption.textContent = optionText;
+                        mobileDropdown.appendChild(mobileOption);
+                    }
+                }
+            });
+        }
+
+        // Handle schedule type changes for mobile rule form
+        function handleScheduleTypeChangeMobile() {
+            const scheduleSelect = document.getElementById('ruleScheduleTypeMobile');
+            const targetContainer = document.getElementById('targetValueContainerMobile');
+            const targetInput = document.getElementById('ruleTargetValueMobile');
+            
+            const selectedScheduleId = scheduleSelect.value;
+            if (!selectedScheduleId) {
+                targetContainer.style.display = 'none';
+                return;
+            }
+            
+            const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+            if (!selectedSchedule) {
+                targetContainer.style.display = 'none';
+                return;
+            }
+            
+            if (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday') {
+                targetContainer.style.display = 'none';
+                targetInput.value = '1';
+                targetInput.removeAttribute('required');
+                targetInput.disabled = true;
+            } else {
+                targetContainer.style.display = 'block';
+                targetInput.value = '';
+                targetInput.setAttribute('required', 'required');
+                targetInput.disabled = false;
+            }
+        }
+
+        // Handle schedule type changes for rule form
+        function handleScheduleTypeChange() {
+            const scheduleSelect = document.getElementById('ruleScheduleType');
+            const targetValueContainer = document.getElementById('targetValueContainer');
+            const targetValueInput = document.getElementById('ruleTargetValue');
+            
+            const selectedScheduleId = scheduleSelect.value;
+            if (!selectedScheduleId) {
+                // No schedule selected, hide target value
+                targetValueContainer.style.display = 'none';
+                return;
+            }
+            
+            // Find the selected schedule to get its type
+            const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+            if (!selectedSchedule) {
+                targetValueContainer.style.display = 'none';
+                return;
+            }
+            
+            if (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday') {
+                // Hot water or holiday schedule - hide target value field
+                targetValueContainer.style.display = 'none';
+                // Automatically set value to 1 for hot water/holiday mode
+                targetValueInput.value = '1';
+                // Remove required attribute and disable field for hot water/holiday
+                targetValueInput.removeAttribute('required');
+                targetValueInput.disabled = true;
+            } else {
+                // Temperature or other schedule - show target value field
+                targetValueContainer.style.display = 'block';
+                // Clear the value for manual entry
+                targetValueInput.value = '';
+                // Add required attribute and enable field for temperature schedules
+                targetValueInput.setAttribute('required', 'required');
+                targetValueInput.disabled = false;
+            }
+        }
+
+        // Copy schedule functionality
+        let copyModeActive = false;
+        let sourceDay = null;
+        let pastedDays = new Set(); // Track which days have been pasted to
+        
+        function showDayCopySelector(dayIndex) {
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dayRules = getDayRules(dayIndex);
+            
+            // Check if the source day has any rules
+            if (dayRules.length === 0) {
+                alert(`No rules found for ${dayNames[dayIndex]} to copy.`);
+                return;
+            }
+            
+            // If already in copy mode, cancel it
+            if (copyModeActive) {
+                cancelCopyMode();
+                return;
+            }
+            
+            copyModeActive = true;
+            sourceDay = dayIndex;
+            pastedDays.clear(); // Clear previous paste history
+            
+            // Show the Done button in headers (both desktop and mobile)
+            const headerButton = document.getElementById('copyModeHeader');
+            if (headerButton) {
+                headerButton.classList.remove('hidden');
+            }
+            
+            const mobileHeaderButton = document.getElementById('mobile-copy-mode-header');
+            if (mobileHeaderButton) {
+                mobileHeaderButton.classList.remove('hidden');
+            }
+            
+            const mobileScheduleDoneBtn = document.getElementById('mobile-schedule-done-btn');
+            if (mobileScheduleDoneBtn) {
+                mobileScheduleDoneBtn.classList.remove('hidden');
+            }
+            
+            // Update the calendar to show paste buttons
+            renderCalendar();
+            
+            // If mobile detail sheet is open, refresh the tabs
+            const sheet = document.getElementById('mobileDetailSheet');
+            if (sheet) {
+                const sched = schedules.find(s => s.id === openScheduleDetailId);
+                if (sched) {
+                    // Find and re-render the tabs in the mobile sheet
+                    const tabs = sheet.querySelector('#dayTabs');
+                    if (tabs) {
+                        // Trigger a re-render of the mobile tabs
+                        const currentSchedule = sched;
+                        const renderTabsForSchedule = () => {
+                            const dayNamesShort = ['M','T','W','T','F','S','S'];
+                            const colorClass = (currentSchedule.schedule_type === 'temperature') ? 'orange' :
+                                               (currentSchedule.schedule_type === 'hot_water') ? 'blue' : 'purple';
+                            
+                            tabs.innerHTML = '';
+                            for (let i = 0; i < 7; i++) {
+                                const dayContainer = document.createElement('div');
+                                dayContainer.className = 'flex flex-col items-center';
+                                
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = `w-9 h-9 inline-flex items-center justify-center rounded-full text-sm font-medium border ` +
+                                    (i===window.selectedDay || (window.selectedDay === undefined && i === ((new Date().getDay() + 6) % 7))
+                                      ? (colorClass==='orange' ? 'bg-orange-600 text-white border-orange-600'
+                                         : colorClass==='blue' ? 'bg-blue-600 text-white border-blue-600'
+                                         : 'bg-purple-600 text-white border-purple-600')
+                                      : 'text-gray-300 border-gray-600 hover:bg-gray-800');
+                                btn.textContent = dayNamesShort[i];
+                                btn.onclick = () => { 
+                                    window.selectedDay = i; 
+                                    renderTabsForSchedule(); 
+                                    // Also need to trigger interval rendering if that function exists
+                                    if (typeof window.renderIntervalsForSchedule === 'function') {
+                                        window.renderIntervalsForSchedule();
+                                    }
+                                };
+                                dayContainer.appendChild(btn);
+                                
+                                // Copy/Paste icons
+                                const iconsContainer = document.createElement('div');
+                                iconsContainer.className = 'flex justify-center mt-1';
+                                
+                                if (copyModeActive) {
+                                    if (i === sourceDay) {
+                                        const sourceIcon = document.createElement('div');
+                                        sourceIcon.className = 'w-4 h-4 flex items-center justify-center';
+                                        sourceIcon.innerHTML = '<svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                                        iconsContainer.appendChild(sourceIcon);
+                                    } else {
+                                        const pasteIcon = document.createElement('button');
+                                        pasteIcon.className = 'w-4 h-4 flex items-center justify-center active:scale-95 transition-transform p-0';
+                                        pasteIcon.innerHTML = '<svg class="w-4 h-4 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>';
+                                        pasteIcon.onclick = (e) => { 
+                                            e.stopPropagation(); 
+                                            executeImmediatePaste(i);
+                                        };
+                                        iconsContainer.appendChild(pasteIcon);
+                                    }
+                                } else {
+                                    const copyIcon = document.createElement('button');
+                                    copyIcon.className = 'w-4 h-4 flex items-center justify-center active:scale-95 transition-transform p-0';
+                                    copyIcon.innerHTML = '<svg class="w-4 h-4 text-gray-500 hover:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>';
+                                    copyIcon.onclick = (e) => { 
+                                        e.stopPropagation(); 
+                                        showDayCopySelector(i); 
+                                    };
+                                    iconsContainer.appendChild(copyIcon);
+                                }
+                                
+                                dayContainer.appendChild(iconsContainer);
+                                tabs.appendChild(dayContainer);
+                            }
+                        };
+                        renderTabsForSchedule();
+                    }
+                }
+            }
+        }
+        
+        // Make functions globally accessible for mobile context
+        window.showDayCopySelector = showDayCopySelector;
+        
+        function cancelCopyMode() {
+            copyModeActive = false;
+            sourceDay = null;
+            pastedDays.clear(); // Clear paste history
+            
+            // Hide the Done button in headers (both desktop and mobile)
+            const headerButton = document.getElementById('copyModeHeader');
+            if (headerButton) {
+                headerButton.classList.add('hidden');
+            }
+            
+            const mobileHeaderButton = document.getElementById('mobile-copy-mode-header');
+            if (mobileHeaderButton) {
+                mobileHeaderButton.classList.add('hidden');
+            }
+            
+            const mobileScheduleDoneBtn = document.getElementById('mobile-schedule-done-btn');
+            if (mobileScheduleDoneBtn) {
+                mobileScheduleDoneBtn.classList.add('hidden');
+            }
+            
+            // Re-render calendar to show copy buttons
+            renderCalendar();
+            
+            // If mobile detail sheet is open, reset the icons
+            const sheet = document.getElementById('mobileDetailSheet');
+            if (sheet) {
+                const dayTabs = sheet.querySelector('#dayTabs');
+                if (dayTabs) {
+                    // Reset all copy/paste icons to normal copy icons
+                    const dayContainers = dayTabs.children;
+                    for (let i = 0; i < dayContainers.length; i++) {
+                        const iconsContainer = dayContainers[i].querySelector('.flex.justify-center.mt-1');
+                        if (iconsContainer) {
+                            iconsContainer.innerHTML = `
+                                <button class="w-4 h-4 flex items-center justify-center active:scale-95 transition-transform p-0" onclick="event.stopPropagation(); window.showDayCopySelector(${i});">
+                                    <svg class="w-4 h-4 text-gray-500 hover:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                </button>
+                            `;
+                        }
+                    }
+                }
+            }
+        }
+        
+        async function executeDesktopPaste(targetDay) {
+            if (!copyModeActive || sourceDay === null) {
+                return;
+            }
+            
+            const sourceRules = getDayRules(sourceDay);
+            
+            try {
+                // First, delete existing rules for the target day
+                const existingRules = getDayRules(targetDay);
+                for (const existingRule of existingRules) {
+                    await fetch(`/api/schedules/${existingRule.scheduleId}/rules/${existingRule.ruleId}`, {
+                        method: 'DELETE'
+                    });
+                }
+                
+                // Then, copy rules from source day to target day
+                for (const sourceRule of sourceRules) {
+                    const formData = {
+                        day_of_week: targetDay,
+                        time_of_day: sourceRule.originalUTCTime, // Use original UTC time, no conversion needed
+                        target_value: sourceRule.targetValue
+                    };
+                    
+                    await fetch(`/api/schedules/${sourceRule.scheduleId}/rules`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                }
+                
+                // Refresh schedule data and re-render desktop calendar
+                await fetchSchedules();
+                
+            } catch (error) {
+                console.error('Error during paste operation:', error);
+                alert('Error occurred while pasting rules. Please try again.');
+            }
+        }
+        
+        async function executeImmediatePaste(targetDay) {
+            if (!copyModeActive || sourceDay === null) {
+                return;
+            }
+            
+            const sourceRules = getDayRules(sourceDay);
+            
+            // Add this day to pasted days set
+            pastedDays.add(targetDay);
+            
+            try {
+                // First, delete existing rules for the target day
+                const existingRules = getDayRules(targetDay);
+                for (const existingRule of existingRules) {
+                    await fetch(`/api/schedules/${existingRule.scheduleId}/rules/${existingRule.ruleId}`, {
+                        method: 'DELETE'
+                    });
+                }
+                
+                // Then, copy rules from source day to target day
+                for (const sourceRule of sourceRules) {
+                    const formData = {
+                        day_of_week: targetDay,
+                        time_of_day: sourceRule.originalUTCTime, // Use original UTC time, no conversion needed
+                        target_value: sourceRule.targetValue
+                    };
+                    
+                    await fetch(`/api/schedules/${sourceRule.scheduleId}/rules`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                }
+                
+                // Update the schedule data and refresh mobile view
+                await fetchSchedules();
+                
+                // Ensure Done button stays visible after refresh
+                if (copyModeActive && sourceDay !== null) {
+                    const headerButton = document.getElementById('mobile-copy-mode-header');
+                    if (headerButton) {
+                        headerButton.classList.remove('hidden');
+                    }
+                }
+                
+                // Update the icon color to green and refresh the mobile intervals
+                const sheet = document.getElementById('mobileDetailSheet');
+                if (sheet && typeof openScheduleDetailId !== 'undefined' && openScheduleDetailId !== null) {
+                    // Update the icon color
+                    const dayTabs = sheet.querySelector('#dayTabs');
+                    if (dayTabs) {
+                        const dayContainers = dayTabs.children;
+                        if (dayContainers[targetDay]) {
+                            const pasteIcon = dayContainers[targetDay].querySelector('svg');
+                            if (pasteIcon) {
+                                pasteIcon.classList.remove('text-gray-400', 'hover:text-blue-400');
+                                pasteIcon.classList.add('text-green-400');
+                            }
+                        }
+                    }
+                    
+                    // Refresh the intervals display by triggering the existing rendering logic
+                    // Find the currently selected day tab and re-click it to refresh intervals
+                    if (dayTabs) {
+                        const selectedDay = window.selectedDay || ((new Date().getDay() + 6) % 7);
+                        const dayButtons = dayTabs.querySelectorAll('button[type="button"]');
+                        if (dayButtons[selectedDay]) {
+                            // Trigger the click to refresh intervals with updated data
+                            dayButtons[selectedDay].click();
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                // Remove from pasted days on error
+                pastedDays.delete(targetDay);
+                console.error('Error during paste operation:', error);
+                alert('Error occurred while pasting rules. Please try again.');
+            }
+        }
+        
+        // Make functions globally accessible for mobile context
+        window.executeImmediatePaste = executeImmediatePaste;
+        window.cancelCopyMode = cancelCopyMode;
+
+        // Mobile-specific functions
+        function getNextRule(schedule) {
+            if (!schedule.rules.length) return null;
+            
+            const now = new Date();
+            const currentDay = (now.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            
+            // Find the next upcoming rule
+            let nextRule = null;
+            let minTimeDiff = Infinity;
+            
+            for (const rule of schedule.rules) {
+                const ruleDayOfWeek = rule.day_of_week;
+                const deviceTime = convertUTCToDeviceTime(rule.time_of_day);
+                const ruleTime = deviceTime.split(':');
+                const ruleTimeMinutes = parseInt(ruleTime[0]) * 60 + parseInt(ruleTime[1]);
+                
+                // Calculate days until this rule
+                let dayDiff = 0;
+                if (ruleDayOfWeek !== null) {
+                    dayDiff = (ruleDayOfWeek - currentDay + 7) % 7;
+                    if (dayDiff === 0 && ruleTimeMinutes <= currentTime) {
+                        dayDiff = 7; // Next week
+                    }
+                } else {
+                    // Daily rule - check if it's later today or tomorrow
+                    if (ruleTimeMinutes > currentTime) {
+                        dayDiff = 0; // Today
+                    } else {
+                        dayDiff = 1; // Tomorrow
+                    }
+                }
+                
+                const totalTimeDiff = dayDiff * 24 * 60 + (ruleTimeMinutes - currentTime);
+                
+                if (totalTimeDiff < minTimeDiff && totalTimeDiff > 0) {
+                    minTimeDiff = totalTimeDiff;
+                    nextRule = rule;
+                }
+            }
+            
+            if (!nextRule) return null;
+            
+            const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const dayText = nextRule.day_of_week !== null ? dayNames[nextRule.day_of_week] : 'Daily';
+            const timeText = convertUTCToDeviceTime(nextRule.time_of_day);
+            const targetText = (schedule.schedule_type === 'hot_water' || schedule.schedule_type === 'holiday') ? 'ON' : 
+                             (nextRule.target_value ? `${nextRule.target_value}°C` : 'ON');
+            
+            return { dayText, timeText, targetText };
+        }
+
+        function showMobileScheduleDetails(scheduleId) {
+            const schedule = schedules.find(s => s.id === scheduleId);
+            if (!schedule) return;
+            
+            // Show bottom sheet with schedule details
+            showScheduleDetailSheet(schedule);
+        }
+
+        function toggleScheduleMobile(scheduleId) {
+            toggleSchedule(scheduleId);
+        }
+
+        function showMobileCreateSchedule() {
+            showCreateScheduleModal();
+        }
+
+        function showScheduleStats() {
+            // Could show a detailed stats modal in the future
+            console.log('Schedule stats clicked');
+        }
+
+        let openScheduleDetailId = null;
+
+        function showScheduleDetailSheet(schedule) {
+            // Create and show bottom sheet with schedule details and actions (mobile)
+            const typeIcons = {
+                'temperature': { emoji: '🌡️', color: 'orange', name: 'Heating' },
+                'hot_water': { emoji: '🚿', color: 'blue', name: 'Hot Water' },
+                'holiday': { emoji: '🏖️', color: 'purple', name: 'Holiday Mode' }
+            };
+
+            const typeInfo = typeIcons[schedule.schedule_type] || { emoji: '⚙️', color: 'gray', name: 'Unknown' };
+            openScheduleDetailId = schedule.id;
+
+            const bottomSheet = `
+                <div id="mobileDetailSheet" class="absolute inset-0 z-40">
+                    <div class="h-full w-full panel-bg-mobile flex flex-col relative">
+                        <!-- Header (compact) -->
+                        <div class="flex items-center justify-between px-3 py-2 border-b border-gray-700">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-9 h-9 bg-${typeInfo.color}-500 rounded-lg flex items-center justify-center text-white text-base">
+                                    ${typeInfo.emoji}
+                                </div>
+                                <div>
+                                    <h2 class="text-base font-semibold text-white leading-tight">${schedule.name}</h2>
+                                    <p class="text-xs text-gray-400 leading-tight flex items-center gap-2">
+                                        <span>${typeInfo.name}</span>
+                                        <span class="flex items-center gap-1">
+                                            ${schedule.is_active
+                                                ? '<span class="w-2 h-2 rounded-full bg-green-400"></span><span class="text-green-400">Active</span>'
+                                                : '<span class="w-2 h-2 rounded-full bg-gray-500"></span><span class="text-gray-400">Inactive</span>'}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button id="mobile-copy-mode-header" onclick="cancelCopyMode()" class="hidden px-3 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-sm font-medium transition-colors">
+                                    Done
+                                </button>
+                                <button onclick="hideMobileDetailSheet()" class="p-2 text-gray-400">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Day Tabs -->
+                        <div class="px-4 pt-3">
+                            <div id="dayTabs" class="flex items-center justify-between gap-1"></div>
+                        </div>
+
+                        <!-- Content: Intervals List (no horizontal scroll) -->
+                        <div class="flex-1 overflow-y-auto">
+                            <div class="p-4">
+                                <div id="dayIntervals" class="space-y-2"></div>
+                                <div id="noRulesMsg" class="hidden text-center py-8 text-gray-400">No rules for this day</div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Menu Button -->
+                        <button id="rulesMoreBtn" class="absolute bottom-4 right-4 w-12 h-12 rounded-full shadow-lg text-white active:scale-95"
+                                style="background-color: #374151;">
+                            <svg class="w-6 h-6 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/>
+                            </svg>
+                        </button>
+
+                        <!-- Floating Menu (popover) -->
+                        <div id="rulesMoreMenu" class="hidden absolute bottom-20 right-4" style="z-index:60;">
+                            <!-- caret -->
+                            <div id="rulesMoreCaret" style="position:absolute; right:14px; bottom:-6px; width:12px; height:12px; transform: rotate(45deg); background: rgba(31,41,55,0.98); border-right:1px solid #4b5563; border-top:1px solid #4b5563;"></div>
+                            <div id="rulesMoreSurface" class="overflow-hidden" 
+                                 style="min-width: 200px; background: rgba(31,41,55,0.98); border: 1px solid #4b5563; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); transform-origin: bottom right; transform: scale(0.95); opacity: 0; transition: transform 120ms ease-out, opacity 120ms ease-out;">
+                                <button id="menuAddRule" class="flex items-center w-full text-left px-4 py-3 gap-3 text-sm" style="color:#ffffff;">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Add New Rule</span>
+                                </button>
+                                <div style="height:1px; background:#374151;"></div>
+                                <button id="menuToggleSchedule" class="flex items-center w-full text-left px-4 py-3 gap-3 text-sm" style="color:#ffffff;">
+                                    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm3.707 7.293l-4 4a1 1 0 01-1.414 0l-2-2A1 1 0 018.707 10.293L9.586 11.172l3.293-3.293a1 1 0 111.414 1.414z"/></svg>
+                                    <span>${schedule.is_active ? 'Disable Schedule' : 'Enable Schedule'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Mount inside mobile content area so header/bottom bar remain visible
+            const mount = document.getElementById('mobile-content-area') || document.body;
+            mount.insertAdjacentHTML('beforeend', bottomSheet);
+
+            // Hide floating add schedule button while viewing details
+            const fab = document.getElementById('fab-add-schedule');
+            if (fab) fab.style.display = 'none';
+
+            // Initialize day tabs and intervals rendering
+            const sheet = document.getElementById('mobileDetailSheet');
+            if (!sheet) return;
+
+            const dayNamesShort = ['M','T','W','T','F','S','S'];
+            const dayNamesLong = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+            // Classes and hex colors per schedule type
+            const colorClass = (schedule.schedule_type === 'temperature') ? 'orange' :
+                               (schedule.schedule_type === 'hot_water') ? 'blue' : 'purple';
+            const typeHex = colorClass === 'orange' ? '#f59e0b' : (colorClass === 'blue' ? '#2563eb' : '#7c3aed');
+
+            function parseMinutes(hhmm) {
+                const [h, m] = hhmm.split(':').map(x => parseInt(x, 10));
+                return h * 60 + m;
+            }
+            function fmt(hhmmMinutes) {
+                const h = Math.floor(hhmmMinutes / 60);
+                const m = hhmmMinutes % 60;
+                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+            }
+
+            // Build all change points for the week for this schedule
+            const allPoints = [];
+            for (let d = 0; d < 7; d++) {
+                for (const rule of schedule.rules) {
+                    if (rule.day_of_week === null || rule.day_of_week === d) {
+                        // Convert UTC time to device time for visualization
+                        const deviceTime = convertUTCToDeviceTime(rule.time_of_day);
+                        allPoints.push({ day: d, minutes: parseMinutes(deviceTime), rule });
+                    }
+                }
+            }
+            allPoints.sort((a,b) => (a.day - b.day) || (a.minutes - b.minutes));
+
+            // If no rules at all, show empty state
+            if (!allPoints.length) {
+                const msg = sheet.querySelector('#noRulesMsg');
+                if (msg) { msg.classList.remove('hidden'); msg.textContent = 'No rules configured'; }
+            }
+
+            // Selected day default: today (Mon=0)
+            const now = new Date();
+            let selectedDay = (now.getDay() + 6) % 7;
+
+            function renderTabs() {
+                const tabs = sheet.querySelector('#dayTabs');
+                if (!tabs) return;
+                tabs.innerHTML = '';
+                for (let i = 0; i < 7; i++) {
+                    // Container for day button + copy/paste icons
+                    const dayContainer = document.createElement('div');
+                    dayContainer.className = 'flex flex-col items-center';
+                    
+                    // Day circle button
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `w-9 h-9 inline-flex items-center justify-center rounded-full text-sm font-medium border ` +
+                        (i===selectedDay
+                          ? (colorClass==='orange' ? 'bg-orange-600 text-white border-orange-600'
+                             : colorClass==='blue' ? 'bg-blue-600 text-white border-blue-600'
+                             : 'bg-purple-600 text-white border-purple-600')
+                          : 'text-gray-300 border-gray-600 hover:bg-gray-800');
+                    btn.textContent = dayNamesShort[i];
+                    btn.onclick = () => { selectedDay = i; renderTabs(); renderIntervals(); };
+                    dayContainer.appendChild(btn);
+                    
+                    // Copy/Paste icons underneath - small and subtle
+                    const iconsContainer = document.createElement('div');
+                    iconsContainer.className = 'flex justify-center mt-1';
+                    
+                    if (copyModeActive) {
+                        if (i === sourceDay) {
+                            // Source day - show checkmark
+                            const sourceIcon = document.createElement('div');
+                            sourceIcon.className = 'w-4 h-4 flex items-center justify-center';
+                            sourceIcon.innerHTML = '<svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                            iconsContainer.appendChild(sourceIcon);
+                        } else {
+                            // Target day - show paste icon (green if already pasted, gray if not)
+                            const pasteIcon = document.createElement('button');
+                            const isPasted = pastedDays.has(i);
+                            const iconColor = isPasted ? 'text-green-400' : 'text-gray-400 hover:text-blue-400';
+                            pasteIcon.className = 'w-4 h-4 flex items-center justify-center active:scale-95 transition-transform p-0';
+                            pasteIcon.innerHTML = `<svg class="w-4 h-4 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>`;
+                            pasteIcon.onclick = (e) => { 
+                                e.stopPropagation(); 
+                                console.log('Paste clicked for day:', i); // Debug log
+                                window.executeImmediatePaste(i);
+                            };
+                            iconsContainer.appendChild(pasteIcon);
+                        }
+                    } else {
+                        // Normal mode - show copy icon
+                        const copyIcon = document.createElement('button');
+                        copyIcon.className = 'w-4 h-4 flex items-center justify-center active:scale-95 transition-transform p-0';
+                        copyIcon.innerHTML = '<svg class="w-4 h-4 text-gray-500 hover:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>';
+                        copyIcon.onclick = (e) => { 
+                            e.stopPropagation(); 
+                            console.log('Copy clicked for day:', i); // Debug log
+                            window.showDayCopySelector(i); 
+                        };
+                        iconsContainer.appendChild(copyIcon);
+                    }
+                    
+                    dayContainer.appendChild(iconsContainer);
+                    tabs.appendChild(dayContainer);
+                }
+            }
+
+            function chipHtml(point, prevPoint) {
+                // For temperature show like "23°"; for others show emoji
+                if (schedule.schedule_type === 'temperature') {
+                    const val = (point.rule.target_value !== null && point.rule.target_value !== undefined)
+                        ? `${point.rule.target_value}°`
+                        : 'ON';
+                    // Decide ring and text color by comparing with previous change
+                    let ringHex = '#6b7280'; // gray-500
+                    if (prevPoint && prevPoint.rule && prevPoint.rule.target_value != null && point.rule.target_value != null) {
+                        const prev = parseFloat(prevPoint.rule.target_value);
+                        const curr = parseFloat(point.rule.target_value);
+                        if (curr > prev) ringHex = '#22c55e'; // green-500
+                        else if (curr < prev) ringHex = '#60a5fa'; // blue-400
+                        else ringHex = '#9ca3af'; // gray-400
+                    }
+                    return `<div class="w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm" style="border-color:${ringHex}; color:${ringHex};">${val}</div>`;
+                }
+                const borderHex = typeHex;
+                return `<div class="w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm" style="border-color:${borderHex}; color:${borderHex};">${typeInfo.emoji}</div>`;
+            }
+
+            function renderIntervals() {
+                const list = sheet.querySelector('#dayIntervals');
+                const msg = sheet.querySelector('#noRulesMsg');
+                if (!list) return;
+                list.innerHTML = '';
+
+                // Points that start on this day
+                const todays = allPoints.filter(p => p.day === selectedDay);
+                if (!todays.length) {
+                    if (msg) msg.classList.remove('hidden');
+                    return;
+                } else if (msg) {
+                    msg.classList.add('hidden');
+                }
+
+                todays.forEach(pt => {
+                    const idx = allPoints.indexOf(pt);
+                    const next = allPoints[(idx + 1) % allPoints.length];
+                    const prev = allPoints[(idx - 1 + allPoints.length) % allPoints.length];
+                    const startText = fmt(pt.minutes);
+                    const endText = next.day === selectedDay ? fmt(next.minutes)
+                        : `${fmt(next.minutes)} (${dayNamesShort[next.day]})`;
+
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between rounded-xl p-3 input-bg';
+                    row.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            ${chipHtml(pt, prev)}
+                            <div>
+                                <div class="text-white font-medium">${startText} - ${endText}</div>
+                                ${schedule.schedule_type !== 'temperature' ? `<div class="text-sm ${colorClass==='orange' ? 'text-orange-400' : colorClass==='blue' ? 'text-blue-400' : 'text-purple-400'}">ON</div>` : ''}
+                            </div>
+                        </div>
+                        <button class="p-2 text-red-400 active:scale-95 transition-all"
+                                onclick="deleteRule(${schedule.id}, ${pt.rule.id});">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H9a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>`;
+                    list.appendChild(row);
+                });
+            }
+
+            // Wire Add New Rule to preselect current tab day
+            // Floating menu handlers
+            const moreBtn = sheet.querySelector('#rulesMoreBtn');
+            const moreMenu = sheet.querySelector('#rulesMoreMenu');
+            const menuAdd = sheet.querySelector('#menuAddRule');
+            const menuToggle = sheet.querySelector('#menuToggleSchedule');
+
+            function closeMenu() {
+                const surface = sheet.querySelector('#rulesMoreSurface');
+                if (!surface || moreMenu.classList.contains('hidden')) return;
+                surface.style.opacity = '0';
+                surface.style.transform = 'scale(0.95)';
+                setTimeout(() => { moreMenu.classList.add('hidden'); }, 120);
+                document.removeEventListener('click', closeMenuOnOutside);
+            }
+            function openMenu() {
+                const surface = sheet.querySelector('#rulesMoreSurface');
+                moreMenu.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    surface.style.opacity = '1';
+                    surface.style.transform = 'scale(1)';
+                });
+                setTimeout(() => document.addEventListener('click', closeMenuOnOutside), 0);
+            }
+            function closeMenuOnOutside(e) {
+                const surface = sheet.querySelector('#rulesMoreSurface');
+                if (!moreMenu.contains(e.target) && !moreBtn.contains(e.target)) {
+                    closeMenu();
+                }
+            }
+            moreBtn.onclick = () => {
+                if (moreMenu.classList.contains('hidden')) openMenu(); else closeMenu();
+            };
+            menuAdd.onclick = () => {
+                closeMenu();
+                addRule(schedule.id);
+                let tries = 0;
+                const iv = setInterval(() => {
+                    const el = document.getElementById('simpleRuleDayOfWeek');
+                    if (el) { el.value = String(selectedDay); clearInterval(iv); }
+                    if (++tries > 40) clearInterval(iv);
+                }, 50);
+            };
+            menuToggle.onclick = async () => {
+                closeMenu();
+                await toggleSchedule(schedule.id);
+                // Refresh menu label after toggle
+                const sched = schedules.find(s => s.id === schedule.id);
+                if (sched && moreMenu) {
+                    const t = moreMenu.querySelector('#menuToggleSchedule');
+                    if (t) t.textContent = sched.is_active ? 'Disable Schedule' : 'Enable Schedule';
+                }
+            };
+
+            renderTabs();
+            renderIntervals();
+        }
+
+        function hideMobileDetailSheet() {
+            const sheet = document.getElementById('mobileDetailSheet');
+            if (sheet) {
+                sheet.remove();
+            }
+            // Show back the floating add schedule button
+            const fab = document.getElementById('fab-add-schedule');
+            if (fab) fab.style.display = '';
+            openScheduleDetailId = null;
+        }
+
+        // Mobile form handling functions
+        function setRuleDay(day) {
+            document.getElementById('ruleDayOfWeekMobile').value = day;
+            
+            // Update button styles
+            document.querySelectorAll('.rule-day-btn').forEach(btn => {
+                if (btn.getAttribute('data-day') === day) {
+                    btn.classList.add('bg-primary-600');
+                    // Use primary highlight, remove inline dark background if present
+                    btn.style.backgroundColor = '';
+                } else {
+                    btn.classList.remove('bg-primary-600');
+                    // Reset to mobile dark card background
+                    btn.style.backgroundColor = '#2d2e2d';
+                }
+            });
+        }
+
+        function setupMobileFormHandlers() {
+
+            // Mobile schedule type change handler
+            const mobileScheduleTypeDropdown = document.getElementById('ruleScheduleTypeMobile');
+            if (mobileScheduleTypeDropdown) {
+                mobileScheduleTypeDropdown.addEventListener('change', function() {
+                const selectedScheduleId = this.value;
+                const targetContainer = document.getElementById('targetValueContainerMobile');
+                const targetInput = document.getElementById('ruleTargetValueMobile');
+                
+                if (!selectedScheduleId) {
+                    targetContainer.style.display = 'none';
+                    return;
+                }
+                
+                const selectedSchedule = schedules.find(s => s.id == selectedScheduleId);
+                if (!selectedSchedule) {
+                    targetContainer.style.display = 'none';
+                    return;
+                }
+                
+                if (selectedSchedule.schedule_type === 'hot_water' || selectedSchedule.schedule_type === 'holiday') {
+                    targetContainer.style.display = 'none';
+                    targetInput.value = '1';
+                    // Remove required attribute and disable field for hot water/holiday
+                    targetInput.removeAttribute('required');
+                    targetInput.disabled = true;
+                } else {
+                    targetContainer.style.display = 'block';
+                    targetInput.value = '';
+                    // Add required attribute and enable field for temperature schedules
+                    targetInput.setAttribute('required', 'required');
+                    targetInput.disabled = false;
+                }
+                });
+            }
+
+            // Set default day selection
+            setRuleDay('');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadDeviceConfig();
+            fetchSchedules();
+            fetchDevices();
+            
+            // Add event listener for schedule type changes
+            document.getElementById('ruleScheduleType').addEventListener('change', handleScheduleTypeChange);
+            
+            // Initialize calendar (desktop only)
+            if (window.innerWidth > 768) {
+                renderCalendar();
+            }
+            
+            // Setup mobile form handlers
+            setupMobileFormHandlers();
+            
+            // Initialize mobile/desktop user info and shared status widget
+            displayUserInfo();
+            StatusWidget.init();
+
+            // Refresh data every 30 seconds
+            setInterval(() => {
+                fetchSchedules();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
