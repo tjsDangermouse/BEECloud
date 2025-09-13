@@ -60,6 +60,12 @@ html, body {
 .bottom-bar-bg { background-color: var(--bottom-bar-bg); }
 .border-muted { border-color: var(--border-muted) !important; }
 
+/* Mobile page dots: keep visible above bottom nav, including in iOS fullscreen */
+.mobile-page-dots { position: fixed; left: 0; right: 0; bottom: 56px; z-index: 20; pointer-events: none; }
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-page-dots { bottom: calc(56px + env(safe-area-inset-bottom)); }
+}
+
 /* Inputs and form helpers */
 .input-bg { background-color: var(--page-bg) !important; }
 .input-border { border-color: var(--border-muted) !important; }

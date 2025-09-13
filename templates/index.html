@@ -160,7 +160,7 @@
         </div>
         
         <!-- Dedicated space for screen indicators -->
-        <div class="flex justify-center items-center py-3 page-bg">
+        <div class="flex justify-center items-center py-3 page-bg mobile-page-dots">
             <div class="flex space-x-2">
                 <div class="w-2 h-2 rounded-full bg-white" id="indicator-0"></div>
                 <div class="w-2 h-2 rounded-full bg-gray-500" id="indicator-1"></div>
@@ -1534,6 +1534,16 @@
                     value: deviceData.return_temperature,
                     type: 'system'
                 },
+                // Computed Delta T (Flow - Return)
+                (function(){
+                    const f = parseFloat(deviceData.flow_temperature);
+                    const r = parseFloat(deviceData.return_temperature);
+                    if (isFinite(f) && isFinite(r)) {
+                        const d = +(f - r).toFixed(1);
+                        return { label: 'Delta T', value: d, type: 'system' };
+                    }
+                    return { label: 'Delta T', value: null, type: 'system' };
+                })(),
                 {
                     label: 'Outdoor Temp',
                     value: deviceData.outdoor_temperature,
@@ -1614,6 +1624,16 @@
                     value: deviceData.return_temperature,
                     type: 'system'
                 },
+                // Computed Delta T (Flow - Return)
+                (function(){
+                    const f = parseFloat(deviceData.flow_temperature);
+                    const r = parseFloat(deviceData.return_temperature);
+                    if (isFinite(f) && isFinite(r)) {
+                        const d = +(f - r).toFixed(1);
+                        return { label: 'Delta T', value: d, type: 'system' };
+                    }
+                    return { label: 'Delta T', value: null, type: 'system' };
+                })(),
                 {
                     label: 'Outdoor Temp',
                     value: deviceData.outdoor_temperature,
