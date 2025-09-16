@@ -148,7 +148,7 @@
                 <!-- Screen 2: Temperature Readings -->
                 <div class="w-full flex-shrink-0 p-5 h-full overflow-y-auto">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold">Temperature Readings</h2>
+                        <h2 class="text-xl font-bold text-center">Temperature Readings</h2>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4" id="mobile-temperature-readings">
@@ -334,57 +334,55 @@
             <!-- Main Content -->
             <div class="main-content">
                 <div class="max-w-6xl mx-auto">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        <!-- Left Panel - Takes up 2-3 columns -->
-                        <div class="lg:col-span-2 xl:col-span-3 space-y-8">
-                    <!-- Temperature Control -->
-                    <div class="rounded-3xl p-8 panel-bg">
-                        <div class="flex items-center justify-center mb-8">
-                            <div class="relative w-80 h-80" id="desktop-temp-circle-container">
-                                <!-- Temperature C-Curve -->
-                                <svg class="w-full h-full" viewBox="0 0 120 120" id="desktop-temp-circle-svg">
-                                    <!-- Orange segment (lower temperatures) -->
-                                    <path id="desktop-orange-segment" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" fill="none" />
-                                    <!-- Green segment (higher temperatures) -->
-                                    <path id="desktop-green-segment" stroke="#22c55e" stroke-width="8" stroke-linecap="round" fill="none" />
-                                    <!-- Control dot -->
-                                    <circle cx="60" cy="10" r="8" fill="white" stroke="#374151" stroke-width="2"
-                                        class="cursor-pointer" id="desktop-temp-control-dot"/>
-                                </svg>
-                                
-                                <!-- Center Content -->
-                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <div class="text-lg text-gray-400 mb-2">Indoor</div>
-                                    <div class="text-6xl font-bold" id="desktop-indoor-temp">21°C</div>
-                                    <div class="text-2xl text-gray-400 mt-2">Set: <span id="desktop-target-temp">23°C</span></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 items-stretch">
+                        <!-- Column 1: Temperature Control with actions beneath -->
+                        <div class="lg:col-span-1 xl:col-span-1 h-full">
+                            <div class="rounded-3xl p-6 panel-bg h-full flex flex-col">
+                                <div class="flex-1 flex items-center justify-center">
+                                    <div class="relative w-64 h-64" id="desktop-temp-circle-container">
+                                        <!-- Temperature C-Curve -->
+                                        <svg class="w-full h-full" viewBox="0 0 120 120" id="desktop-temp-circle-svg">
+                                            <!-- Orange segment (lower temperatures) -->
+                                            <path id="desktop-orange-segment" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" fill="none" />
+                                            <!-- Green segment (higher temperatures) -->
+                                            <path id="desktop-green-segment" stroke="#22c55e" stroke-width="8" stroke-linecap="round" fill="none" />
+                                            <!-- Control dot -->
+                                            <circle cx="60" cy="10" r="8" fill="white" stroke="#374151" stroke-width="2"
+                                                class="cursor-pointer" id="desktop-temp-control-dot"/>
+                                        </svg>
+                                        
+                                        <!-- Center Content -->
+                                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                            <div class="text-base text-gray-400 mb-1">Indoor</div>
+                                            <div class="text-5xl font-bold" id="desktop-indoor-temp">21°C</div>
+                                            <div class="text-xl text-gray-400 mt-1">Set: <span id="desktop-target-temp">23°C</span></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
+                                <!-- Actions under the control -->
+                                <div class="mt-6 flex justify-center space-x-4">
+                                    <button class="mode-button px-6 py-3 rounded-2xl bg-primary-500 text-white font-semibold shadow-lg" id="desktop-boost-btn">
+                                        Hot Water Boost
+                                    </button>
+                                    <button class="mode-button px-6 py-3 rounded-2xl bg-success-500 text-white font-semibold shadow-lg" id="desktop-holiday-btn">
+                                        Holiday Mode
+                                    </button>
+                                </div>
+                                <div class="mt-4 text-center text-sm text-gray-400">
+                                    <span id="desktop-mode-status">Auto</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Mode Buttons -->
-                        <div class="flex justify-center space-x-6">
-                            <button class="mode-button px-8 py-4 rounded-2xl bg-primary-500 text-white font-semibold shadow-lg" id="desktop-boost-btn">
-                                Hot Water Boost
-                            </button>
-                            <button class="mode-button px-8 py-4 rounded-2xl bg-success-500 text-white font-semibold shadow-lg" id="desktop-holiday-btn">
-                                Holiday Mode
-                            </button>
-                        </div>
-
-                        <div class="mt-6 text-center text-sm text-gray-400">
-                            <span id="desktop-mode-status">Auto</span>
-                        </div>
-                    </div>
-
-                    <!-- Temperature Readings -->
-                    <div class="rounded-3xl p-8 panel-bg">
-                        <h3 class="text-2xl font-semibold mb-6">Temperature Readings</h3>
-                        
-                        <div class="grid grid-cols-2 gap-4" id="desktop-temperature-readings">
-                            <!-- Temperature cards will be populated here -->
-                        </div>
-                    </div>
+                        <!-- Column 2: Temperature Readings -->
+                        <div class="lg:col-span-1 xl:col-span-1 h-full">
+                            <div class="rounded-3xl p-6 panel-bg h-full flex flex-col">
+                                <h3 class="text-xl font-semibold mb-4 text-center">Temperature Readings</h3>
+                                <div class="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-auto" id="desktop-temperature-readings">
+                                    <!-- Temperature cards will be populated here -->
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Right Panel - Takes up 1 column -->
@@ -1507,7 +1505,7 @@
             
             // Helper function to get temperature color class
             const getTempColorClass = (temp, type) => {
-                if (!temp || temp === 'N/A') return 'text-gray-400';
+                if (temp === null || temp === undefined || temp === '' || temp === 'N/A') return 'text-gray-400';
                 const t = parseFloat(temp);
                 if (type === 'outdoor') {
                     if (t < 0) return 'text-blue-400';
@@ -1523,6 +1521,16 @@
                 }
             };
             
+            const deltaCard = (function(){
+                const f = parseFloat(deviceData.flow_temperature);
+                const r = parseFloat(deviceData.return_temperature);
+                if (isFinite(f) && isFinite(r)) {
+                    const d = +(f - r).toFixed(1);
+                    return { label: 'Delta T', value: d, type: 'system', span: 2 };
+                }
+                return { label: 'Delta T', value: null, type: 'system', span: 2 };
+            })();
+
             const temperatureCards = [
                 {
                     label: 'Flow Temp',
@@ -1534,36 +1542,28 @@
                     value: deviceData.return_temperature,
                     type: 'system'
                 },
-                // Computed Delta T (Flow - Return)
-                (function(){
-                    const f = parseFloat(deviceData.flow_temperature);
-                    const r = parseFloat(deviceData.return_temperature);
-                    if (isFinite(f) && isFinite(r)) {
-                        const d = +(f - r).toFixed(1);
-                        return { label: 'Delta T', value: d, type: 'system' };
-                    }
-                    return { label: 'Delta T', value: null, type: 'system' };
-                })(),
+                deltaCard,
+                {
+                    label: 'Indoor Temp',
+                    value: deviceData.room_temperature,
+                    type: 'room'
+                },
                 {
                     label: 'Outdoor Temp',
                     value: deviceData.outdoor_temperature,
                     type: 'outdoor'
                 },
                 {
-                    label: 'Room Temp',
-                    value: deviceData.room_temperature,
-                    type: 'room'
+                    label: 'Tank Temp',
+                    value: deviceData.tank_temperature ?? null,
+                    type: 'system'
+                },
+                {
+                    label: 'Set Tank Temp',
+                    value: deviceData.set_tank_temperature ?? null,
+                    type: 'system'
                 }
             ];
-            
-            // Add tank temperature if available
-            if (deviceData.tank_temperature) {
-                temperatureCards.push({
-                    label: 'Tank Temp',
-                    value: deviceData.tank_temperature,
-                    type: 'system'
-                });
-            }
             
             // Add zone 2 temperature if available
             if (deviceData.room_temperature_zone2 && deviceData.room_temperature_zone2 !== -39.0) {
@@ -1576,13 +1576,16 @@
             
             let html = '';
             temperatureCards.forEach(card => {
-                const displayValue = card.value ? `${card.value}°C` : 'N/A';
+                const hasValue = card.value !== null && card.value !== undefined && card.value !== '';
+                const displayValue = hasValue ? `${card.value}°C` : 'N/A';
                 const colorClass = getTempColorClass(card.value, card.type);
+                const spanClass = card.span === 2 ? ' col-span-2' : '';
+                const spanStyle = card.span === 2 ? ' grid-column: span 2 / span 2;' : '';
                 
                 html += `
-                    <div class="rounded-lg p-4 panel-bg-mobile">
-                        <div class="text-xs text-gray-400 uppercase tracking-wide mb-2">${card.label}</div>
-                        <div class="text-xl font-bold ${colorClass}">${displayValue}</div>
+                    <div class="rounded-lg p-4 panel-bg-mobile${spanClass}" style="position:relative; min-height:88px;${spanStyle}">
+                        <div class="text-xs text-gray-400 uppercase tracking-wide" style="position:absolute; top:1rem; left:1rem; right:1rem; text-align:center;">${card.label}</div>
+                        <div class="text-xl font-bold ${colorClass}" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; width:calc(100% - 2rem);">${displayValue}</div>
                     </div>
                 `;
             });
@@ -1597,7 +1600,7 @@
             
             // Helper function to get temperature color class
             const getTempColorClass = (temp, type) => {
-                if (!temp || temp === 'N/A') return 'text-gray-400';
+                if (temp === null || temp === undefined || temp === '' || temp === 'N/A') return 'text-gray-400';
                 const t = parseFloat(temp);
                 if (type === 'outdoor') {
                     if (t < 0) return 'text-blue-400';
@@ -1612,7 +1615,17 @@
                     return 'text-red-400';
                 }
             };
-            
+
+            const deltaCard = (function(){
+                const f = parseFloat(deviceData.flow_temperature);
+                const r = parseFloat(deviceData.return_temperature);
+                if (isFinite(f) && isFinite(r)) {
+                    const d = +(f - r).toFixed(1);
+                    return { label: 'Delta T', value: d, type: 'system', span: 2 };
+                }
+                return { label: 'Delta T', value: null, type: 'system', span: 2 };
+            })();
+
             const temperatureCards = [
                 {
                     label: 'Flow Temp',
@@ -1624,37 +1637,29 @@
                     value: deviceData.return_temperature,
                     type: 'system'
                 },
-                // Computed Delta T (Flow - Return)
-                (function(){
-                    const f = parseFloat(deviceData.flow_temperature);
-                    const r = parseFloat(deviceData.return_temperature);
-                    if (isFinite(f) && isFinite(r)) {
-                        const d = +(f - r).toFixed(1);
-                        return { label: 'Delta T', value: d, type: 'system' };
-                    }
-                    return { label: 'Delta T', value: null, type: 'system' };
-                })(),
+                deltaCard,
+                {
+                    label: 'Indoor Temp',
+                    value: deviceData.room_temperature,
+                    type: 'room'
+                },
                 {
                     label: 'Outdoor Temp',
                     value: deviceData.outdoor_temperature,
                     type: 'outdoor'
                 },
                 {
-                    label: 'Room Temp',
-                    value: deviceData.room_temperature,
-                    type: 'room'
+                    label: 'Tank Temp',
+                    value: deviceData.tank_temperature ?? null,
+                    type: 'system'
+                },
+                {
+                    label: 'Set Tank Temp',
+                    value: deviceData.set_tank_temperature ?? null,
+                    type: 'system'
                 }
             ];
-            
-            // Add tank temperature if available
-            if (deviceData.tank_temperature) {
-                temperatureCards.push({
-                    label: 'Tank Temp',
-                    value: deviceData.tank_temperature,
-                    type: 'system'
-                });
-            }
-            
+
             // Add zone 2 temperature if available
             if (deviceData.room_temperature_zone2 && deviceData.room_temperature_zone2 !== -39.0) {
                 temperatureCards.push({
@@ -1666,13 +1671,16 @@
             
             let html = '';
             temperatureCards.forEach(card => {
-                const displayValue = card.value ? `${card.value}°C` : 'N/A';
+                const hasValue = card.value !== null && card.value !== undefined && card.value !== '';
+                const displayValue = hasValue ? `${card.value}°C` : 'N/A';
                 const colorClass = getTempColorClass(card.value, card.type);
+                const spanClass = card.span === 2 ? ' col-span-2' : '';
+                const spanStyle = card.span === 2 ? ' grid-column: span 2 / span 2;' : '';
                 
                 html += `
-                    <div class="bg-gray-700 rounded-lg p-4">
-                        <div class="text-sm text-gray-400 uppercase tracking-wide mb-2">${card.label}</div>
-                        <div class="text-2xl font-bold ${colorClass}">${displayValue}</div>
+                    <div class="bg-gray-700 rounded-lg p-4${spanClass}" style="position:relative; min-height:112px;${spanStyle}">
+                        <div class="text-sm text-gray-400 uppercase tracking-wide" style="position:absolute; top:1rem; left:1rem; right:1rem; text-align:center;">${card.label}</div>
+                        <div class="text-2xl font-bold ${colorClass}" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; width:calc(100% - 2rem);">${displayValue}</div>
                     </div>
                 `;
             });

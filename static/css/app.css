@@ -181,6 +181,16 @@ button { pointer-events: auto !important; touch-action: manipulation !important;
   .active\:scale-98:active { transform: scale(0.98) !important; }
 }
 
+/* Temperature reading card layout: title pinned top, value centered */
+.temp-card-grid { display: grid; grid-template-rows: auto 1fr; min-height: 112px; }
+.temp-card-grid .temp-label { align-self: start; justify-self: start; text-align: left; }
+.temp-card-grid .temp-value { align-self: center; justify-self: center; text-align: center; }
+
+/* Absolute-centered value with top-pinned label */
+.temp-card { position: relative; min-height: 128px; }
+.temp-card .temp-label { position: absolute; top: 1rem; left: 1rem; right: 1rem; text-align: left; }
+.temp-card .temp-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: calc(100% - 2rem); }
+
 /* Schedule card styling */
 .schedule-card { transition: all 0.3s ease; border-left: 4px solid transparent; }
 .schedule-card.active { border-left-color: #22c55e; }
