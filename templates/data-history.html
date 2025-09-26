@@ -69,7 +69,7 @@
         </div>
 
         <!-- Bottom Navigation -->
-        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg mobile-bottom-nav">
             <div class="flex items-center justify-around py-2">
                 <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
                     <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
@@ -651,13 +651,20 @@
             }
         }
 
+        function handleHistoryDataUpdate() {
+            console.debug('New MELCloud data detected; refreshing history table');
+            loadDataHistory();
+        }
+
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             displayUserInfo(); // Load current user info
             loadDataHistory(); // Load data history
             
             // Initialize shared connection status widget
-            StatusWidget.init();
+            StatusWidget.init({
+                onDataUpdate: handleHistoryDataUpdate
+            });
         });
     </script>
 </body>

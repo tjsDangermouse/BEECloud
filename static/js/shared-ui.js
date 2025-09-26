@@ -42,31 +42,36 @@ window.displayUserInfo = async function() {
     
     try {
         // Fetch current user information from the server
-        const response = await fetch('/api/users');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.users && data.users.length > 0) {
-                const currentUser = data.users[0];
-                const userName = currentUser.username || 'User';
-                
-                // Cache the username for future page loads
-                localStorage.setItem('currentUserName', userName);
-                
-                // Update both desktop and mobile user info elements
-                const userInfoElement = document.getElementById('user-info');
-                const userInfoMobileElement = document.getElementById('user-info-mobile');
-                
-                if (userInfoElement) {
-                    userInfoElement.textContent = userName;
-                }
-                if (userInfoMobileElement) {
-                    userInfoMobileElement.textContent = userName;
-                }
-            } else {
-                setUserInfoFallback();
-            }
-        } else {
+        const response = await fetch('/api/current-user', {
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
             setUserInfoFallback();
+            return;
+        }
+
+        const data = await response.json();
+        if (!data.success || !data.user) {
+            setUserInfoFallback();
+            return;
+        }
+
+        const user = data.user;
+        const userName = user.username || user.email || 'User';
+
+        // Cache the username for future page loads
+        localStorage.setItem('currentUserName', userName);
+
+        // Update both desktop and mobile user info elements
+        const userInfoElement = document.getElementById('user-info');
+        const userInfoMobileElement = document.getElementById('user-info-mobile');
+
+        if (userInfoElement) {
+            userInfoElement.textContent = userName;
+        }
+        if (userInfoMobileElement) {
+            userInfoMobileElement.textContent = userName;
         }
     } catch (error) {
         console.error('Error fetching user info:', error);

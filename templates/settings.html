@@ -21,7 +21,7 @@
     <script src="/static/js/menu.js"></script>
     <script src="/static/js/status.js"></script>
     <script src="/static/js/shared-ui.js"></script>
-    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <script>
         if (typeof tailwind !== 'undefined') {
             tailwind.config = {
@@ -82,8 +82,8 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-blue-100 text-sm" id="current-user-info">Loading...</p>
-                                        <p class="text-xs text-blue-300" id="current-user-role">Loading...</p>
+                                        <p class="font-medium text-blue-100 text-sm" id="current-user-info">{{ current_username or 'Current User' }}</p>
+                                        <p class="text-xs text-blue-300" id="current-user-role">{{ 'Administrator' if is_admin else 'User' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -117,6 +117,7 @@
                             </form>
                     </div>
 
+                    {% if is_admin %}
                     <!-- User Management Screen (Admin Only) -->
                     <div class="w-full flex-shrink-0 overflow-y-auto p-5 pb-12" id="users-screen">
                             <div class="flex justify-between items-center mb-6">
@@ -199,11 +200,6 @@
                                            placeholder="Leave blank to keep current password">
                                </div>
                                 
-                                <!-- App Version (Mobile) -->
-                                <div class="mt-6 text-xs text-gray-400 text-center">
-                                    Version: {{ APP_VERSION }}
-                                </div>
-                                
                                 <div class="flex gap-3">
                                     <button type="submit" id="melcloud-update-btn"
                                             class="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -216,13 +212,6 @@
                                 </div>
                         </form>
 
-                        <!-- Encryption Status (mobile) -->
-                        <div class="mt-6 p-4 rounded-lg border border-gray-600 bg-gray-700">
-                            <h3 class="text-sm font-semibold text-gray-200 mb-2">Security: Credential Encryption</h3>
-                            <div id="encryption-status" class="text-sm text-gray-300">
-                                Loading encryption status...
-                            </div>
-                        </div>
 
                             <hr class="border-gray-700 my-6">
 
@@ -284,6 +273,7 @@
                                 </button>
                             </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -292,14 +282,16 @@
         <div class="flex justify-center items-center py-3 page-bg mobile-page-dots">
             <div class="flex space-x-2">
                 <div class="w-2 h-2 rounded-full bg-white" id="settings-indicator-0"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-1" style="display: none;"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-2" style="display: none;"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-3" style="display: none;"></div>
+                {% if is_admin %}
+                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-1"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-2"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-500 admin-indicator" id="settings-indicator-3"></div>
+                {% endif %}
             </div>
         </div>
         
         <!-- Bottom Navigation -->  
-        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg mobile-bottom-nav">
             <div class="flex items-center justify-around py-2">
                 <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
                     <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
@@ -390,7 +382,8 @@
                                 </svg>
                                 <span class="text-sm">Profile</span>
                             </a>
-                            <a href="#" onclick="window.menuComponent?.showTab('users'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="users-submenu" style="display: none;">
+                            {% if is_admin %}
+                            <a href="#" onclick="window.menuComponent?.showTab('users'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="users-submenu">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                                 </svg>
@@ -402,13 +395,14 @@
                                 </svg>
                                 <span class="text-sm">Device</span>
                             </a>
-                            <a href="#" onclick="window.menuComponent?.showTab('melcloud'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="melcloud-submenu" style="display: none;">
+                            <a href="#" onclick="window.menuComponent?.showTab('melcloud'); return false;" class="submenu-item submenu-item-inactive flex items-center space-x-3 px-3 py-2 rounded-lg" id="melcloud-submenu">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                                 <span class="text-sm">MELCloud</span>
                             </a>
+                            {% endif %}
                         </div>
                     </div>
                     
@@ -489,8 +483,8 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-blue-100 text-lg" id="current-user-info-desktop">Loading...</p>
-                                        <p class="text-blue-300" id="current-user-role-desktop">Loading...</p>
+                                        <p class="font-medium text-blue-100 text-lg" id="current-user-info-desktop">{{ current_username or 'Current User' }}</p>
+                                        <p class="text-blue-300" id="current-user-role-desktop">{{ 'Administrator' if is_admin else 'User' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -527,6 +521,7 @@
                         </div>
                     </div>
 
+                    {% if is_admin %}
                     <div id="users-desktop" class="tab-content">
                         <div class="rounded-3xl p-8 panel-bg">
                             <div class="flex justify-between items-center mb-8">
@@ -639,13 +634,6 @@
                                         </div>
                                 </form>
 
-                                <!-- Encryption Status (desktop) -->
-                                <div class="mt-6 p-4 rounded-lg border border-gray-600 bg-gray-700">
-                                    <h3 class="text-sm font-semibold text-gray-200 mb-2">Security: Credential Encryption</h3>
-                                    <div id="encryption-status-desktop" class="text-sm text-gray-300">
-                                        Loading encryption status...
-                                    </div>
-                                </div>
                                 </div>
 
                                 <hr class="border-gray-700">
@@ -719,6 +707,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -784,9 +773,8 @@
     </div>
 
     <script>
-        let currentUser = null;
-        let isAdmin = false;
-        let csrfToken = '{{ csrf_token }}';
+        const isAdmin = {{ 'true' if is_admin else 'false' }};
+        const csrfToken = '{{ csrf_token }}';
         let currentSlide = 0;
         let startX = 0;
         let startY = 0;
@@ -966,22 +954,23 @@
                 tab = String(tab).toLowerCase();
 
                 // Map to mobile slides
-                const slideIndexMap = { profile: 0, users: 1, device: 2, melcloud: 3 };
+                const slideIndexMap = isAdmin
+                    ? { profile: 0, users: 1, device: 2, melcloud: 3 }
+                    : { profile: 0 };
 
-                // Desktop: show requested tab (guard melcloud behind admin)
-                if (tab === 'melcloud') {
-                    if (isAdmin) {
-                        showTab('melcloud');
-                    }
-                } else if (['profile', 'users', 'device'].includes(tab)) {
-                    showTab(tab);
+                if (tab === 'profile') {
+                    showTab('profile');
+                } else if (tab === 'users' && isAdmin) {
+                    showTab('users');
+                } else if (tab === 'device' && isAdmin) {
+                    showTab('device');
+                } else if (tab === 'melcloud' && isAdmin) {
+                    showTab('melcloud');
                 }
 
                 // Mobile: go to appropriate slide when available
                 const idx = slideIndexMap[tab];
                 if (typeof idx === 'number') {
-                    // Only allow admin-only slides if admin
-                    if ((tab === 'users' || tab === 'melcloud') && !isAdmin) return;
                     goToSlide(idx);
                 }
             } catch (e) {
@@ -989,59 +978,13 @@
             }
         }
 
-        // Load current user info
-        async function loadCurrentUserInfo() {
-            try {
-                const response = await fetch('/api/users');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.users) {
-                        isAdmin = true;
-                        showAdminSections();
-                        loadUsers();
-                        loadMelCloudCredentials();
-                        // Apply deep link after admin sections are revealed
-                        applyDeepLinkTab();
-                    }
-                } else if (response.status === 403) {
-                    isAdmin = false;
-                }
-                
-                // Update user info display
-                const userInfoElements = ['current-user-info', 'current-user-info-desktop'];
-                const roleElements = ['current-user-role', 'current-user-role-desktop'];
-                
-                userInfoElements.forEach(id => {
-                    const elem = document.getElementById(id);
-                    if (elem) elem.textContent = 'Current User';
-                });
-                
-                roleElements.forEach(id => {
-                    const elem = document.getElementById(id);
-                    if (elem) elem.textContent = isAdmin ? 'Administrator' : 'User';
-                });
-                
-            } catch (error) {
-                console.error('Error loading user info:', error);
-            }
-        }
-
-        function showAdminSections() {
-            // Show admin submenu items on desktop
-            const adminElements = [
-                'users-submenu', 'melcloud-submenu'
-            ];
-            
-            adminElements.forEach(id => {
-                const elem = document.getElementById(id);
-                if (elem) elem.style.display = 'flex';
-            });
-            
-            // Show admin indicators on mobile
-            const adminIndicators = document.querySelectorAll('.admin-indicator');
-            adminIndicators.forEach(indicator => {
-                indicator.style.display = 'block';
-            });
+        function initializeAdminSections() {
+            if (!isAdmin) return;
+            loadUsers();
+            loadDeviceTimezones();
+            loadAPISettings();
+            loadMelCloudCredentials();
+            loadEncryptionStatus();
         }
 
         // Load users for admin panel
@@ -1205,6 +1148,10 @@
 
         // Test MELCloud connection
         async function testMelCloudConnection() {
+            if (!isAdmin) {
+                showFlash('Admin access required', 'error');
+                return;
+            }
             try {
                 showFlash('Testing MELCloud connection...', 'info');
                 
@@ -1233,6 +1180,10 @@
 
         // Remove MELCloud user function
         async function removeMelCloudUser() {
+            if (!isAdmin) {
+                showFlash('Admin access required', 'error');
+                return;
+            }
             const deleteDataMobile = document.getElementById('delete-data-checkbox');
             const deleteDataDesktop = document.getElementById('delete-data-checkbox-desktop');
             const deleteData = (deleteDataMobile && deleteDataMobile.checked) || (deleteDataDesktop && deleteDataDesktop.checked);
@@ -1326,6 +1277,7 @@
 
         // Device Settings Functions
         async function loadDeviceTimezones() {
+            if (!isAdmin) return;
             try {
                 const response = await fetch('/api/timezones');
                 const result = await response.json();
@@ -1435,6 +1387,7 @@
 
         // API Settings Functions
         async function loadAPISettings() {
+            if (!isAdmin) return;
             try {
                 const response = await fetch('/api/settings/api');
                 if (response.ok) {
@@ -1559,6 +1512,7 @@
 
         // Encryption status loader
         async function loadEncryptionStatus() {
+            if (!isAdmin) return;
             try {
                 const resp = await fetch('/api/security/encryption-status');
                 if (!resp.ok) throw new Error('Status request failed');
@@ -1590,9 +1544,6 @@
                 console.error('Encryption status error:', err);
             }
         }
-
-        // Also refresh encryption status on load
-        document.addEventListener('DOMContentLoaded', loadEncryptionStatus);
 
         // Device Settings form handlers
         const deviceTimezoneForms = ['device-timezone-form', 'device-timezone-form-desktop'];
@@ -1724,11 +1675,9 @@
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initializeSwipe();
-            loadCurrentUserInfo();
-            loadDeviceTimezones();
-            loadAPISettings();
+            initializeAdminSections();
             displayUserInfo(); // Load current user info for status bar
-            // Apply deep link promptly (will run again after admin check)
+            // Apply deep link after initial setup
             applyDeepLinkTab();
             
             // Initialize shared connection status widget

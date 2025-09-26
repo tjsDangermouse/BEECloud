@@ -807,22 +807,29 @@ def get_latest_device_data(user_id, device_id=None):
 
 def get_latest_devices_for_dashboard(user_id):
     """Get latest device data formatted for dashboard frontend"""
-    # Get the most recent timestamp for this user
-    latest_timestamp_query = db.session.query(db.func.max(DeviceData.timestamp)).filter_by(user_id=user_id)
-    latest_timestamp = latest_timestamp_query.scalar()
-    
-    if not latest_timestamp:
+    # Fetch records ordered by newest first. We deduplicate per device id in Python to
+    # avoid relying on exact timestamp equality (SQLite stores DateTime as TEXT).
+    records = DeviceData.query.filter_by(user_id=user_id).order_by(DeviceData.timestamp.desc()).all()
+
+    if not records:
         return []
-    
-    # Get all device records from the latest timestamp
-    devices = DeviceData.query.filter_by(
-        user_id=user_id, 
-        timestamp=latest_timestamp
-    ).all()
-    
+
+    latest_by_device = {}
+    for record in records:
+        device_id = record.device_id
+        if device_id not in latest_by_device:
+            latest_by_device[device_id] = record
+
     # Convert to frontend format (MELCloud API structure)
+    # Preserve deterministic ordering (newest first)
+    sorted_devices = sorted(
+        latest_by_device.values(),
+        key=lambda d: d.timestamp or datetime.min,
+        reverse=True
+    )
+
     formatted_devices = []
-    for device in devices:
+    for device in sorted_devices:
         # Parse location info if it's JSON string
         location_info = {}
         if device.location_info:

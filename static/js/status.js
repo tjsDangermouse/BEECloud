@@ -15,7 +15,9 @@
     ringMobileId: 'progress-ring-mobile',
     ringDesktopId: 'progress-ring-desktop',
     storageKey: 'connectionStatusData',
-    endpoint: '/api/connection-status'
+    endpoint: '/api/connection-status',
+    onStatusUpdate: null,
+    onDataUpdate: null
   };
 
   let cfg = { ...DEFAULTS };
@@ -27,18 +29,51 @@
       const resp = await fetch(cfg.endpoint);
       if (resp.ok) {
         const status = await resp.json();
+        const previous = lastStatusData;
         lastStatusData = status;
         try {
           localStorage.setItem(cfg.storageKey, JSON.stringify({ ...status, fetchTime: Date.now() }));
         } catch {}
         setConnectionStatus(status.color, status.detail, status);
         startCountdownTimer();
+        notifyStatusListeners(status, previous);
       } else {
         setConnectionStatus('gray', 'Status check failed');
       }
     } catch (err) {
       console.error('Error checking connection status:', err);
       setConnectionStatus('gray', 'Status check error');
+    }
+  }
+
+  function notifyStatusListeners(status, previous) {
+    if (typeof cfg.onStatusUpdate === 'function') {
+      try {
+        cfg.onStatusUpdate(status, previous);
+      } catch (err) {
+        console.error('StatusWidget onStatusUpdate error:', err);
+      }
+    }
+
+    if (typeof cfg.onDataUpdate === 'function') {
+      const currentCall = typeof status?.debug_info?.last_api_call === 'number'
+        ? status.debug_info.last_api_call
+        : null;
+      const previousCall = typeof previous?.debug_info?.last_api_call === 'number'
+        ? previous.debug_info.last_api_call
+        : null;
+
+      const hasNewData = currentCall !== null && (
+        previousCall === null || currentCall > previousCall
+      );
+
+      if (hasNewData) {
+        try {
+          cfg.onDataUpdate(status, previous);
+        } catch (err) {
+          console.error('StatusWidget onDataUpdate error:', err);
+        }
+      }
     }
   }
 

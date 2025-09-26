@@ -26,7 +26,7 @@
     <script defer src="/static/js/menu.js"></script>
     <script defer src="/static/js/status.js"></script>
     <script src="/static/js/shared-ui.js"></script>
-    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <style>
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -79,21 +79,6 @@
             <!-- Mobile content -->
             <div class="h-full overflow-y-auto px-4 pt-2">
 
-                <!-- Quick Stats Bar (Mobile) -->
-        <div id="mobile-stats" class="flex justify-between items-center rounded-lg p-3 mb-4 text-xs panel-bg-mobile">
-                    <div class="text-center">
-                        <div class="text-white font-medium" id="total-schedules-mobile">0</div>
-                        <div style="color: #9ca3af;">Total</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-green-400 font-medium" id="active-schedules-mobile">0</div>
-                        <div style="color: #9ca3af;">Active</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-blue-400 font-medium" id="total-rules-mobile">0</div>
-                        <div style="color: #9ca3af;">Rules</div>
-                    </div>
-                </div>
 
 
                 <!-- Mobile Schedule Cards -->
@@ -105,7 +90,7 @@
 
 
         <!-- Bottom Navigation -->
-        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg mobile-bottom-nav">
             <div class="flex items-center justify-around py-2">
                 <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
                     <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
@@ -247,15 +232,21 @@
                         <h1 class="text-3xl font-bold">Schedules</h1>
                     </div>
 
+                    <!-- Schedule Type Cards -->
+                    <div class="mb-4">
+                        <div id="schedules-grid" class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
 
                     <!-- Visual Schedule Calendar -->
-                    <div class="mb-8">
-                        <div class="rounded-3xl p-8" style="background-color: #111827;">
-                            <div class="mb-6">
+                    <div class="mb-6">
+                        <div class="weekly-schedule-card rounded-3xl p-5">
+                            <div class="mb-3">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <h2 class="text-2xl font-semibold text-gray-300">Weekly Schedule (Mon-Sun)</h2>
-                                        <p class="text-sm text-gray-400 mt-1">Set your heating schedule for the week - applies to all weeks</p>
+                                        <h2 class="text-lg font-semibold text-gray-200 tracking-tight">Weekly Schedule (Mon-Sun)</h2>
+                                        <p class="text-xs text-gray-400 mt-1">Set your heating schedule for the week - applies to all weeks</p>
                                     </div>
                                     <div id="copyModeHeader" class="hidden">
                                         <button onclick="cancelCopyMode()" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm font-medium transition-colors">
@@ -266,48 +257,32 @@
                             </div>
 
                             <!-- Block Schedule Timeline -->
-                            <div id="block-schedule" class="space-y-3">
+                            <div id="block-schedule" class="space-y-2">
                                 <!-- Populated by JavaScript -->
                             </div>
 
                             <!-- Calendar Legend -->
-                            <div class="mt-6 flex items-center justify-center space-x-6">
-                                <div class="flex items-center space-x-2">
+                            <div class="mt-5 flex flex-wrap items-center justify-center text-xs legend-row">
+                                <div class="flex items-center space-x-2 legend-item">
                                     <div class="w-4 h-4 rounded bg-orange-500"></div>
-                                    <span class="text-sm text-gray-400">Temperature</span>
+                                    <span class="text-gray-400">Temperature</span>
                                 </div>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-2 legend-item">
                                     <div class="w-4 h-4 rounded bg-blue-500"></div>
-                                    <span class="text-sm text-gray-400">Hot Water</span>
+                                    <span class="text-gray-400">Hot Water</span>
                                 </div>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-2 legend-item">
                                     <div class="w-4 h-4 rounded bg-purple-500"></div>
-                                    <span class="text-sm text-gray-400">Holiday Mode</span>
+                                    <span class="text-gray-400">Holiday Mode</span>
                                 </div>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-2 legend-item">
                                     <div class="w-4 h-4 rounded bg-gray-600 border border-gray-400"></div>
-                                    <span class="text-sm text-gray-400">Empty Slot (Click to Add)</span>
+                                    <span class="text-gray-400">Empty Slot (Click to Add)</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Schedules Overview -->
-                    <div class="mb-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-2xl font-bold text-white">Schedule Overview</h2>
-                        </div>
-                        
-                        <!-- Schedule Stats Cards -->
-                        <div id="schedule-stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <!-- Populated by JavaScript -->
-                        </div>
-                        
-                        <!-- Schedules Grid -->
-                        <div id="schedules-grid" class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                            <!-- Populated by JavaScript -->
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -637,16 +612,6 @@
         function renderSchedules() {
             const desktopGrid = document.getElementById('schedules-grid');
             const mobileGrid = document.getElementById('schedules-mobile');
-            const statsContainer = document.getElementById('schedule-stats');
-            
-            // Always render the 3 fixed cards regardless of whether schedules exist
-            // Render stats
-            if (statsContainer) {
-                statsContainer.innerHTML = renderScheduleStats();
-            }
-
-            // Update mobile stats
-            updateMobileStats();
 
             // Render the 3 fixed schedule type cards
             const fixedCards = renderFixedScheduleCards();
@@ -711,96 +676,7 @@
             }
         }
 
-        function updateMobileStats() {
-            const totalSchedules = schedules.length;
-            const activeSchedules = schedules.filter(s => s.is_active).length;
-            const totalRules = schedules.reduce((sum, s) => sum + s.rules.length, 0);
-            
-            const totalElement = document.getElementById('total-schedules-mobile');
-            const activeElement = document.getElementById('active-schedules-mobile');
-            const rulesElement = document.getElementById('total-rules-mobile');
-            
-            if (totalElement) totalElement.textContent = totalSchedules;
-            if (activeElement) activeElement.textContent = activeSchedules;
-            if (rulesElement) rulesElement.textContent = totalRules;
-        }
         
-        function renderScheduleStats() {
-            const totalSchedules = schedules.length;
-            const activeSchedules = schedules.filter(s => s.is_active).length;
-            const totalRules = schedules.reduce((sum, s) => sum + s.rules.length, 0);
-            const typeCount = {
-                temperature: schedules.filter(s => s.schedule_type === 'temperature').length,
-                hot_water: schedules.filter(s => s.schedule_type === 'hot_water').length,
-                holiday: schedules.filter(s => s.schedule_type === 'holiday').length
-            };
-            
-            return `
-                <div class="bg-gray-800 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-400">Total</p>
-                            <p class="text-lg font-semibold text-white">${totalSchedules}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-800 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-400">Active</p>
-                            <p class="text-lg font-semibold text-white">${activeSchedules}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-800 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-400">Rules</p>
-                            <p class="text-lg font-semibold text-white">${totalRules}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-800 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01.293.707V12a1 1 0 102 0V9a3 3 0 00-3-3H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-400">Types</p>
-                            <p class="text-lg font-semibold text-white">${Object.values(typeCount).filter(v => v > 0).length}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
 
         function createScheduleCard(schedule) {
             const typeIcons = {
@@ -899,8 +775,11 @@
         }
 
         function createDesktopFixedScheduleCard(schedule, typeInfo, nextRule, rulesCount) {
+            const activeColor = '#22c55e';
+            const inactiveColor = '#4b5563';
+
             return `
-                <div class="rounded-xl p-5 border border-gray-700 hover:border-${typeInfo.color}-500 transition-all duration-200" style="${(() => {
+                <div class="rounded-xl p-3 border border-gray-700 hover:border-${typeInfo.color}-500 transition-all duration-200" style="${(() => {
                     switch(typeInfo.color) {
                         case 'orange': return 'background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%)';
                         case 'blue': return 'background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%)';
@@ -908,45 +787,39 @@
                         default: return 'background: linear-gradient(135deg, #374151 0%, #4b5563 100%)';
                     }
                 })()};">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-${typeInfo.color}-500 rounded-lg flex items-center justify-center text-white text-lg">
+                    <!-- Header with Toggle -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-${typeInfo.color}-500 rounded-lg flex items-center justify-center text-white text-sm">
                                 ${typeInfo.emoji}
                             </div>
                             <div>
-                                <h3 class="font-semibold text-white">${typeInfo.name}</h3>
+                                <h3 class="font-medium text-white text-sm">${typeInfo.name}</h3>
                                 <p class="text-xs text-gray-400">${typeInfo.description}</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            ${schedule.is_active ? 
-                                '<div class="w-2 h-2 bg-green-400 rounded-full"></div><span class="text-xs text-green-400">Active</span>' :
-                                '<div class="w-2 h-2 bg-gray-500 rounded-full"></div><span class="text-xs text-gray-500">Inactive</span>'
-                            }
+                        <!-- Toggle Switch -->
+                        <div class="flex items-center pr-1">
+                            <label class="inline-flex items-center cursor-pointer select-none" onclick="event.stopPropagation();">
+                                <input type="checkbox" class="sr-only" ${schedule.is_active ? 'checked' : ''} data-active-color="${activeColor}" data-inactive-color="${inactiveColor}" onchange="handleFixedScheduleToggle(event, this, '${schedule.schedule_type}')">
+                                <div class="relative" style="width: 34px; height: 20px;">
+                                    <div class="toggle-track absolute inset-0 rounded-full transition-colors duration-200" style="background-color: ${schedule.is_active ? activeColor : inactiveColor};"></div>
+                                    <div class="toggle-dot absolute bg-white rounded-full shadow transition-transform duration-200" style="width: 16px; height: 16px; left: 2px; top: 2px; transform: translateX(${schedule.is_active ? '12px' : '0px'});"></div>
+                                </div>
+                            </label>
                         </div>
                     </div>
-                    
+
                     <!-- Next Rule or Status -->
-                    <div class="mb-4 p-3 bg-gray-800 rounded-lg">
+                    <div class="p-2 bg-gray-800 rounded-lg">
                         ${nextRule ? `
                             <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-400">Next: ${nextRule.dayText}</span>
-                                <span class="text-sm text-${typeInfo.color}-400 font-medium">${nextRule.timeText} → ${nextRule.targetText}</span>
+                                <span class="text-xs text-gray-400">Next: ${nextRule.dayText}</span>
+                                <span class="text-xs text-${typeInfo.color}-400 font-medium">${nextRule.timeText} → ${nextRule.targetText}</span>
                             </div>
                         ` : `
-                            <div class="text-sm text-gray-500">No rules configured</div>
+                            <div class="text-xs text-gray-500">No rules configured</div>
                         `}
-                    </div>
-                    
-                    <!-- Actions -->
-                    <div class="flex justify-between items-center pt-3 border-t border-gray-700">
-                        <span class="text-xs text-gray-500">${rulesCount} rule${rulesCount !== 1 ? 's' : ''}</span>
-                        <div class="flex space-x-1">
-                            <button onclick="toggleScheduleType('${schedule.schedule_type}')" class="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
-                                ${schedule.is_active ? 'Disable' : 'Enable'}
-                            </button>
-                        </div>
                     </div>
                 </div>
             `;
@@ -1420,6 +1293,26 @@
             return getNextRule(schedule);
         }
         
+        function handleFixedScheduleToggle(event, checkbox, scheduleType) {
+            event.stopPropagation();
+            const activeColor = checkbox.dataset.activeColor || '#22c55e';
+            const inactiveColor = checkbox.dataset.inactiveColor || '#4b5563';
+
+            const sliderWrapper = checkbox.nextElementSibling;
+            const slider = sliderWrapper ? sliderWrapper.querySelector('.toggle-track') : null;
+            const dot = sliderWrapper ? sliderWrapper.querySelector('.toggle-dot') : null;
+
+            if (slider) {
+                slider.style.backgroundColor = checkbox.checked ? activeColor : inactiveColor;
+            }
+
+            if (dot) {
+                dot.style.transform = checkbox.checked ? 'translateX(16px)' : 'translateX(0px)';
+            }
+
+            toggleScheduleType(scheduleType);
+        }
+
         async function toggleScheduleType(scheduleType) {
             // Find the schedule of this type
             const schedule = schedules.find(s => s.schedule_type === scheduleType);
@@ -1648,44 +1541,44 @@
             // Only render desktop calendar if container exists
             if (!container) return;
             
-            // Debug: Check if schedules data exists
-            console.log('renderCalendar called, schedules length:', schedules ? schedules.length : 'undefined');
-            
             // Clear existing content to prevent duplication
             container.innerHTML = '';
             
             dayNames.forEach((dayName, dayIndex) => {
                 const dayContainer = document.createElement('div');
-                dayContainer.className = 'day-schedule flex items-center space-x-4';
-                
+                dayContainer.className = 'day-schedule flex items-center gap-3';
+
                 // Day label (inline with timeline)
                 const dayLabel = document.createElement('div');
-                dayLabel.className = 'text-sm font-medium text-gray-300 w-20 flex-shrink-0';
+                dayLabel.className = 'text-xs font-semibold text-gray-300 w-20 flex-shrink-0 tracking-wide';
                 dayLabel.textContent = dayName;
-                
+
                 // Timeline container
                 const timelineContainer = document.createElement('div');
                 timelineContainer.className = 'flex-1 relative';
-                
+
                 // Timeline bar (24 hours: 0-23) - dynamic height for better visibility
                 const timeline = document.createElement('div');
-                timeline.className = 'relative h-20 bg-gray-800 rounded-lg overflow-visible';
+                timeline.className = 'weekly-timeline relative overflow-visible';
                 timeline.style.position = 'relative';
-                
+
                 // Add time markers (24 hours: 0-23)
                 for (let hour = 0; hour <= 23; hour++) {
                     const marker = document.createElement('div');
-                    marker.className = 'absolute top-0 h-full border-l border-gray-600';
+                    marker.className = 'absolute top-0 h-full';
+                    if (hour !== 0) {
+                        marker.classList.add('border-l', 'border-gray-600');
+                    }
                     marker.style.left = `${(hour / 24) * 100}%`;
-                    
+
                     // Add hour labels every 6 hours
                     if (hour % 6 === 0) {
                         const label = document.createElement('div');
-                        label.className = 'absolute -top-5 text-xs text-gray-500 transform -translate-x-1/2';
+                        label.className = 'weekly-hour-label absolute text-gray-400 transform -translate-x-1/2';
                         label.textContent = `${hour.toString().padStart(2, '0')}:00`;
                         marker.appendChild(label);
                     }
-                    
+
                     timeline.appendChild(marker);
                 }
                 
@@ -1711,10 +1604,12 @@
                         block.className += ` ${colors[ruleGroup.scheduleType] || 'bg-gray-500'}`;
                         
                         // Dynamic height based on number of schedules at this time
-                        const totalHeight = 72; // Total available height (80px - padding)
-                        const blockHeight = Math.floor(totalHeight / timeRules.length) - 2; // -2 for spacing between blocks
-                        const topOffset = stackIndex * (blockHeight + 2) + 4;
-                        
+                        const totalHeight = 44; // Total available height inside the compact timeline
+                        const spacing = timeRules.length >= 7 ? 0 : (timeRules.length >= 5 ? 1 : 2);
+                        const availableHeight = totalHeight - Math.max(0, (timeRules.length - 1) * spacing);
+                        const blockHeight = Math.max(5, Math.floor(availableHeight / timeRules.length));
+                        const topOffset = stackIndex * (blockHeight + spacing) + (spacing ? 1 : 0);
+
                         block.style.left = `${(startDecimal / 24) * 100}%`;
                         block.style.width = `${((endDecimal - startDecimal) / 24) * 100}%`;
                         block.style.top = `${topOffset}px`;
@@ -1742,7 +1637,7 @@
                 
                 // Create hover tooltip
                 const hoverTooltip = document.createElement('div');
-                hoverTooltip.className = 'absolute -top-8 bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10 hidden pointer-events-none';
+                hoverTooltip.className = 'weekly-tooltip absolute bg-gray-900 text-white px-2 py-1 rounded shadow-lg z-10 hidden pointer-events-none';
                 hoverTooltip.style.transform = 'translateX(-50%)';
                 timeline.appendChild(hoverTooltip);
 

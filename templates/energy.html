@@ -21,9 +21,37 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
     <script defer src="/static/js/sw-register.js"></script>
+    <script>
+        window._registerStatusOverlayPlugin = function (Chart) {
+            if (!Chart || Chart._statusOverlayRegistered) return;
+            const plugin = {
+                id: 'statusOverlayBands',
+                beforeDatasetsDraw(chart) {
+                    const segments = chart.$statusSegments;
+                    if (!segments || !segments.length) return;
+                    const {ctx, chartArea, scales} = chart;
+                    const xScale = scales.x;
+                    if (!xScale) return;
+                    ctx.save();
+                    segments.forEach(({start, end, style}) => {
+                        if (!style) return;
+                        const left = xScale.getPixelForValue(start);
+                        const right = xScale.getPixelForValue(end);
+                        const width = right - left;
+                        if (!Number.isFinite(width) || width <= 0) return;
+                        ctx.fillStyle = style.background;
+                        ctx.fillRect(left, chartArea.top, width, chartArea.bottom - chartArea.top);
+                    });
+                    ctx.restore();
+                }
+            };
+            Chart.register(plugin);
+            Chart._statusOverlayRegistered = true;
+        };
+    </script>
     <script defer src="/static/js/status.js"></script>
     <script src="/static/js/shared-ui.js"></script>
-    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
@@ -159,13 +187,15 @@
                                 <option value="1m">1 Month</option>
                                 <option value="6m">6 Months</option>
                                 <option value="1y">1 Year</option>
+                                <option value="relative" hidden>Custom Range</option>
                             </select>
                         </div>
                     </div>
                     
                     <!-- Temperature Chart Container -->
-                    <div class="relative rounded-xl p-4 panel-bg-mobile" id="mobile-chart-container">
+                        <div class="relative rounded-xl p-4 panel-bg-mobile" id="mobile-chart-container">
                         <canvas id="mobileDataChart" class="w-full" style="max-height: 400px; height: 350px;"></canvas>
+                        <div id="status-overlay-legend" class="absolute top-3 right-3 flex space-x-3 bg-gray-900/70 px-3 py-1 rounded hidden" style="z-index: 20;"></div>
                         <!-- Chart Loading/Error Messages -->
                         <div id="mobile-chart-loading" class="absolute inset-0 flex items-center justify-center rounded-xl text-gray-400 hidden overlay-bg" style="z-index: 100;">
                             <p>Loading chart data...</p>
@@ -253,7 +283,7 @@
         </div>
         
         <!-- Bottom Navigation -->  
-        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg mobile-bottom-nav">
             <div class="flex items-center justify-around py-2">
                 <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
                     <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
@@ -409,9 +439,10 @@
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-2xl font-bold">Temperature Data</h2>
                             <div class="flex items-center space-x-4">
-                                <label for="desktop-chart-timeframe" class="text-sm font-medium">Period:</label>
-                                <select id="desktop-chart-timeframe" onchange="onDesktopTimeframeChange()"
-                                        class="px-3 py-2 rounded border border-gray-600 bg-gray-700 text-white">
+                                <div class="flex items-center space-x-2">
+                                    <label for="desktop-chart-timeframe" class="text-sm font-medium">Period:</label>
+                                    <select id="desktop-chart-timeframe" onchange="onDesktopTimeframeChange()"
+                                            class="px-3 py-2 rounded border border-gray-600 bg-gray-700 text-white">
                                     <option value="1h">Last Hour</option>
                                     <option value="3h">Last 3 Hours</option>
                                     <option value="6h">Last 6 Hours</option>
@@ -422,7 +453,20 @@
                                     <option value="1m">Last Month</option>
                                     <option value="6m">Last 6 Months</option>
                                     <option value="1y">Last Year</option>
-                                </select>
+                                    <option value="relative">Custom Range</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <label for="desktop-relative-range" class="text-sm font-medium">Relative:</label>
+                                    <input id="desktop-relative-range" type="text" inputmode="text" placeholder="-5d"
+                                           class="px-3 py-2 rounded border border-gray-600 bg-gray-700 text-white w-24"
+                                           title="Use Grafana-style values such as -5d for the last 5 days."
+                                           onkeydown="if(event.key==='Enter'){applyDesktopRelativeRange();}">
+                                    <button type="button" onclick="applyDesktopRelativeRange()"
+                                            class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded">
+                                        Apply
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         
@@ -437,6 +481,7 @@
                                 </svg>
                             </button>
                             <canvas id="desktopDataChart" class="w-full" style="max-height: 500px; height: 450px;"></canvas>
+                            <div id="status-overlay-legend-desktop" class="absolute top-4 right-4 flex space-x-4 bg-gray-900/70 px-4 py-2 rounded hidden" style="z-index: 20;"></div>
                             <!-- Chart Loading/Error Messages -->
                             <div id="desktop-chart-loading" class="absolute inset-0 flex items-center justify-center rounded-3xl text-gray-400 hidden overlay-bg" style="z-index: 100;">
                                 <p>Loading chart data...</p>
@@ -521,6 +566,7 @@
         let mobileChartInstance = null;
         let desktopChartInstance = null;
         let mobileFullscreenChartInstance = null;
+        let mobileFullscreenLegendState = [];
         let mobileEnergyChartInstance = null;
         let mobileEnergyFullscreenChartInstance = null;
         let mobileSelectedTimeframe = '24h';
@@ -534,7 +580,186 @@
         let desktopEnergyChartInstance = null;
         let desktopEnergyView = 'daily'; // 'daily' or 'monthly'
         let desktopEnergyPeriod = '1m'; // desktop energy chart period
-        
+        let desktopRelativeRange = null;
+        let mobileRelativeRange = null;
+        let desktopRelativeInfo = null;
+        let mobileRelativeInfo = null;
+        let desktopLastStandardTimeframe = '24h';
+        let mobileLastStandardTimeframe = '24h';
+
+        if (typeof Chart !== 'undefined' && window._registerStatusOverlayPlugin) {
+            window._registerStatusOverlayPlugin(Chart);
+        }
+
+        const STATUS_STYLE_BY_MODE = {
+            1: { label: 'Hot Water', background: 'rgba(59, 130, 246, 0.18)', border: 'rgba(59, 130, 246, 0.34)' },
+            2: { label: 'Heating', background: 'rgba(245, 158, 11, 0.20)', border: 'rgba(245, 158, 11, 0.34)' }
+        };
+
+        function getOperationModeStyle(mode) {
+            return STATUS_STYLE_BY_MODE.hasOwnProperty(mode)
+                ? STATUS_STYLE_BY_MODE[mode]
+                : { label: 'Standby', background: '', border: '' };
+        }
+
+        function buildStatusSegments(data, isAggregated) {
+            if (isAggregated || !Array.isArray(data) || data.length === 0) return [];
+
+            // Helper function to get operation mode from data item
+            const getMode = (item) => typeof item?.operation_mode === 'number' ? item.operation_mode : null;
+            const getTimestamp = (item) => item?.timestamp ? new Date(item.timestamp) : null;
+
+            // Helper function to calculate midpoint between two timestamps
+            const getMidpoint = (ts1, ts2) => {
+                if (!ts1 || !ts2) return null;
+                return new Date((ts1.getTime() + ts2.getTime()) / 2);
+            };
+
+            // Helper function to detect typical data interval
+            const getTypicalInterval = (data) => {
+                if (data.length < 2) return 5 * 60 * 1000; // Default 5 minutes
+                const intervals = [];
+                for (let i = 1; i < Math.min(data.length, 10); i++) {
+                    const ts1 = getTimestamp(data[i-1]);
+                    const ts2 = getTimestamp(data[i]);
+                    if (ts1 && ts2) {
+                        intervals.push(ts2.getTime() - ts1.getTime());
+                    }
+                }
+                if (intervals.length === 0) return 5 * 60 * 1000;
+                intervals.sort((a, b) => a - b);
+                return intervals[Math.floor(intervals.length / 2)] || (5 * 60 * 1000); // Median interval
+            };
+
+            const segments = [];
+            let current = null;
+            const typicalInterval = getTypicalInterval(data);
+
+            data.forEach((item, index) => {
+                const mode = getMode(item);
+                const timestamp = getTimestamp(item);
+
+                // Skip invalid data
+                if (mode === null || !timestamp || Number.isNaN(timestamp.getTime())) {
+                    if (current) {
+                        // End current segment - look ahead for next valid "off" state
+                        let nextOffTimestamp = null;
+                        for (let i = index + 1; i < data.length; i++) {
+                            const nextMode = getMode(data[i]);
+                            const nextTs = getTimestamp(data[i]);
+                            if (nextMode !== null && nextTs) {
+                                const nextStyle = getOperationModeStyle(nextMode);
+                                if (!nextStyle.background) {
+                                    nextOffTimestamp = nextTs;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (nextOffTimestamp) {
+                            current.end = getMidpoint(current.lastTs, nextOffTimestamp);
+                        } else {
+                            current.end = new Date(current.lastTs.getTime() + typicalInterval / 2);
+                        }
+
+                        if (current.end > current.start) segments.push({...current});
+                        current = null;
+                    }
+                    return;
+                }
+
+                const style = getOperationModeStyle(mode);
+
+                // Handle "off" states (no background style)
+                if (!style.background) {
+                    if (current) {
+                        // End current segment at midpoint between last "on" and this "off"
+                        current.end = getMidpoint(current.lastTs, timestamp) ||
+                                     new Date(current.lastTs.getTime() + typicalInterval / 2);
+                        segments.push({...current});
+                        current = null;
+                    }
+                    return;
+                }
+
+                // Handle "on" states (heating/hot water)
+                if (!current || current.mode !== mode) {
+                    // End previous segment if exists
+                    if (current) {
+                        current.end = getMidpoint(current.lastTs, timestamp) ||
+                                     new Date(current.lastTs.getTime() + typicalInterval / 2);
+                        segments.push({...current});
+                    }
+
+                    // Start new segment - look back for previous "off" state
+                    let prevOffTimestamp = null;
+                    for (let i = index - 1; i >= 0; i--) {
+                        const prevMode = getMode(data[i]);
+                        const prevTs = getTimestamp(data[i]);
+                        if (prevMode !== null && prevTs) {
+                            const prevStyle = getOperationModeStyle(prevMode);
+                            if (!prevStyle.background) {
+                                prevOffTimestamp = prevTs;
+                                break;
+                            }
+                        }
+                    }
+
+                    const startTime = prevOffTimestamp ?
+                        getMidpoint(prevOffTimestamp, timestamp) || timestamp :
+                        timestamp;
+
+                    current = {
+                        mode,
+                        style,
+                        start: startTime,
+                        lastTs: timestamp
+                    };
+                } else {
+                    // Continue existing segment
+                    current.lastTs = timestamp;
+                }
+            });
+
+            // Handle final segment
+            if (current) {
+                // Look for next "off" state or use fallback
+                current.end = new Date(current.lastTs.getTime() + typicalInterval / 2);
+                segments.push({...current});
+            }
+
+            return segments
+                .filter(seg => seg.start && seg.end && seg.end > seg.start)
+                .map(seg => ({
+                    ...seg,
+                    start: seg.start,
+                    end: seg.end
+                }));
+        }
+
+        function applyStatusOverlayLegend(segments) {
+            const containers = [
+                document.getElementById('status-overlay-legend'),
+                document.getElementById('status-overlay-legend-desktop')
+            ].filter(Boolean);
+            if (!containers.length) return;
+            const displayStyles = Array.from(new Set(segments.map(seg => seg.mode)))
+                .map(mode => getOperationModeStyle(mode))
+                .filter(style => style.background);
+            const html = displayStyles.map(style => {
+                return `<div class="flex items-center space-x-2"><span style="width:12px;height:12px;background:${style.background};border:1px solid ${style.border};display:inline-block;border-radius:2px;"></span><span class="text-xs text-gray-300">${style.label}</span></div>`;
+            }).join('');
+            containers.forEach(container => {
+                if (!displayStyles.length) {
+                    container.innerHTML = '';
+                    container.classList.add('hidden');
+                } else {
+                    container.innerHTML = html;
+                    container.classList.remove('hidden');
+                }
+            });
+        }
+
         // Zoom/pan debounce and state for dynamic aggregation
         let mobileZoomTimer = null, desktopZoomTimer = null, mobileFsZoomTimer = null, desktopFsZoomTimer = null;
         let lastMobileZoomFetch = { agg: null, start: null, end: null };
@@ -566,6 +791,12 @@
             }
 
             chart.update();
+
+            if (chart === desktopTempFullscreenChartInstance) {
+                desktopTempFullscreenLegendState = chart.data.datasets.map((_, i) => chart.isDatasetVisible(i));
+            } else if (chart === mobileFullscreenChartInstance) {
+                mobileFullscreenLegendState = chart.data.datasets.map((_, i) => chart.isDatasetVisible(i));
+            }
         }
 
         // Status handled by shared StatusWidget
@@ -574,6 +805,7 @@
         let isDesktopTempFullscreen = false;
         let isDesktopEnergyFullscreen = false;
         let desktopTempFullscreenChartInstance = null;
+        let desktopTempFullscreenLegendState = [];
         let desktopEnergyFullscreenChartInstance = null;
 
         // Desktop Temperature Fullscreen
@@ -616,7 +848,12 @@
                 ...ds,
                 data: [...ds.data]
             }));
-            const timeConfig = getTimeframeConfig(desktopSelectedTimeframe);
+            const timeConfig = getTimeframeConfig(
+                desktopSelectedTimeframe,
+                desktopSelectedTimeframe === 'relative'
+                    ? { relativeRange: desktopRelativeRange, relativeInfo: desktopRelativeInfo }
+                    : {}
+            );
 
             desktopTempFullscreenChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -676,18 +913,36 @@
             desktopChartInstance.data.datasets.forEach((_, i) => {
                 desktopTempFullscreenChartInstance.setDatasetVisibility(i, desktopChartInstance.isDatasetVisible(i));
             });
+            desktopTempFullscreenChartInstance.$statusSegments = desktopChartInstance ? (desktopChartInstance.$statusSegments || []) : [];
             desktopTempFullscreenChartInstance.update();
+            desktopTempFullscreenLegendState = desktopTempFullscreenChartInstance.data.datasets.map((_, i) =>
+                desktopTempFullscreenChartInstance.isDatasetVisible(i)
+            );
         }
 
         function updateDesktopTempFullscreenChart() {
             if (!desktopTempFullscreenChartInstance || !desktopChartInstance) return;
-            desktopChartInstance.data.datasets.forEach((dataset, index) => {
-                if (desktopTempFullscreenChartInstance.data.datasets[index]) {
-                    desktopTempFullscreenChartInstance.data.datasets[index].data = [...dataset.data];
-                    desktopTempFullscreenChartInstance.data.datasets[index].label = dataset.label;
-                }
+
+            const legendState = (Array.isArray(desktopTempFullscreenLegendState) && desktopTempFullscreenLegendState.length)
+                ? desktopTempFullscreenLegendState
+                : desktopChartInstance.data.datasets.map((_, idx) => desktopChartInstance.isDatasetVisible(idx));
+
+            desktopTempFullscreenChartInstance.data.datasets = desktopChartInstance.data.datasets.map((dataset, idx) => {
+                const shouldBeVisible = typeof legendState[idx] === 'boolean'
+                    ? legendState[idx]
+                    : desktopChartInstance.isDatasetVisible(idx);
+                return {
+                    ...dataset,
+                    data: [...dataset.data],
+                    hidden: !shouldBeVisible
+                };
             });
+
+            desktopTempFullscreenChartInstance.$statusSegments = desktopChartInstance ? (desktopChartInstance.$statusSegments || []) : [];
             desktopTempFullscreenChartInstance.update();
+            desktopTempFullscreenLegendState = desktopTempFullscreenChartInstance.data.datasets.map((_, i) =>
+                desktopTempFullscreenChartInstance.isDatasetVisible(i)
+            );
         }
 
         // Desktop fullscreen timeframe change handlers
@@ -976,6 +1231,15 @@
             }
         }
         
+        function handleEnergyDataUpdate() {
+            console.log('New MELCloud data detected; refreshing energy statistics and charts');
+            loadEnergyData();
+            fetchScheduleData();
+            updateDesktopEnergyChart();
+            updateDesktopChart();
+            updateMobileChart();
+        }
+
         // Load energy data when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing energy page');
@@ -984,7 +1248,9 @@
             fetchScheduleData(); // Load schedule information
             
             // Initialize shared connection status widget
-            StatusWidget.init();
+            StatusWidget.init({
+                onDataUpdate: handleEnergyDataUpdate
+            });
             
             // Setup swipe functionality for mobile first
             setupMobileSwipe();
@@ -1002,15 +1268,6 @@
                 updateDesktopChart();
                 updateDesktopEnergyChart();
             }, 100);
-            
-            // Auto-refresh every 60 seconds
-            setInterval(loadEnergyData, 60000);
-            setInterval(() => {
-                if (window.innerWidth < 768) { // Only update mobile chart on mobile
-                    updateMobileChart();
-                }
-                updateDesktopChart();
-            }, 60000);
             
             // Setup orientation change detection
             window.addEventListener('orientationchange', handleOrientationChange);
@@ -1122,8 +1379,126 @@
             }
         }
 
+        function parseRelativeRange(value) {
+            if (!value) return null;
+            let trimmed = String(value).trim().toLowerCase();
+            if (!trimmed) return null;
+            if (trimmed.startsWith('now-')) {
+                trimmed = trimmed.substring(3);
+            }
+            const slashIndex = trimmed.indexOf('/');
+            if (slashIndex !== -1) {
+                trimmed = trimmed.substring(0, slashIndex);
+            }
+            const match = trimmed.match(/^-(\d+)([hdwmy])$/);
+            if (!match) return null;
+            const amount = parseInt(match[1], 10);
+            if (!Number.isFinite(amount) || amount <= 0) return null;
+            const unit = match[2];
+            const now = new Date();
+            const start = new Date(now);
+            const end = new Date(now);
+            switch (unit) {
+                case 'h':
+                    start.setHours(start.getHours() - amount);
+                    break;
+                case 'd':
+                    start.setDate(start.getDate() - amount);
+                    break;
+                case 'w':
+                    start.setDate(start.getDate() - amount * 7);
+                    break;
+                case 'm':
+                    start.setMonth(start.getMonth() - amount);
+                    break;
+                case 'y':
+                    start.setFullYear(start.getFullYear() - amount);
+                    break;
+                default:
+                    return null;
+            }
+            return {
+                start,
+                end,
+                unit,
+                amount,
+                rangeMs: end.getTime() - start.getTime()
+            };
+        }
+
+        function buildDynamicTimeframeConfig(relativeInfo) {
+            if (!relativeInfo || !relativeInfo.rangeMs || relativeInfo.rangeMs <= 0) {
+                return { unit: 'day', stepSize: 1, format: 'MMM dd' };
+            }
+            const diffHours = relativeInfo.rangeMs / (1000 * 60 * 60);
+            const diffDays = relativeInfo.rangeMs / (1000 * 60 * 60 * 24);
+            if (diffHours <= 6) {
+                return { unit: 'minute', stepSize: 15, format: 'HH:mm' };
+            }
+            if (diffHours <= 24) {
+                return { unit: 'hour', stepSize: 1, format: 'HH:mm' };
+            }
+            if (diffDays <= 7) {
+                return { unit: 'hour', stepSize: 6, format: 'MMM dd HH:mm' };
+            }
+            if (diffDays <= 31) {
+                return { unit: 'day', stepSize: 1, format: 'MMM dd' };
+            }
+            if (diffDays <= 180) {
+                return { unit: 'day', stepSize: 7, format: 'MMM dd' };
+            }
+            if (diffDays <= 365) {
+                return { unit: 'week', stepSize: 1, format: 'MMM dd' };
+            }
+            return { unit: 'month', stepSize: 1, format: 'MMM yyyy' };
+        }
+
+        function setRelativeInputValidity(inputEl, isValid) {
+            if (!inputEl || !inputEl.classList) return;
+            if (isValid) {
+                inputEl.classList.remove('border-red-500', 'text-red-300');
+                if (!inputEl.classList.contains('border-gray-600')) {
+                    inputEl.classList.add('border-gray-600');
+                }
+            } else {
+                inputEl.classList.remove('border-gray-600');
+                inputEl.classList.add('border-red-500', 'text-red-300');
+            }
+        }
+
+        const RAW_HISTORY_LIMIT = 2500;
+        const RAW_DATA_INTERVAL_MINUTES = 5;
+        const RAW_HISTORY_BUFFER_POINTS = 48;
+        const MIN_RAW_HISTORY_LIMIT = 200;
+        const MS_PER_MINUTE = 60000;
+        const MS_PER_DAY = 86400000;
+
+        function computeRawHistoryLimit(rangeMs) {
+            if (!Number.isFinite(rangeMs) || rangeMs <= 0) {
+                return RAW_HISTORY_LIMIT;
+            }
+            const approxPoints = rangeMs / (RAW_DATA_INTERVAL_MINUTES * MS_PER_MINUTE);
+            const buffered = Math.ceil(approxPoints + RAW_HISTORY_BUFFER_POINTS);
+            return Math.min(RAW_HISTORY_LIMIT, Math.max(MIN_RAW_HISTORY_LIMIT, buffered));
+        }
+
+        function coerceRangeEndpoint(value, isEnd) {
+            if (value === undefined || value === null) return NaN;
+            const str = String(value);
+            if (str.includes('T')) return Date.parse(str);
+            return Date.parse(`${str}${isEnd ? 'T23:59:59' : 'T00:00:00'}Z`);
+        }
+
+        function computeRangeMsFromStrings(range) {
+            if (!range) return NaN;
+            const startMs = coerceRangeEndpoint(range.start, false);
+            const endMs = coerceRangeEndpoint(range.end, true);
+            if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return NaN;
+            return Math.max(0, endMs - startMs);
+        }
+
         // Timeframe configuration functions
-        function getTimeframeConfig(timeframe) {
+        function getTimeframeConfig(timeframe, options = {}) {
             const configs = {
                 '1h': { hours: 1, unit: 'minute', stepSize: 5, format: 'HH:mm' },
                 '3h': { hours: 3, unit: 'minute', stepSize: 15, format: 'HH:mm' },
@@ -1136,14 +1511,28 @@
                 '6m': { days: 180, unit: 'week', stepSize: 2, format: 'MMM dd' },
                 '1y': { days: 365, unit: 'month', stepSize: 1, format: 'MMM yyyy' }
             };
+            if (timeframe === 'relative') {
+                const relativeInfo = options.relativeInfo || parseRelativeRange(options.relativeRange);
+                if (relativeInfo) {
+                    return buildDynamicTimeframeConfig(relativeInfo);
+                }
+            }
             return configs[timeframe] || configs['24h'];
         }
-        
-        function getDateRangeForTimeframe(timeframe) {
+
+        function getDateRangeForTimeframe(timeframe, options = {}) {
             const now = new Date();
-            const config = getTimeframeConfig(timeframe);
+            if (timeframe === 'relative') {
+                const relativeInfo = options.relativeInfo || parseRelativeRange(options.relativeRange);
+                if (!relativeInfo) return { start: null, end: null };
+                return {
+                    start: relativeInfo.start.toISOString(),
+                    end: relativeInfo.end.toISOString()
+                };
+            }
+            const config = getTimeframeConfig(timeframe, options);
             let startDate = new Date(now);
-            
+
             if (config.hours) {
                 startDate.setHours(startDate.getHours() - config.hours);
             } else if (config.days) {
@@ -1165,8 +1554,12 @@
         
         // Determine aggregation mode based on the visible range
         function getAggregationForRange(startMs, endMs) {
-            const rangeDays = Math.max(0, (endMs - startMs) / (1000 * 60 * 60 * 24));
-            if (rangeDays <= 2) return { type: 'raw', aggregated: false, limit: 500 };
+            const hasRange = Number.isFinite(startMs) && Number.isFinite(endMs);
+            const rangeMs = hasRange ? Math.max(0, endMs - startMs) : 0;
+            const rangeDays = rangeMs / MS_PER_DAY;
+            if (!Number.isFinite(rangeDays) || rangeDays <= 7) {
+                return { type: 'raw', aggregated: false, limit: computeRawHistoryLimit(rangeMs) };
+            }
             if (rangeDays <= 31) return { type: 'hourly', aggregated: true, limit: 1000 };
             if (rangeDays <= 180) return { type: 'daily', aggregated: true, limit: 400 };
             return { type: 'weekly', aggregated: true, limit: 60 };
@@ -1268,19 +1661,7 @@
             if (fullscreenDropdown) {
                 fullscreenDropdown.addEventListener('change', function(e) {
                     console.log('✅ Fullscreen dropdown CHANGED to:', e.target.value);
-                    fullscreenSelectedTimeframe = e.target.value;
-                    mobileSelectedTimeframe = e.target.value; // Keep both in sync
-                    
-                    // Update both mobile dropdown and main chart
-                    const mobileDropdown = document.getElementById('mobile-chart-timeframe');
-                    if (mobileDropdown) {
-                        mobileDropdown.value = e.target.value;
-                    }
-                    
-                    updateMobileChart();
-                    if (mobileFullscreenChartInstance) {
-                        setTimeout(() => updateMobileFullscreenChart(), 500);
-                    }
+                    handleMobileTimeframeChange(e.target.value, 'fullscreen');
                 });
             }
         }
@@ -1349,19 +1730,7 @@
                 // Simple change event listener
                 mobileDropdown.addEventListener('change', function(e) {
                     console.log('✅ Mobile dropdown CHANGED to:', e.target.value);
-                    mobileSelectedTimeframe = e.target.value;
-                    fullscreenSelectedTimeframe = e.target.value; // Keep both in sync
-                    
-                    // Update fullscreen dropdown if it exists
-                    const fullscreenDropdown = document.getElementById('fullscreen-chart-timeframe');
-                    if (fullscreenDropdown) {
-                        fullscreenDropdown.value = e.target.value;
-                    }
-                    
-                    updateMobileChart();
-                    if (mobileFullscreenChartInstance) {
-                        setTimeout(() => updateMobileFullscreenChart(), 500);
-                    }
+                    handleMobileTimeframeChange(e.target.value, 'mobile');
                 });
                 
                 // Test click listener
@@ -1375,7 +1744,7 @@
                 });
                 
             } else {
-                console.error('❌ Mobile dropdown not found');
+                console.log('Mobile timeframe dropdown not present (mobile view uses default period).');
             }
             
             // Desktop dropdown  
@@ -1384,11 +1753,7 @@
                 console.log('Found desktop dropdown, adding event listener');
                 desktopDropdown.addEventListener('change', function(e) {
                     console.log('✅ Desktop dropdown CHANGED to:', e.target.value);
-                    desktopSelectedTimeframe = e.target.value;
-                    updateDesktopChart();
-                    // Sync fullscreen dropdown if open
-                    const fsDd = document.getElementById('desktop-fullscreen-chart-timeframe');
-                    if (fsDd) fsDd.value = e.target.value;
+                    onDesktopTimeframeChange();
                 });
             } else {
                 console.log('Desktop dropdown not found (normal on mobile)');
@@ -1396,19 +1761,20 @@
         }
         
         // Mobile chart functions
-        function onMobileTimeframeChange() {
+        function onMobileTimeframeChange(source = 'mobile') {
             console.log('Mobile timeframe changed');
-            const dropdown = document.getElementById('mobile-chart-timeframe');
+            const dropdown = source === 'fullscreen'
+                ? document.getElementById('fullscreen-chart-timeframe')
+                : document.getElementById('mobile-chart-timeframe');
             if (dropdown) {
-                mobileSelectedTimeframe = dropdown.value;
-                console.log('New mobile timeframe:', mobileSelectedTimeframe);
-                updateMobileChart();
+                console.log('New mobile timeframe:', dropdown.value);
+                handleMobileTimeframeChange(dropdown.value, source);
             } else {
-                console.error('Mobile timeframe dropdown not found');
+                console.log('Mobile timeframe dropdown not present; retaining existing timeframe.');
             }
         }
         
-        function updateMobileChart() {
+        function updateMobileChart(relativeInfo = null) {
             console.log('Updating mobile chart with timeframe:', mobileSelectedTimeframe);
             const chartLoading = document.getElementById('mobile-chart-loading');
             const chartError = document.getElementById('mobile-chart-error');
@@ -1421,55 +1787,111 @@
             chartError.classList.add('hidden');
             chartLoading.classList.remove('hidden');
             
-            const dateRange = getDateRangeForTimeframe(mobileSelectedTimeframe);
-            
+            const isRelative = mobileSelectedTimeframe === 'relative';
+            if (isRelative) {
+                if (!mobileRelativeRange) {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = '<p>Enter a relative range (e.g. -5d) and tap Go.</p>';
+                    chartError.classList.remove('hidden');
+                    return;
+                }
+                if (!relativeInfo) {
+                    relativeInfo = parseRelativeRange(mobileRelativeRange);
+                }
+                if (!relativeInfo) {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = '<p>Unable to parse relative range.</p>';
+                    chartError.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            if (isRelative) mobileRelativeInfo = relativeInfo;
+
+            const options = isRelative ? { relativeRange: mobileRelativeRange, relativeInfo } : {};
+            const dateRange = getDateRangeForTimeframe(mobileSelectedTimeframe, options);
+
             let url;
             let isAggregated = false;
-            
-            // Use raw history for short windows; summaries for longer ranges
-            if (mobileSelectedTimeframe === '1h' || mobileSelectedTimeframe === '3h' || mobileSelectedTimeframe === '6h' || mobileSelectedTimeframe === '24h' || mobileSelectedTimeframe === '2d') {
-                url = '/api/data/history?limit=500';
-                isAggregated = false;
-            } else if (mobileSelectedTimeframe === '7d' || mobileSelectedTimeframe === '2w' || mobileSelectedTimeframe === '1m') {
-                url = '/api/data/hourly-temperature-summary?limit=1000';
-                isAggregated = true;
-            } else if (mobileSelectedTimeframe === '6m') {
-                url = '/api/data/daily-temperature-summary?limit=200';
-                isAggregated = true;
-            } else if (mobileSelectedTimeframe === '1y') {
-                url = '/api/data/weekly-temperature-summary?limit=60';
-                isAggregated = true;
+            let appendRange = true;
+
+            if (isRelative) {
+                const startMs = relativeInfo.start.getTime();
+                const endMs = relativeInfo.end.getTime();
+                const aggInfo = getAggregationForRange(startMs, endMs);
+                url = buildTemperatureUrl(aggInfo, startMs, endMs);
+                isAggregated = aggInfo.aggregated;
+                appendRange = false; // buildTemperatureUrl already includes range
             } else {
-                // Default safe fallback
-                url = '/api/data/hourly-temperature-summary?limit=1000';
-                isAggregated = true;
+                // Use raw history for short windows; summaries for longer ranges
+                const rawTimeframes = ['1h', '3h', '6h', '24h', '2d', '7d'];
+                const rangeMs = computeRangeMsFromStrings(dateRange);
+                if (rawTimeframes.includes(mobileSelectedTimeframe)) {
+                    const limit = computeRawHistoryLimit(rangeMs);
+                    console.debug('[temp] mobile fetch', { timeframe: mobileSelectedTimeframe, limit, rangeHours: Number.isFinite(rangeMs) ? (rangeMs / (1000 * 60 * 60)).toFixed(2) : null });
+                    url = buildHistoryUrl(limit, mobileSelectedTimeframe !== 'all' ? dateRange : null);
+                    isAggregated = false;
+                    appendRange = false;
+                } else if (mobileSelectedTimeframe === '2w' || mobileSelectedTimeframe === '1m') {
+                    url = '/api/data/hourly-temperature-summary?limit=1000';
+                    isAggregated = true;
+                } else if (mobileSelectedTimeframe === '6m') {
+                    url = '/api/data/daily-temperature-summary?limit=200';
+                    isAggregated = true;
+                } else if (mobileSelectedTimeframe === '1y') {
+                    url = '/api/data/weekly-temperature-summary?limit=60';
+                    isAggregated = true;
+                } else {
+                    // Default safe fallback
+                    url = '/api/data/hourly-temperature-summary?limit=1000';
+                    isAggregated = true;
+                }
+
+                if (appendRange && mobileSelectedTimeframe !== 'all') {
+                    url += `&date_from=${dateRange.start}&date_to=${dateRange.end}`;
+                }
             }
-            
-            if (mobileSelectedTimeframe !== 'all') {
-                url += `&date_from=${dateRange.start}&date_to=${dateRange.end}`;
-            }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(result => {
-                    chartLoading.classList.add('hidden');
-                    
-                    if (result.success && result.data.length > 0) {
-                        if (mobileChartInstance) {
-                            updateMobileChartData(result.data, isAggregated);
+
+            const attemptFetch = (targetUrl, aggregatedFlag, allowFallback) => {
+                console.debug('[temp] request', { targetUrl, aggregatedFlag });
+                fetch(targetUrl)
+                    .then(response => response.json())
+                    .then(result => {
+                        chartLoading.classList.add('hidden');
+
+                        if (result.success && result.data.length > 0) {
+                            if (mobileChartInstance) {
+                                updateMobileChartData(result.data, aggregatedFlag);
+                            } else {
+                                createMobileChart(result.data, aggregatedFlag);
+                            }
+                        } else if (aggregatedFlag && allowFallback) {
+                            console.warn('No aggregated data returned, falling back to raw history');
+                            const fallbackLimit = computeRawHistoryLimit(computeRangeMsFromStrings(dateRange));
+                            const fallbackUrl = buildHistoryUrl(fallbackLimit, dateRange);
+                            attemptFetch(fallbackUrl, false, false);
                         } else {
-                            createMobileChart(result.data, isAggregated);
+                            applyStatusOverlayLegend([]);
+                            chartError.innerHTML = '<p>No data available for the selected timeframe.</p>';
+                            chartError.classList.remove('hidden');
                         }
-                    } else {
-                        chartError.innerHTML = '<p>No data available for the selected timeframe.</p>';
+                    })
+                    .catch(error => {
+                        if (aggregatedFlag && allowFallback) {
+                            console.warn('Aggregated request failed, falling back to raw history', error);
+                            const fallbackLimit = computeRawHistoryLimit(computeRangeMsFromStrings(dateRange));
+                            const fallbackUrl = buildHistoryUrl(fallbackLimit, dateRange);
+                            attemptFetch(fallbackUrl, false, false);
+                            return;
+                        }
+                        chartLoading.classList.add('hidden');
+                        applyStatusOverlayLegend([]);
+                        chartError.innerHTML = '<p>Error loading chart data: ' + error.message + '</p>';
                         chartError.classList.remove('hidden');
-                    }
-                })
-                .catch(error => {
-                    chartLoading.classList.add('hidden');
-                    chartError.innerHTML = '<p>Error loading chart data: ' + error.message + '</p>';
-                    chartError.classList.remove('hidden');
-                });
+                    });
+            };
+
+            attemptFetch(url, isAggregated, isAggregated);
         }
         
         function createMobileChart(data, isAggregated = false) {
@@ -1480,11 +1902,15 @@
                 return;
             }
             const ctx = canvas.getContext('2d');
-            
+
             if (mobileChartInstance) {
                 mobileChartInstance.destroy();
             }
-            
+
+            if (typeof Chart !== 'undefined' && window._registerStatusOverlayPlugin) {
+                window._registerStatusOverlayPlugin(Chart);
+            }
+
             data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             const allDataSeries = [
@@ -1526,7 +1952,12 @@
                 return dataset;
             });
             
-            const timeConfig = getTimeframeConfig(mobileSelectedTimeframe);
+            const timeConfig = getTimeframeConfig(
+                mobileSelectedTimeframe,
+                mobileSelectedTimeframe === 'relative'
+                    ? { relativeRange: mobileRelativeRange, relativeInfo: mobileRelativeInfo }
+                    : {}
+            );
             
             mobileChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -1607,11 +2038,14 @@
                     }
                 }
             });
+
+            mobileChartInstance.$statusSegments = buildStatusSegments(data, isAggregated);
+            applyStatusOverlayLegend(mobileChartInstance.$statusSegments);
         }
-        
+
         function updateMobileChartData(data, isAggregated = false) {
             if (!mobileChartInstance) return;
-            
+
             data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             const allDataSeries = [
@@ -1644,7 +2078,9 @@
                     mobileChartInstance.data.datasets[index].label = isAggregated ? `${point.label} (Avg)` : point.label;
                 }
             });
-            
+
+            mobileChartInstance.$statusSegments = buildStatusSegments(data, isAggregated);
+            applyStatusOverlayLegend(mobileChartInstance.$statusSegments);
             mobileChartInstance.update();
         }
         
@@ -1666,79 +2102,307 @@
         
         // Desktop chart functions
         function onDesktopTimeframeChange() {
-            desktopSelectedTimeframe = document.getElementById('desktop-chart-timeframe').value;
+            const dropdown = document.getElementById('desktop-chart-timeframe');
+            if (!dropdown) return;
+            const selected = dropdown.value;
+            const fullscreenDropdown = document.getElementById('desktop-fullscreen-chart-timeframe');
+            if (fullscreenDropdown && fullscreenDropdown.value !== selected) {
+                fullscreenDropdown.value = selected;
+            }
+
+            if (selected === 'relative') {
+                const relativeInfo = parseRelativeRange(desktopRelativeRange);
+                const inputEl = document.getElementById('desktop-relative-range');
+                if (!relativeInfo) {
+                    setRelativeInputValidity(inputEl, false);
+                    if (inputEl) inputEl.focus();
+                    desktopRelativeInfo = null;
+                    dropdown.value = desktopLastStandardTimeframe;
+                    if (fullscreenDropdown) fullscreenDropdown.value = desktopLastStandardTimeframe;
+                    return;
+                }
+                setRelativeInputValidity(inputEl, true);
+                desktopRelativeInfo = relativeInfo;
+                const fullscreenInput = document.getElementById('desktop-fullscreen-relative-range');
+                if (fullscreenInput && fullscreenInput.value !== desktopRelativeRange) {
+                    fullscreenInput.value = desktopRelativeRange;
+                }
+                desktopSelectedTimeframe = 'relative';
+                updateDesktopChart(relativeInfo);
+                return;
+            }
+
+            desktopSelectedTimeframe = selected;
+            desktopLastStandardTimeframe = selected;
+            desktopRelativeInfo = null;
+            setRelativeInputValidity(document.getElementById('desktop-relative-range'), true);
             updateDesktopChart();
         }
+
+        function applyDesktopRelativeRange(fromFullscreen = false) {
+            const primaryInput = document.getElementById('desktop-relative-range');
+            const fullscreenInput = document.getElementById('desktop-fullscreen-relative-range');
+            const sourceInput = fromFullscreen ? fullscreenInput : primaryInput || fullscreenInput;
+            if (!sourceInput) return;
+            const rawValue = sourceInput.value != null ? String(sourceInput.value).trim() : '';
+            if (!rawValue) {
+                desktopRelativeRange = null;
+                desktopRelativeInfo = null;
+                setRelativeInputValidity(sourceInput, false);
+                return;
+            }
+            const parsed = parseRelativeRange(rawValue);
+            if (!parsed) {
+                desktopRelativeRange = rawValue;
+                desktopRelativeInfo = null;
+                setRelativeInputValidity(sourceInput, false);
+                return;
+            }
+            desktopRelativeRange = rawValue;
+            desktopRelativeInfo = parsed;
+            setRelativeInputValidity(sourceInput, true);
+            if (primaryInput && primaryInput !== sourceInput) {
+                primaryInput.value = rawValue;
+                setRelativeInputValidity(primaryInput, true);
+            }
+            if (fullscreenInput && fullscreenInput !== sourceInput) {
+                fullscreenInput.value = rawValue;
+                setRelativeInputValidity(fullscreenInput, true);
+            }
+            desktopSelectedTimeframe = 'relative';
+            const dropdown = document.getElementById('desktop-chart-timeframe');
+            if (dropdown) dropdown.value = 'relative';
+            const fullscreenDropdown = document.getElementById('desktop-fullscreen-chart-timeframe');
+            if (fullscreenDropdown) fullscreenDropdown.value = 'relative';
+            updateDesktopChart(parsed);
+        }
+
+        function applyMobileRelativeRange(fromFullscreen = false) {
+            const primaryInput = document.getElementById('mobile-relative-range');
+            const fullscreenInput = document.getElementById('fullscreen-relative-range');
+            const sourceInput = fromFullscreen ? fullscreenInput : primaryInput || fullscreenInput;
+            if (!sourceInput) return;
+            const rawValue = sourceInput.value != null ? String(sourceInput.value).trim() : '';
+            if (!rawValue) {
+                mobileRelativeRange = null;
+                mobileRelativeInfo = null;
+                setRelativeInputValidity(sourceInput, false);
+                return;
+            }
+            const parsed = parseRelativeRange(rawValue);
+            if (!parsed) {
+                mobileRelativeRange = rawValue;
+                mobileRelativeInfo = null;
+                setRelativeInputValidity(sourceInput, false);
+                return;
+            }
+            mobileRelativeRange = rawValue;
+            setRelativeInputValidity(sourceInput, true);
+            if (primaryInput && primaryInput !== sourceInput) {
+                primaryInput.value = rawValue;
+                setRelativeInputValidity(primaryInput, true);
+            }
+            if (fullscreenInput && fullscreenInput !== sourceInput) {
+                fullscreenInput.value = rawValue;
+                setRelativeInputValidity(fullscreenInput, true);
+            }
+            handleMobileTimeframeChange('relative', fromFullscreen ? 'fullscreen' : 'mobile', parsed);
+        }
+
+        function applyMobileFullscreenRelativeRange() {
+            applyMobileRelativeRange(true);
+        }
+
+        function handleMobileTimeframeChange(selectedValue, source = 'mobile', relativeInfoOverride = null) {
+            const mobileDropdown = document.getElementById('mobile-chart-timeframe');
+            const fullscreenDropdown = document.getElementById('fullscreen-chart-timeframe');
+
+            if (source !== 'mobile' && mobileDropdown && mobileDropdown.value !== selectedValue) {
+                mobileDropdown.value = selectedValue;
+            }
+            if (source !== 'fullscreen' && fullscreenDropdown && fullscreenDropdown.value !== selectedValue) {
+                fullscreenDropdown.value = selectedValue;
+            }
+
+            if (selectedValue === 'relative') {
+                if (!mobileRelativeRange) {
+                    const fallback = mobileLastStandardTimeframe || '24h';
+                    if (mobileDropdown) mobileDropdown.value = fallback;
+                    if (fullscreenDropdown) fullscreenDropdown.value = fallback;
+                    mobileRelativeInfo = null;
+                    return;
+                }
+                const info = relativeInfoOverride || parseRelativeRange(mobileRelativeRange);
+                const primaryInput = document.getElementById('mobile-relative-range');
+                const fullscreenInput = document.getElementById('fullscreen-relative-range');
+                if (!info) {
+                    setRelativeInputValidity(source === 'fullscreen' ? fullscreenInput : primaryInput, false);
+                    const fallback = mobileLastStandardTimeframe || '24h';
+                    if (mobileDropdown) mobileDropdown.value = fallback;
+                    if (fullscreenDropdown) fullscreenDropdown.value = fallback;
+                    mobileSelectedTimeframe = fallback;
+                    fullscreenSelectedTimeframe = fallback;
+                    mobileRelativeInfo = null;
+                    return;
+                }
+                mobileRelativeInfo = info;
+                mobileSelectedTimeframe = 'relative';
+                fullscreenSelectedTimeframe = 'relative';
+                if (primaryInput) {
+                    if (primaryInput.value !== mobileRelativeRange) primaryInput.value = mobileRelativeRange;
+                    setRelativeInputValidity(primaryInput, true);
+                }
+                if (fullscreenInput) {
+                    if (fullscreenInput.value !== mobileRelativeRange) fullscreenInput.value = mobileRelativeRange;
+                    setRelativeInputValidity(fullscreenInput, true);
+                }
+                updateMobileChart(info);
+                if (mobileFullscreenChartInstance) {
+                    setTimeout(() => updateMobileFullscreenChart(), 500);
+                }
+                return;
+            }
+
+            mobileSelectedTimeframe = selectedValue;
+            fullscreenSelectedTimeframe = selectedValue;
+            mobileLastStandardTimeframe = selectedValue;
+            mobileRelativeInfo = null;
+            setRelativeInputValidity(document.getElementById('mobile-relative-range'), true);
+            setRelativeInputValidity(document.getElementById('fullscreen-relative-range'), true);
+            updateMobileChart();
+            if (mobileFullscreenChartInstance) {
+                setTimeout(() => updateMobileFullscreenChart(), 500);
+            }
+        }
         
-        function updateDesktopChart() {
+        function updateDesktopChart(relativeInfo = null) {
             const chartLoading = document.getElementById('desktop-chart-loading');
             const chartError = document.getElementById('desktop-chart-error');
             
             chartError.classList.add('hidden');
             chartLoading.classList.remove('hidden');
             
-            const dateRange = getDateRangeForTimeframe(desktopSelectedTimeframe);
-            
+            const isRelative = desktopSelectedTimeframe === 'relative';
+            if (isRelative) {
+                if (!desktopRelativeRange) {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = '<p>Enter a relative range (e.g. -5d) and click Apply.</p>';
+                    chartError.classList.remove('hidden');
+                    return;
+                }
+                if (!relativeInfo) {
+                    relativeInfo = parseRelativeRange(desktopRelativeRange);
+                }
+                if (!relativeInfo) {
+                    chartLoading.classList.add('hidden');
+                    chartError.innerHTML = '<p>Unable to parse relative range.</p>';
+                    chartError.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            if (isRelative) desktopRelativeInfo = relativeInfo;
+
+            const options = isRelative ? { relativeRange: desktopRelativeRange, relativeInfo } : {};
+            const dateRange = getDateRangeForTimeframe(desktopSelectedTimeframe, options);
+
             let url;
             let isAggregated = false;
-            
-            // Use raw history for short windows; summaries for longer ranges
-            if (desktopSelectedTimeframe === '1h' || desktopSelectedTimeframe === '3h' || desktopSelectedTimeframe === '6h' || desktopSelectedTimeframe === '24h' || desktopSelectedTimeframe === '2d') {
-                url = '/api/data/history?limit=500';
-                isAggregated = false;
-            } else if (desktopSelectedTimeframe === '7d' || desktopSelectedTimeframe === '2w' || desktopSelectedTimeframe === '1m') {
-                url = '/api/data/hourly-temperature-summary?limit=1000';
-                isAggregated = true;
-            } else if (desktopSelectedTimeframe === '6m') {
-                url = '/api/data/daily-temperature-summary?limit=200';
-                isAggregated = true;
-            } else if (desktopSelectedTimeframe === '1y') {
-                url = '/api/data/weekly-temperature-summary?limit=60';
-                isAggregated = true;
+            let appendRange = true;
+
+            if (isRelative) {
+                const startMs = relativeInfo.start.getTime();
+                const endMs = relativeInfo.end.getTime();
+                const aggInfo = getAggregationForRange(startMs, endMs);
+                url = buildTemperatureUrl(aggInfo, startMs, endMs);
+                isAggregated = aggInfo.aggregated;
+                appendRange = false; // buildTemperatureUrl already includes range
             } else {
-                // Default safe fallback
-                url = '/api/data/hourly-temperature-summary?limit=1000';
-                isAggregated = true;
+                // Use raw history for short windows; summaries for longer ranges
+                const rawTimeframes = ['1h', '3h', '6h', '24h', '2d', '7d'];
+                const rangeMs = computeRangeMsFromStrings(dateRange);
+                if (rawTimeframes.includes(desktopSelectedTimeframe)) {
+                    const limit = computeRawHistoryLimit(rangeMs);
+                    console.debug('[temp] desktop fetch', { timeframe: desktopSelectedTimeframe, limit, rangeHours: Number.isFinite(rangeMs) ? (rangeMs / (1000 * 60 * 60)).toFixed(2) : null });
+                    url = buildHistoryUrl(limit, desktopSelectedTimeframe !== 'all' ? dateRange : null);
+                    isAggregated = false;
+                    appendRange = false;
+                } else if (desktopSelectedTimeframe === '2w' || desktopSelectedTimeframe === '1m') {
+                    url = '/api/data/hourly-temperature-summary?limit=1000';
+                    isAggregated = true;
+                } else if (desktopSelectedTimeframe === '6m') {
+                    url = '/api/data/daily-temperature-summary?limit=200';
+                    isAggregated = true;
+                } else if (desktopSelectedTimeframe === '1y') {
+                    url = '/api/data/weekly-temperature-summary?limit=60';
+                    isAggregated = true;
+                } else {
+                    // Default safe fallback
+                    url = '/api/data/hourly-temperature-summary?limit=1000';
+                    isAggregated = true;
+                }
+
+                if (appendRange && desktopSelectedTimeframe !== 'all') {
+                    url += `&date_from=${dateRange.start}&date_to=${dateRange.end}`;
+                }
             }
-            
-            if (desktopSelectedTimeframe !== 'all') {
-                url += `&date_from=${dateRange.start}&date_to=${dateRange.end}`;
-            }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(result => {
-                    chartLoading.classList.add('hidden');
-                    
-                    if (result.success && result.data.length > 0) {
-                        if (desktopChartInstance) {
-                            updateDesktopChartData(result.data, isAggregated);
+
+            const attemptFetch = (targetUrl, aggregatedFlag, allowFallback) => {
+                console.debug('[temp] request', { targetUrl, aggregatedFlag });
+                fetch(targetUrl)
+                    .then(response => response.json())
+                    .then(result => {
+                        chartLoading.classList.add('hidden');
+
+                        if (result.success && result.data.length > 0) {
+                            if (desktopChartInstance) {
+                                updateDesktopChartData(result.data, aggregatedFlag);
+                            } else {
+                                createDesktopChart(result.data, aggregatedFlag);
+                            }
+                            if (typeof isDesktopTempFullscreen !== 'undefined' && isDesktopTempFullscreen) {
+                                updateDesktopTempFullscreenChart();
+                            }
+                        } else if (aggregatedFlag && allowFallback) {
+                            console.warn('No aggregated desktop data, falling back to raw history');
+                            const fallbackLimit = computeRawHistoryLimit(computeRangeMsFromStrings(dateRange));
+                            const fallbackUrl = buildHistoryUrl(fallbackLimit, dateRange);
+                            attemptFetch(fallbackUrl, false, false);
                         } else {
-                            createDesktopChart(result.data, isAggregated);
+                            applyStatusOverlayLegend([]);
+                            chartError.innerHTML = '<p>No data available for the selected timeframe.</p>';
+                            chartError.classList.remove('hidden');
                         }
-                        // If desktop fullscreen is open, keep it in sync
-                        if (typeof isDesktopTempFullscreen !== 'undefined' && isDesktopTempFullscreen) {
-                            updateDesktopTempFullscreenChart();
+                    })
+                    .catch(error => {
+                        if (aggregatedFlag && allowFallback) {
+                            console.warn('Aggregated desktop request failed, falling back to raw history', error);
+                            const fallbackLimit = computeRawHistoryLimit(computeRangeMsFromStrings(dateRange));
+                            const fallbackUrl = buildHistoryUrl(fallbackLimit, dateRange);
+                            attemptFetch(fallbackUrl, false, false);
+                            return;
                         }
-                    } else {
-                        chartError.innerHTML = '<p>No data available for the selected timeframe.</p>';
+                        chartLoading.classList.add('hidden');
+                        applyStatusOverlayLegend([]);
+                        chartError.innerHTML = '<p>Error loading chart data: ' + error.message + '</p>';
                         chartError.classList.remove('hidden');
-                    }
-                })
-                .catch(error => {
-                    chartLoading.classList.add('hidden');
-                    chartError.innerHTML = '<p>Error loading chart data: ' + error.message + '</p>';
-                    chartError.classList.remove('hidden');
-                });
+                    });
+            };
+
+            attemptFetch(url, isAggregated, isAggregated);
         }
         
         function createDesktopChart(data, isAggregated = false) {
             const ctx = document.getElementById('desktopDataChart').getContext('2d');
-            
+
             if (desktopChartInstance) {
                 desktopChartInstance.destroy();
             }
-            
+
+            if (typeof Chart !== 'undefined' && window._registerStatusOverlayPlugin) {
+                window._registerStatusOverlayPlugin(Chart);
+            }
+
             data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             const allDataSeries = [
@@ -1795,7 +2459,12 @@
                 return dataset;
             });
             
-            const timeConfig = getTimeframeConfig(desktopSelectedTimeframe);
+            const timeConfig = getTimeframeConfig(
+                desktopSelectedTimeframe,
+                desktopSelectedTimeframe === 'relative'
+                    ? { relativeRange: desktopRelativeRange, relativeInfo: desktopRelativeInfo }
+                    : {}
+            );
             
             desktopChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -1874,11 +2543,14 @@
                     }
                 }
             });
+
+            desktopChartInstance.$statusSegments = buildStatusSegments(data, isAggregated);
+            applyStatusOverlayLegend(desktopChartInstance.$statusSegments);
         }
-        
+
         function updateDesktopChartData(data, isAggregated = false) {
             if (!desktopChartInstance) return;
-            
+
             data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             const allDataSeries = [
@@ -1926,7 +2598,9 @@
                     desktopChartInstance.data.datasets[index].label = isAggregated ? `${point.label} (Avg)` : point.label;
                 }
             });
-            
+
+            desktopChartInstance.$statusSegments = buildStatusSegments(data, isAggregated);
+            applyStatusOverlayLegend(desktopChartInstance.$statusSegments);
             desktopChartInstance.update();
         }
         
@@ -1987,6 +2661,22 @@
                     fsMonthlyBtn.className = 'px-2 py-1 text-xs font-medium rounded transition-colors duration-200 bg-blue-500 text-white';
                 }
             }
+        }
+
+        function buildHistoryUrl(limit, range) {
+            let startIso = range?.start;
+            let endIso = range?.end;
+            if (startIso && !startIso.includes('T')) {
+                startIso = `${startIso}T00:00:00`;
+            }
+            if (endIso && !endIso.includes('T')) {
+                endIso = `${endIso}T23:59:59`;
+            }
+            let url = `/api/data/history?limit=${limit}`;
+            if (startIso && endIso) {
+                url += `&date_from=${encodeURIComponent(startIso)}&date_to=${encodeURIComponent(endIso)}`;
+            }
+            return url;
         }
 
         function updateDesktopEnergyChart() {
@@ -2361,15 +3051,17 @@
                 
                 const datasets = mobileChartInstance.data.datasets.map(dataset => ({
                     ...dataset,
-                    data: [...dataset.data],
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    pointHoverRadius: 6
+                    data: [...dataset.data]
                 }));
                 
                 console.log('🔍 Copied datasets:', datasets);
                 
-                const timeConfig = getTimeframeConfig(fullscreenSelectedTimeframe);
+                const timeConfig = getTimeframeConfig(
+                    fullscreenSelectedTimeframe,
+                    fullscreenSelectedTimeframe === 'relative'
+                        ? { relativeRange: mobileRelativeRange, relativeInfo: mobileRelativeInfo }
+                        : {}
+                );
                 
                 try {
                     mobileFullscreenChartInstance = new Chart(ctx, {
@@ -2451,6 +3143,10 @@
                             }
                         }
                     });
+                    mobileFullscreenChartInstance.$statusSegments = mobileChartInstance ? (mobileChartInstance.$statusSegments || []) : [];
+                    mobileFullscreenLegendState = mobileFullscreenChartInstance.data.datasets.map((_, i) =>
+                        mobileFullscreenChartInstance.isDatasetVisible(i)
+                    );
                     console.log('✅ Fullscreen chart created with real data!');
                     return;
                 } catch (error) {
@@ -2508,6 +3204,10 @@
                     }
                 });
                 console.log('✅ Test chart created as fallback');
+                mobileFullscreenChartInstance.$statusSegments = [];
+                mobileFullscreenLegendState = mobileFullscreenChartInstance.data.datasets.map((_, i) =>
+                    mobileFullscreenChartInstance.isDatasetVisible(i)
+                );
             } catch (error) {
                 console.error('❌ Error creating test chart:', error);
             }
@@ -2517,7 +3217,12 @@
                 data: [...dataset.data]
             }));
             
-            const timeConfig = getTimeframeConfig(fullscreenSelectedTimeframe);
+            const timeConfig = getTimeframeConfig(
+                fullscreenSelectedTimeframe,
+                fullscreenSelectedTimeframe === 'relative'
+                    ? { relativeRange: mobileRelativeRange, relativeInfo: mobileRelativeInfo }
+                    : {}
+            );
             
             mobileFullscreenChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -2593,20 +3298,34 @@
                     }
                 }
             });
+            mobileFullscreenLegendState = mobileFullscreenChartInstance.data.datasets.map((_, i) =>
+                mobileFullscreenChartInstance.isDatasetVisible(i)
+            );
         }
-        
+
         function updateMobileFullscreenChart() {
             if (!mobileFullscreenChartInstance || !mobileChartInstance) return;
-            
-            // Copy current data from main mobile chart
-            mobileChartInstance.data.datasets.forEach((dataset, index) => {
-                if (mobileFullscreenChartInstance.data.datasets[index]) {
-                    mobileFullscreenChartInstance.data.datasets[index].data = [...dataset.data];
-                    mobileFullscreenChartInstance.data.datasets[index].label = dataset.label;
-                }
+
+            const legendState = (Array.isArray(mobileFullscreenLegendState) && mobileFullscreenLegendState.length)
+                ? mobileFullscreenLegendState
+                : mobileChartInstance.data.datasets.map((_, idx) => mobileChartInstance.isDatasetVisible(idx));
+
+            mobileFullscreenChartInstance.data.datasets = mobileChartInstance.data.datasets.map((dataset, idx) => {
+                const shouldBeVisible = typeof legendState[idx] === 'boolean'
+                    ? legendState[idx]
+                    : mobileChartInstance.isDatasetVisible(idx);
+                return {
+                    ...dataset,
+                    data: [...dataset.data],
+                    hidden: !shouldBeVisible
+                };
             });
-            
+
+            mobileFullscreenChartInstance.$statusSegments = mobileChartInstance ? (mobileChartInstance.$statusSegments || []) : [];
             mobileFullscreenChartInstance.update();
+            mobileFullscreenLegendState = mobileFullscreenChartInstance.data.datasets.map((_, i) =>
+                mobileFullscreenChartInstance.isDatasetVisible(i)
+            );
         }
         
         function resetMobileFullscreenChartZoom() {
@@ -3290,7 +4009,19 @@
                             <option value="1m">1 Month</option>
                             <option value="6m">6 Months</option>
                             <option value="1y">1 Year</option>
+                            <option value="relative">Custom Range</option>
                         </select>
+                        <div class="flex items-center space-x-1">
+                            <label for="fullscreen-relative-range" class="sr-only">Relative range</label>
+                            <input id="fullscreen-relative-range" type="text" inputmode="text" placeholder="-5d"
+                                   class="px-2 py-1 text-xs rounded border border-gray-600 bg-gray-700 text-white w-20"
+                                   title="Use values like -5d for the last 5 days"
+                                   onkeydown="if(event.key==='Enter'){applyMobileFullscreenRelativeRange();}">
+                            <button type="button" onclick="applyMobileFullscreenRelativeRange()"
+                                    class="px-2 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded">
+                                Go
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <button onclick="toggleMobileFullscreen()" 
@@ -3411,7 +4142,19 @@
                             <option value="1m">1 Month</option>
                             <option value="6m">6 Months</option>
                             <option value="1y">1 Year</option>
+                            <option value="relative">Custom Range</option>
                         </select>
+                        <div class="flex items-center space-x-1">
+                            <label for="desktop-fullscreen-relative-range" class="sr-only">Relative range</label>
+                            <input id="desktop-fullscreen-relative-range" type="text" inputmode="text" placeholder="-5d"
+                                   class="px-2 py-1 text-xs rounded border border-gray-600 bg-gray-700 text-white w-20"
+                                   title="Use values like -5d for the last 5 days"
+                                   onkeydown="if(event.key==='Enter'){applyDesktopRelativeRange(true);}">
+                            <button type="button" onclick="applyDesktopRelativeRange(true)"
+                                    class="px-2 py-1 text-xs bg-primary-600 hover:bg-primary-700 text-white rounded">
+                                Go
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <button onclick="toggleDesktopTempFullscreen()" class="p-1 text-gray-400 hover:text-white" title="Exit Fullscreen">

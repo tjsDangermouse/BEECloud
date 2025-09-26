@@ -25,10 +25,6 @@ services:
     volumes:
       # Database persistence
       - melcloud-data:/app/instance
-      # Log persistence  
-      - melcloud-logs:/app/logs
-      # Backup storage
-      - melcloud-backups:/app/backups
       # Optional: Mount custom config
       # - ./custom_config.json:/app/production_config.json:ro
     
@@ -66,19 +62,6 @@ volumes:
       o: bind
       device: ./data
   
-  melcloud-logs:
-    driver: local
-    driver_opts:
-      type: none  
-      o: bind
-      device: ./logs
-  
-  melcloud-backups:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./backups
 
 # Networks (default bridge is sufficient for single service)
 networks:

@@ -49,6 +49,7 @@ html, body {
   --sidebar-bg: #2d3748;      /* Desktop sidebar background */
   --bottom-bar-bg: #545054;   /* Mobile bottom bar background */
   --border-muted: #4b5563;    /* Gray-600 border */
+  --mobile-bottom-bar-height: 72px;
 }
 
 .page-bg { background-color: var(--page-bg); }
@@ -60,10 +61,12 @@ html, body {
 .bottom-bar-bg { background-color: var(--bottom-bar-bg); }
 .border-muted { border-color: var(--border-muted) !important; }
 
+.mobile-bottom-nav { min-height: var(--mobile-bottom-bar-height); }
+
 /* Mobile page dots: keep visible above bottom nav, including in iOS fullscreen */
-.mobile-page-dots { position: fixed; left: 0; right: 0; bottom: 56px; z-index: 20; pointer-events: none; }
+.mobile-page-dots { position: fixed; left: 0; right: 0; bottom: var(--mobile-bottom-bar-height); z-index: 20; pointer-events: none; }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .mobile-page-dots { bottom: calc(56px + env(safe-area-inset-bottom)); }
+  .mobile-page-dots { bottom: calc(var(--mobile-bottom-bar-height) + env(safe-area-inset-bottom)); }
 }
 
 /* Inputs and form helpers */
@@ -197,18 +200,48 @@ button { pointer-events: auto !important; touch-action: manipulation !important;
 .schedule-card.inactive { border-left-color: #ef4444; opacity: 0.7; }
 .schedule-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
 
-/* Block Schedule Timeline Styles */
-.day-schedule { margin-bottom: 16px; }
-.day-schedule .timeline { position: relative; margin-top: 20px; }
-.schedule-block { position: absolute; border-radius: 4px; min-width: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: all 0.2s ease; font-size: 11px; }
-.schedule-block:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.3); z-index: 10; }
-.time-marker { position: absolute; top: 0; height: 100%; width: 1px; background-color: #374151; }
-.time-label { position: absolute; top: -20px; font-size: 10px; color: #6b7280; transform: translateX(-50%); white-space: nowrap; }
-@media (max-width: 768px) {
-  .schedule-block { min-width: 30px; font-size: 10px; }
-  .time-label { font-size: 9px; }
-  .day-schedule .timeline { height: 12px !important; }
+.weekly-schedule-card {
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
 }
+
+.weekly-timeline {
+  height: 3.25rem;
+  background: rgba(17, 24, 39, 0.85);
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.55);
+  padding: 0.25rem 0;
+}
+
+.weekly-timeline .border-l {
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+.weekly-timeline .bg-orange-500,
+.weekly-timeline .bg-blue-500,
+.weekly-timeline .bg-purple-500,
+.weekly-timeline .bg-gray-500 {
+  border-radius: 0.75rem;
+}
+
+.weekly-hour-label {
+  top: -0.9rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+}
+
+.weekly-tooltip {
+  top: -1.6rem;
+  font-size: 0.7rem;
+}
+
+/* Block Schedule Timeline Styles */
+.day-schedule { margin-bottom: 0; }
+
+.legend-row { gap: 1.5rem 1rem; }
+.legend-item { margin-right: 0; }
 
 /* Consistent mobile overlay (status + user) */
 .mobile-overlay { position: fixed; top: 1.25rem; right: 1rem; z-index: 9999; display: flex; align-items: center; }

@@ -1,35 +1,44 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Help - MELCloud Dashboard</title>
-    {% set app_title = 'MELCloud Help' %}
-    {% include 'partials/head.html' %}
-    
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MELCloud Help">
+    <link rel="apple-touch-icon" href="/static/Beelogo.png">
+    <link rel="apple-touch-startup-image" href="/static/Beelogo.png">
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="/static/css/tailwind.css" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)})()">
+    <script defer src="/static/js/sw-register.js"></script>
+    <script defer src="/static/js/menu.js"></script>
+    <script defer src="/static/js/status.js"></script>
+    <script defer src="/static/js/shared-ui.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
     <script>
-        // Status handled by shared StatusWidget
-
-        function restoreStatusFromLocalStorage() {
-            try {
-                const stored = localStorage.getItem('connectionStatusData');
-                if (!stored) return false;
-                const data = JSON.parse(stored);
-                const now = Date.now();
-                const age = (now - data.fetchTime) / 1000;
-                if (age < 120) {
-                    const adjustedData = { ...data, countdown_seconds: Math.max(0, data.countdown_seconds - Math.floor(age)), next_request_time: data.next_request_time - age/1000 };
-                    lastStatusData = adjustedData;
-                    StatusWidget.setConnectionStatus(data.color, data.detail, adjustedData);
-                    startCountdownTimer();
-                    return true;
-                }
-            } catch {}
-            return false;
-        }
-
-
         document.addEventListener('DOMContentLoaded', () => {
-            displayUserInfo();
-            StatusWidget.init();
+            try { displayUserInfo(); } catch (err) { console.warn('User info unavailable', err); }
+            try { StatusWidget.init(); } catch (err) { console.warn('Status widget unavailable', err); }
+
+            document.querySelectorAll('a[href^="#"]').forEach(link => {
+                link.addEventListener('click', event => {
+                    const href = link.getAttribute('href');
+                    if (!href || href.length <= 1) { return; }
+                    const targetId = href.slice(1);
+                    const target = document.getElementById(targetId);
+                    if (!target) { return; }
+                    event.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
         });
     </script>
 </head>
@@ -38,178 +47,194 @@
     <div class="md:hidden">
         {% set page_title = 'Help' %}
         {% include 'partials/mobile_header.html' %}
-
-        <div class="p-5 pb-24 space-y-4">
-            <!-- Intro -->
-            <div class="rounded-xl p-4 panel-bg-mobile">
-                <h1 class="text-2xl font-bold mb-2">Help & Support</h1>
-                <p class="text-gray-300 text-sm">This guide explains how to use the MELCloud Dashboard to monitor and control your Mitsubishi heat pump, view energy insights, manage schedules, and keep the service healthy.</p>
+                                <!-- App Version (Mobile) -->
+                                <div class="mt-1 text-xs text-gray-400 text-center">
+                                    Version: {{ APP_VERSION }}
+                                </div>
+        <div id="help-mobile-scroll" class="p-5 pb-24 space-y-6 overflow-y-auto" style="height: calc(100svh - var(--mobile-bottom-bar-height) - 96px); scroll-behavior: smooth;">
+            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-500 via-primary-400/70 to-purple-500/60 text-white">
+                <div class="absolute inset-0 opacity-40" style="background: radial-gradient(circle at top, rgba(255,255,255,0.3), transparent 60%);"></div>
+                <div class="relative p-6 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <img src="/static/Beelogo.png" alt="MELCloud bee" class="w-12 h-12 rounded-2xl border border-white/40 shadow-md" width="48" height="48">
+                        <h1 class="text-2xl font-bold leading-tight">Need help?</h1>
+                    </div>
+                    
+                    <p class="text-sm text-white/90">This guide keeps the BeeCloud Dashboard friendly for everyone at home. Follow the colour cues for quick wins, and dip into the handy technical notes when you need a little more detail.</p>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="px-3 py-1 rounded-full bg-black/30 border border-white/30">Works great on phones</span>
+                        <span class="px-3 py-1 rounded-full bg-black/30 border border-white/30">Status lights explained</span>
+                        <span class="px-3 py-1 rounded-full bg-black/30 border border-white/30">Step-by-step tips</span>
+                    </div>
+                    <a href="#start" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-full bg-white text-black hover:bg-gray-200 transition">Show me how to get started</a>
+                </div>
             </div>
 
-            <!-- On this page -->
-            <div class="rounded-xl p-4 panel-bg-mobile">
-                <h2 class="text-xl font-semibold mb-2">On This Page</h2>
+            <div class="rounded-3xl p-4 panel-bg-mobile">
+                <h2 class="text-xl font-semibold mb-3">Pick a topic</h2>
                 <div class="flex flex-wrap gap-2 text-sm">
-                    <a href="#getting-started" class="text-primary-500 hover:underline">Getting Started</a>
-                    <a href="#navigation" class="text-primary-500 hover:underline">Navigation</a>
-                    <a href="#schedules" class="text-primary-500 hover:underline">Schedules</a>
-                    <a href="#energy" class="text-primary-500 hover:underline">Energy & History</a>
-                    <a href="#api" class="text-primary-500 hover:underline">API</a>
-                    <a href="#monitoring" class="text-primary-500 hover:underline">Monitoring</a>
-                    <a href="#troubleshooting" class="text-primary-500 hover:underline">Troubleshooting</a>
-                    <a href="#docker" class="text-primary-500 hover:underline">Docker</a>
-                    <a href="#security" class="text-primary-500 hover:underline">Security</a>
-                    <a href="#faq" class="text-primary-500 hover:underline">FAQ</a>
+                    <a href="#start" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">First steps</a>
+                    <a href="#home" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">Home screen</a>
+                    <a href="#energy" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">Energy</a>
+                    <a href="#schedules" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">Schedules</a>
+                    <a href="#health" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">Staying healthy</a>
+                    <a href="#tech" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">Tech corner</a>
+                    <a href="#faq" class="px-3 py-1 rounded-full bg-primary-500/20 text-primary-200 hover:bg-primary-500/40 hover:text-white transition">FAQ</a>
                 </div>
             </div>
 
-            <!-- Getting Started -->
-            <div id="getting-started" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Getting Started</h2>
-                <ol class="list-decimal list-inside text-gray-300 text-sm space-y-1">
-                    <li>Open the app at <code>http://localhost:8000</code> (or your server URL).</li>
-                    <li>Complete initial Setup when prompted (Settings → MELCloud API).</li>
-                    <li>Sign in and verify the status indicators are green.</li>
-                    <li>Use the sidebar to visit Home, Energy, Schedules, and Data History.</li>
+            <section id="start" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 panel-bg-mobile border border-primary-500/30 space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/30 flex items-center justify-center text-xl">🌱</div>
+                    <div>
+                        <h2 class="text-xl font-semibold">Set up in a few minutes</h2>
+                        <p class="text-xs text-white/60">Suitable for first-time installers and helpers alike.</p>
+                    </div>
+                </div>
+                <ol class="space-y-3 text-sm text-white/90">
+                    <li class="flex gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/80 text-black font-semibold">1</span>
+                        <span>Sign in to the dashboard (usually <code>http://localhost:8000</code>) using the account created during setup.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/80 text-black font-semibold">2</span>
+                        <span>Open <b>Settings → MELCloud account</b> and enter the Mitsubishi credentials once. A green tick confirms the link.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/80 text-black font-semibold">3</span>
+                        <span>Check the coloured dots in the header. Green means data is flowing, amber means "waiting", and red asks for attention.</span>
+                    </li>
                 </ol>
-            </div>
-
-            <!-- Navigation guide -->
-            <div id="navigation" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Navigation</h2>
-                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                    <li><b>Home</b>: Live temperatures, quick modes (Boost, Holiday), and device status.</li>
-                    <li><b>Energy</b>: Daily and monthly energy summaries with production/consumption metrics.</li>
-                    <li><b>Schedules</b>: Create weekly schedules for temperatures, hot water, and holiday mode.</li>
-                    <li><b>Data History</b>: Browse recent readings and paginate through historical records.</li>
-                    <li><b>Settings</b>: Profile, users, and MELCloud API configuration (auto-fetch interval, auth).</li>
-                </ul>
-            </div>
-
-            <!-- Schedules -->
-            <div id="schedules" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Schedules</h2>
-                <p class="text-gray-300 text-sm">Automate your heat pump with weekly recurring rules. From Schedule.md:</p>
-                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                    <li><b>Types</b>: Temperature targets (Zone 1), Hot Water boost, Holiday mode.</li>
-                    <li><b>Weekly Pattern</b>: Mon–Sun timeline with 24-hour coverage.</li>
-                    <li><b>Overlap</b>: Multiple schedules can stack; priority rules resolve conflicts.</li>
-                    <li><b>Actions</b>: Add/edit/delete, toggle active state, and “Run Now”.</li>
-                    <li><b>History</b>: View execution logs under “Schedules → History”.</li>
-                </ul>
-                <p class="text-gray-300 text-sm">Tip: Use the calendar timeline to click and add blocks at exact times. The execution engine runs continuously and respects MELCloud rate limits.</p>
-            </div>
-
-            <!-- Energy & History -->
-            <div id="energy" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Energy & Data History</h2>
-                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                    <li><b>Energy</b>: Daily/Monthly summaries; check heating, cooling, hot water trends.</li>
-                    <li><b>Data History</b>: Paginated device readings (temperatures, statuses, COP, etc.).</li>
-                    <li><b>Auto-Fetch</b>: Background collection at configured intervals (Settings → MELCloud API).</li>
-                    <li><b>COP</b>: Efficiency ratio (heat output ÷ electricity input); higher is better.</li>
-                    <li><b>SCOP</b>: Seasonal average efficiency over time (e.g., last 12 months).</li>
-                    <li><b>Operating Modes</b>: Heat, Cool (if supported), Auto, Holiday, and Defrost.</li>
-                    <li><b>Key Temperatures</b>: Room, Set Point, Flow, Return, and Outdoor sensors.</li>
-                </ul>
-            </div>
-
-            <!-- API quick reference -->
-            <div id="api" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">API Quick Reference</h2>
-                <p class="text-gray-300 text-sm">Useful endpoints (see README for the full list):</p>
-                <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>GET  /api/health                   # Service health summary
-GET  /api/status                   # Auth + rate limit status
-GET  /api/data                     # Cached latest data
-GET  /api/data/history             # Historical data
-GET  /api/data/daily-energy-summary
-POST /api/refresh                  # Refresh (rate-limited)
-POST /api/refresh-and-store        # Refresh + persist
-GET  /api/auto-fetch/status        # Auto-fetch status
-POST /api/auto-fetch/toggle        # Enable/disable auto-fetch
-POST /api/auto-fetch/trigger       # Manual data collection
-POST /api/database/recover         # Attempt DB recovery
-</code></pre>
-            </div>
-
-            <!-- Monitoring -->
-            <div id="monitoring" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Monitoring</h2>
-                <p class="text-gray-300 text-sm">Use the built-in health scripts and endpoints (from README):</p>
-                <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code># One-off check
-python monitor_health.py
-
-# Continuous with auto-recovery
-python monitor_health.py --continuous --recover
-
-# Docker: view health + logs
-docker ps                      # look for (healthy)
-curl http://localhost:8000/api/health
-docker logs melcloud -f
-</code></pre>
-            </div>
-
-            <!-- Troubleshooting -->
-            <div id="troubleshooting" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Troubleshooting</h2>
-                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                    <li><b>Service won’t start</b>: Check <code>melcloud.log</code>, verify credentials, ensure port 8000 is free.</li>
-                    <li><b>Database readonly</b>: Run <code>POST /api/database/recover</code>, check disk space (>100MB), inspect logs.</li>
-                    <li><b>Rate limited</b>: See <code>/api/status</code>; normal interval is ~60 seconds.</li>
-                    <li><b>Auto-fetch not running</b>: Check <code>/api/auto-fetch/status</code> or trigger manually.</li>
-                </ul>
-            </div>
-
-            <!-- Docker -->
-            <div id="docker" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Docker Basics</h2>
-                <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code># Start
-docker-compose up -d
-
-# Update
-docker-compose pull && docker-compose up -d
-
-# Rebuild with local changes
-docker-compose up -d --build
-</code></pre>
-            </div>
-
-            <!-- Security -->
-            <div id="security" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Security & Privacy</h2>
-                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                    <li>Keep MELCloud credentials in the app’s secure settings only.</li>
-                    <li>Review logs before sharing; they may contain sensitive info.</li>
-                    <li>Back up <code>instance/melcloud.db</code> securely; it contains device data.</li>
-                    <li>Rotate credentials if you suspect exposure.</li>
-                </ul>
-            </div>
-
-            <!-- FAQ -->
-            <div id="faq" class="rounded-xl p-4 space-y-2 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">FAQ</h2>
-                <div class="text-gray-300 text-sm space-y-2">
-                    <p><b>How often does data refresh?</b> Auto-fetch runs on an interval configured in Settings (default ~5 minutes) and respects a ~60 second minimum between MELCloud API calls.</p>
-                    <p><b>Can I run commands immediately?</b> Yes — use “Run Now” in Schedules or the controls on Home. Commands still respect rate limiting.</p>
-                    <p><b>Where are my historical records?</b> See Data History for a paginated view; Energy shows daily/monthly aggregates.</p>
+                <div class="rounded-2xl bg-black/40 p-4 text-xs text-white/70">
+                    <p class="font-semibold mb-1">Need offline instructions?</p>
+                    <p>Print this section or save it as a PDF so other household members can repeat the setup without calling you.</p>
                 </div>
-            </div>
+            </section>
 
-            <!-- Quick Links -->
-            <div class="rounded-xl p-4 space-y-3 panel-bg-mobile">
-                <h2 class="text-xl font-semibold">Quick Links</h2>
-                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                    <li><a class="text-primary-500 hover:underline" href="/">Home</a></li>
-                    <li><a class="text-primary-500 hover:underline" href="/schedules">Schedules</a></li>
-                    <li><a class="text-primary-500 hover:underline" href="/energy">Energy</a></li>
-                    <li><a class="text-primary-500 hover:underline" href="/data-history">Data History</a></li>
-                    <li><a class="text-primary-500 hover:underline" href="/settings">Settings</a></li>
+            <section id="home" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 panel-bg-mobile space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/25 flex items-center justify-center text-xl">🏠</div>
+                    <h2 class="text-xl font-semibold">Understanding the Home screen</h2>
+                </div>
+                <div class="space-y-3 text-sm text-white/85">
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Temperature ring</h3>
+                        <p>The circle in the middle tells you the current room comfort and target temperature. Drag the ring or tap the arrows to nudge the target.</p>
+                    </div>
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Quick buttons</h3>
+                        <p>Boost hot water or enable Holiday mode with a single tap. The buttons fade slightly when the action is already active.</p>
+                    </div>
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Next events</h3>
+                        <p>The top-left corner highlights the next heating and hot-water schedule. Handy if you want to see what is coming up.</p>
+                    </div>
+                </div>
+                <p class="text-xs text-white/60">Tip: Swipe sideways on mobile to open extra screens for live readings and charts.</p>
+            </section>
+
+            <section id="energy" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 panel-bg-mobile border border-primary-500/20 space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/25 flex items-center justify-center text-xl">📊</div>
+                    <h2 class="text-xl font-semibold">Energy & history made simple</h2>
+                </div>
+                <ul class="space-y-3 text-sm text-white/85">
+                    <li class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <b>Daily & monthly cards</b> show how much energy was used and produced. Look for the green efficiency label (COP/SCOP) — higher numbers mean better performance.
+                    </li>
+                    <li class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <b>Temperature charts</b> let you zoom all the way from the last hour to an entire year. Pinch to zoom on touchscreens or use the buttons in the corner.
+                    </li>
+                    <li class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <b>Data history table</b> stores every reading so you can compare last night with today or export the data for installers.</li>
                 </ul>
-            </div>
+                <div class="rounded-2xl bg-black/40 p-4 text-xs text-white/70">
+                    <p class="font-semibold mb-1">Friendly warning</p>
+                    <p>If the charts are empty, check the status lights or press <b>Refresh data</b> on the Home screen to collect a fresh batch.</p>
+                </div>
+            </section>
+
+            <section id="schedules" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 panel-bg-mobile space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/25 flex items-center justify-center text-xl">🗓️</div>
+                    <h2 class="text-xl font-semibold">Shape your week with schedules</h2>
+                </div>
+                <div class="space-y-3 text-sm text-white/85">
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Drag-and-drop planning</h3>
+                        <p>Tap anywhere on the timeline to add a block. Stretch the sides to adjust the start and finish times. Copy a block to repeat a favourite routine.</p>
+                    </div>
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Multiple systems</h3>
+                        <p>Create heating, hot-water, and holiday schedules. The dashboard sorts them automatically so the correct action wins if times overlap.</p>
+                    </div>
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Need it now?</h3>
+                        <p>Use the <b>Run now</b> button for a one-off boost. Your regular plan continues afterwards without any extra steps.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="health" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 bg-gradient-to-r from-primary-500/25 via-primary-400/30 to-transparent border border-primary-500/30 space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-black/40 flex items-center justify-center text-xl">🛡️</div>
+                    <h2 class="text-xl font-semibold">Keep the system healthy</h2>
+                </div>
+                <ul class="space-y-3 text-sm text-white/85">
+                    <li><b>Status dots:</b> tap any coloured dot to read the plain-language explanation. Red entries come with suggested fixes and links.</li>
+                    <li><b>Auto-fetch:</b> the dashboard collects new readings in the background. Turn it on or off in Settings if you need to pause requests.</li>
+                    <li><b>Logs:</b> peeking inside <code>melcloud.log</code> or the <b>Monitor health</b> script can help if something unusual keeps returning.</li>
+                </ul>
+                <div class="rounded-2xl bg-black/40 p-4 text-xs text-white/70">
+                    <p class="font-semibold mb-1">Weekly habit</p>
+                    <p>Spend 60 seconds on the Energy page each week. Sudden colour changes highlight when doors were left open or schedules need tweaking.</p>
+                </div>
+            </section>
+
+            <section id="tech" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 panel-bg-mobile border border-primary-500/20 space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/25 flex items-center justify-center text-xl">🧰</div>
+                    <h2 class="text-xl font-semibold">Technical notes (optional)</h2>
+                </div>
+                <div class="space-y-3 text-sm text-white/85">
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Useful API endpoints</h3>
+                        <p><code>/api/data</code> returns the latest readings, <code>/api/health</code> summarises the service, and <code>/api/auto-fetch/toggle</code> lets scripts pause collection. All endpoints respond with JSON.</p>
+                    </div>
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Database care</h3>
+                        <p>Back up <code>instance/melcloud.db</code> regularly. If it becomes read-only, POST to <code>/api/database/recover</code> or run the recovery action from the monitoring script.</p>
+                    </div>
+                    <div class="rounded-2xl bg-black/30 border border-white/10 p-4">
+                        <h3 class="font-semibold">Docker deployment</h3>
+                        <p><code>docker-compose up -d</code> starts the stack, <code>docker-compose pull</code> fetches updates, and the container reports its health status via <code>/api/health</code>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq" style="scroll-margin-top: 110px;" class="rounded-3xl p-5 panel-bg-mobile space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/25 flex items-center justify-center text-xl">💬</div>
+                    <h2 class="text-xl font-semibold">Quick answers</h2>
+                </div>
+                <div class="space-y-3 text-sm text-white/85">
+                    <div>
+                        <p class="font-semibold">How often is data refreshed?</p>
+                        <p>The auto-fetch interval is set in Settings. Manual refresh on the Home screen pulls a fresh snapshot immediately.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold">Can everyone in the house use it?</p>
+                        <p>Yes. Invite additional users from Settings → Users. They receive their own credentials without exposing yours.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold">What if I see a red warning?</p>
+                        <p>Tap the warning. You’ll get a short explanation plus a link to the relevant section of this help page or the troubleshooting tools.</p>
+                    </div>
+                </div>
+            </section>
         </div>
-        
-        <!-- Bottom Navigation -->  
-        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg mobile-bottom-nav">
             <div class="flex items-center justify-around py-2">
                 <button class="flex flex-col items-center py-2 px-4 text-gray-400" onclick="window.location.href='/'">
                     <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
@@ -249,165 +274,252 @@ docker-compose up -d --build
     <!-- Desktop Layout -->
     <div class="hidden md:block">
         <div class="container-desktop">
-            <!-- Sidebar -->
             <div class="sidebar">
                 <div class="flex items-center space-x-3 mb-6">
-                    <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain">
+                    <img src="/static/Beelogo.png" alt="Bee Logo" class="w-10 h-10 rounded-lg object-contain" width="40" height="40" decoding="async">
                     <span class="text-xl font-semibold">MELCloud Dashboard</span>
                 </div>
                 <nav class="space-y-2">
                     <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
                         <span>Home</span>
                     </a>
                     <a href="/schedules" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                         <span>Schedules</span>
                     </a>
                     <a href="/energy" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
                         <span>Energy</span>
                     </a>
                     <a href="/data-history" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
                         <span>Data History</span>
                     </a>
                     <a href="/settings" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
                         <span>Settings</span>
                     </a>
                     <a href="/help" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary-500 text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                         <span>Help</span>
                     </a>
                 </nav>
             </div>
 
-            <!-- Main Content -->
             <div class="main-content">
-                <div class="max-w-6xl mx-auto space-y-6">
-                    <h1 class="text-3xl font-bold">Help & Support</h1>
-
-                    <!-- Desktop: On this page -->
-                    <div class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-3">On This Page</h2>
-                        <div class="flex flex-wrap gap-3 text-sm">
-                            <a href="#ds-getting-started" class="text-primary-500 hover:underline">Getting Started</a>
-                            <a href="#ds-navigation" class="text-primary-500 hover:underline">Navigation</a>
-                            <a href="#ds-schedules" class="text-primary-500 hover:underline">Schedules</a>
-                            <a href="#ds-energy" class="text-primary-500 hover:underline">Energy & History</a>
-                            <a href="#ds-api" class="text-primary-500 hover:underline">API</a>
-                            <a href="#ds-monitoring" class="text-primary-500 hover:underline">Monitoring</a>
-                            <a href="#ds-troubleshooting" class="text-primary-500 hover:underline">Troubleshooting</a>
-                            <a href="#ds-docker" class="text-primary-500 hover:underline">Docker</a>
-                            <a href="#ds-security" class="text-primary-500 hover:underline">Security</a>
-                            <a href="#ds-faq" class="text-primary-500 hover:underline">FAQ</a>
+                <div class="max-w-6xl mx-auto space-y-8">
+                    <div class="relative rounded-3xl bg-gradient-to-r from-primary-500 via-primary-400/60 to-purple-500/50 text-white">
+                        <div class="absolute inset-0 rounded-3xl opacity-40" style="background: radial-gradient(circle at top, rgba(255,255,255,0.25), transparent 65%);"></div>
+                        <div class="relative flex flex-col lg:flex-row items-start lg:items-center gap-8 px-12 py-12">
+                            <div class="flex-1 space-y-5">
+                                <h1 class="text-4xl font-bold leading-tight">Welcome to BeeCloud Help</h1>
+                                <p class="text-lg text-white/85">Here you’ll find plain-language guidance for everyday tasks, a splash of colour to highlight actions, and optional technical notes for when you want to dive deeper.</p>
+                                <div class="flex flex-wrap gap-3 text-sm">
+                                    <a href="#desk-start" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">First steps</a>
+                                    <a href="#desk-home" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">Home screen</a>
+                                    <a href="#desk-energy" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">Energy & charts</a>
+                                    <a href="#desk-schedules" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">Schedules</a>
+                                    <a href="#desk-health" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">Health checks</a>
+                                    <a href="#desk-tech" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">Tech corner</a>
+                                    <a href="#desk-faq" class="px-4 py-2 rounded-full bg-black/40 border border-white/10 hover:bg-primary-500/40 hover:text-white transition">FAQ</a>
+                                </div>
+                            </div>
+                                                            <!-- App Version -->
+                                <div class="mt-1 text-xs text-gray-400 text-center">
+                                    Version: {{ APP_VERSION }}
+                                </div>
+                            <div class="hidden lg:flex">
+                                <img src="/static/Beelogo.png" alt="Bee mascot" class="w-40 h-40 rounded-full border-4 border-white/40 shadow-xl" width="160" height="160">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Desktop: Sections -->
-                    <div id="ds-getting-started" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Getting Started</h2>
-                        <ol class="list-decimal list-inside text-gray-300 space-y-1 text-sm">
-                            <li>Open <code>http://localhost:8000</code> and complete Setup in Settings.</li>
-                            <li>Sign in; confirm status indicators are healthy.</li>
-                            <li>Use the sidebar to access the main pages.</li>
-                        </ol>
-                    </div>
+                    <section id="desk-start" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 panel-bg border border-primary-500/30 space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-primary-500/35 flex items-center justify-center text-3xl">🌱</div>
+                            <div>
+                                <h2 class="text-2xl font-semibold">First steps checklist</h2>
+                                <p class="text-white/70">Share this with anyone new to the dashboard.</p>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-6 text-sm text-white/85">
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Sign in securely</h3>
+                                <p>Visit the dashboard URL and use the credentials created during setup. You can add more users in Settings later.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Link MELCloud</h3>
+                                <p>Head to <b>Settings → MELCloud account</b>, enter the Mitsubishi login once, and confirm the green connection badge.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Confirm status lights</h3>
+                                <p>Green lights mean everything is healthy. Hover any light to read the description; amber and red entries guide you to a fix.</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div id="ds-navigation" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Navigation</h2>
-                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                            <li><b>Home</b>: Live readings and quick actions.</li>
-                            <li><b>Energy</b>: Aggregated daily/monthly usage and production.</li>
-                            <li><b>Schedules</b>: Weekly rules for temperature, hot water, holiday mode.</li>
-                            <li><b>Data History</b>: Detailed historical records with pagination.</li>
-                            <li><b>Settings</b>: Profile, users, MELCloud API configuration.</li>
-                        </ul>
-                    </div>
+                    <section id="desk-home" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 panel-bg space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-primary-500/25 flex items-center justify-center text-3xl">🏠</div>
+                            <h2 class="text-2xl font-semibold">Make the most of the Home screen</h2>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 text-sm text-white/80">
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Comfort at a glance</h3>
+                                <p>The temperature ring shows the current indoor reading and target. Adjust it directly or swap between heating and hot water modes.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">One-tap boosts</h3>
+                                <p>Boost hot water or enable Holiday mode instantly. Buttons glow while active so you know what’s running.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Upcoming actions</h3>
+                                <p>See what the next schedule will do and when it will happen. It’s perfect for checking the plan before bed.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Swipe for more data</h3>
+                                <p>On mobile, swipe sideways to see live readings and charts. On desktop, these extras sit alongside the main controls.</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div id="ds-schedules" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Schedules</h2>
-                        <p class="text-gray-300 text-sm mb-2">From Schedule.md — implemented highlights:</p>
-                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                            <li><b>Types</b>: Temperature, Hot Water, Holiday mode.</li>
-                            <li><b>Weekly</b>: Mon–Sun timeline; add blocks by clicking the timeline.</li>
-                            <li><b>Overlap</b>: Supports stacked schedules with priorities.</li>
-                            <li><b>Controls</b>: Activate/deactivate, edit rules, and “Run Now”.</li>
-                            <li><b>History</b>: Inspect execution logs and results.</li>
-                        </ul>
-                    </div>
+                    <section id="desk-energy" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 panel-bg border border-primary-500/20 space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-primary-500/25 flex items-center justify-center text-3xl">📊</div>
+                            <h2 class="text-2xl font-semibold">Energy, charts, and history</h2>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 text-sm text-white/80">
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Read the story</h3>
+                                <p>Daily and monthly cards show consumption, production, and efficiency. Look for colour trends to spot tweaks that worked.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Zooming around</h3>
+                                <p>Select time ranges from one hour to a full year. Use mouse drag or pinch gestures to zoom in on interesting periods.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Data history table</h3>
+                                <p>All readings are stored and searchable. Export to CSV for professional checks or personal archives.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Troubleshooting tip</h3>
+                                <p>If charts are blank, verify the status lights or trigger a manual refresh from the Home screen.</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div id="ds-energy" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Energy & Data History</h2>
-                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                            <li><b>Energy</b>: Daily/monthly summaries of heating, cooling, hot water.</li>
-                            <li><b>Data History</b>: Time-series device readings and status values.</li>
-                            <li><b>Auto-Fetch</b>: Continuous collection at your configured interval.</li>
-                            <li><b>COP</b>: Efficiency ratio (heat output ÷ electricity input); higher is better.</li>
-                            <li><b>SCOP</b>: Seasonal average efficiency for longer-term performance.</li>
-                            <li><b>Operating Modes</b>: Heat, Cool (if supported), Auto, Holiday, Defrost.</li>
-                            <li><b>Key Temperatures</b>: Room, Set Point, Flow, Return, Outdoor.</li>
-                        </ul>
-                    </div>
+                    <section id="desk-schedules" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 panel-bg space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-primary-500/25 flex items-center justify-center text-3xl">🗓️</div>
+                            <h2 class="text-2xl font-semibold">Smart scheduling</h2>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-6 text-sm text-white/80">
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Visual editor</h3>
+                                <p>Add blocks with a click, drag to lengthen them, and copy favourite patterns to other days.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Priority logic</h3>
+                                <p>Heating, hot-water, and holiday schedules can overlap. The engine resolves conflicts automatically so the most specific plan wins.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Manual control</h3>
+                                <p>Use <b>Run now</b> for instant changes or toggle a schedule off temporarily without deleting it.</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div id="ds-api" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">API Quick Reference</h2>
-                        <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>GET  /api/health
-GET  /api/status
-GET  /api/data
-GET  /api/data/history
-GET  /api/data/daily-energy-summary
-POST /api/refresh
-POST /api/refresh-and-store
-GET  /api/auto-fetch/status
-POST /api/auto-fetch/toggle
-POST /api/auto-fetch/trigger
-POST /api/database/recover
-</code></pre>
-                    </div>
+                    <section id="desk-health" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 bg-gradient-to-r from-primary-500/25 via-primary-400/30 to-transparent border border-primary-500/30 space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-black/40 flex items-center justify-center text-3xl">🛡️</div>
+                            <div>
+                                <h2 class="text-2xl font-semibold">Look after your install</h2>
+                                <p class="text-white/70">A few light-touch routines keep the system happy.</p>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 text-sm text-white/85">
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Status lights decoded</h3>
+                                <p>Hover each dot for guidance. Red warnings link to Mini fix-it guides and relevant settings.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Monitoring scripts</h3>
+                                <p>Run <code>python monitor_health.py --continuous --recover</code> to keep an eye on things and restart automatically when possible.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Log files</h3>
+                                <p><code>melcloud.log</code> records requests, warnings, and errors. Share snippets (minus personal data) if asking for outside help.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Weekly review</h3>
+                                <p>Spend a minute in the Energy view to spot trends. A sudden drop or spike is the first sign of a setting that needs attention.</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div id="ds-monitoring" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Monitoring</h2>
-                        <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>python monitor_health.py --continuous --recover
-curl http://localhost:8000/api/health
-docker logs melcloud -f
-</code></pre>
-                    </div>
+                    <section id="desk-tech" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 panel-bg border border-primary-500/20 space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-primary-500/25 flex items-center justify-center text-3xl">🧰</div>
+                            <h2 class="text-2xl font-semibold">Technical toolkit</h2>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 text-sm text-white/80">
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">API highlights</h3>
+                                <p><code>/api/data</code>, <code>/api/status</code>, and <code>/api/health</code> feed dashboards, home automations, or reporting scripts.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Auto-fetch control</h3>
+                                <p>Use <code>/api/auto-fetch/status</code> to confirm collection, <code>/api/auto-fetch/toggle</code> to pause, and <code>/api/auto-fetch/trigger</code> to force a run.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Database safety</h3>
+                                <p>Keep regular backups of <code>instance/melcloud.db</code>. Restore access with <code>/api/database/recover</code> if the database becomes read-only.</p>
+                            </div>
+                            <div class="rounded-2xl bg-black/30 border border-white/10 p-5 space-y-2">
+                                <h3 class="font-semibold text-lg">Docker commands</h3>
+                                <p><code>docker-compose up -d --build</code> recreates the containers with local changes, and <code>docker logs melcloud -f</code> streams live feedback.</p>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div id="ds-troubleshooting" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Troubleshooting</h2>
-                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                            <li>Use <code>/api/database/recover</code> for readonly/corruption issues; check disk space.</li>
-                            <li>See <code>/api/status</code> for rate limiting; normal minimum ~60s.</li>
-                            <li>Use <code>/api/auto-fetch/status</code> and manual trigger when needed.</li>
-                        </ul>
-                    </div>
-
-                    <div id="ds-docker" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Docker</h2>
-                        <pre class="text-xs bg-black/30 p-3 rounded overflow-x-auto"><code>docker-compose up -d --build
-docker logs melcloud -f
-</code></pre>
-                    </div>
-
-                    <div id="ds-security" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">Security & Privacy</h2>
-                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                            <li>Store credentials only in Settings; never commit them.</li>
-                            <li>Review logs before sharing; scrub sensitive details.</li>
-                            <li>Back up <code>instance/melcloud.db</code> securely.</li>
-                        </ul>
-                    </div>
-
-                    <div id="ds-faq" class="rounded-xl p-6 panel-bg">
-                        <h2 class="text-xl font-semibold mb-2">FAQ</h2>
-                        <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
-                            <li><b>Refresh cadence?</b> Auto-fetch interval is configured in Settings; MELCloud minimum ~60s.</li>
-                            <li><b>Immediate commands?</b> Use “Run Now” in Schedules or Home controls.</li>
-                            <li><b>Where is history?</b> “Data History” for detail; “Energy” for aggregates.</li>
-                        </ul>
-                    </div>
+                    <section id="desk-faq" style="scroll-margin-top: 140px;" class="rounded-3xl p-8 panel-bg space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl bg-primary-500/25 flex items-center justify-center text-3xl">💬</div>
+                            <h2 class="text-2xl font-semibold">Frequently asked questions</h2>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 text-sm text-white/80">
+                            <div>
+                                <h3 class="font-semibold text-lg">How often is data refreshed?</h3>
+                                <p>Auto-fetch runs on the interval you choose in Settings (default every few minutes). Manual refresh is always available from the Home screen.</p>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">Can I invite others?</h3>
+                                <p>Yes. Settings → Users lets you add or remove accounts with tailored permissions.</p>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">What if I see red warnings?</h3>
+                                <p>Click the warning badge for instant guidance, suggested fixes, and a link back to the relevant help section.</p>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">Where are the historical records?</h3>
+                                <p>Check the Data History page for detailed logs or the Energy page for summarised trends and charts.</p>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>

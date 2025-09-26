@@ -1178,16 +1178,23 @@ def get_energy_stats():
         # Get current user from Flask-Login
         if not current_user.is_authenticated:
             return jsonify({'error': 'User not authenticated'}), 401
-        # ETag built from last update and user id
+        # Determine which MELCloud device owner the data belongs to
+        device_owner = get_user()
+        if not device_owner:
+            return jsonify({'error': 'Device data not configured'}), 404
+
+        owner_id = device_owner.id
+
+        # ETag built from last update, device owner and requester id to keep caches isolated per web user
         global last_update
-        etag = _build_etag('energy_stats', current_user.id, int(last_update or 0))
+        etag = _build_etag('energy_stats', current_user.id, owner_id, int(last_update or 0))
         if _is_not_modified(etag):
             resp = app.response_class(status=304)
             _apply_cache_headers(resp, etag)
             return resp
         
         # Get latest device data (same approach as original dashboard)
-        devices = get_latest_devices_for_dashboard(current_user.id)
+        devices = get_latest_devices_for_dashboard(owner_id)
         
         if not devices or len(devices) == 0:
             return jsonify({
@@ -1213,13 +1220,13 @@ def get_energy_stats():
         # Get yesterday's energy data directly from today's records (no calculations needed)
         # MELCloud sends yesterday's daily totals in today's responses - just grab them directly
         logging.info(f"Getting yesterday's data from today's records")
-        yesterday_data = get_daily_energy_from_today(current_user.id)
+        yesterday_data = get_daily_energy_from_today(owner_id)
         
         logging.info(f"Querying month: {thirty_days_ago} to {today}")
-        month_data = get_historical_cop_with_totals(current_user.id, thirty_days_ago, today + timedelta(days=1))
+        month_data = get_historical_cop_with_totals(owner_id, thirty_days_ago, today + timedelta(days=1))
         
         logging.info(f"Querying year: {twelve_months_ago} to {today}")
-        year_data = get_historical_cop_with_totals(current_user.id, twelve_months_ago, today + timedelta(days=1))
+        year_data = get_historical_cop_with_totals(owner_id, twelve_months_ago, today + timedelta(days=1))
         
         yesterday_cop = yesterday_data['cop']
         month_cop = month_data['cop'] 
@@ -1238,8 +1245,8 @@ def get_energy_stats():
         
         # Get data counts for each period (yesterday data comes from today's records)
         yesterday_days = 1  # We got yesterday's data from today's record
-        month_days = get_historical_cop_days(current_user.id, thirty_days_ago, today + timedelta(days=1))
-        year_days = get_historical_cop_days(current_user.id, twelve_months_ago, today + timedelta(days=1))
+        month_days = get_historical_cop_days(owner_id, thirty_days_ago, today + timedelta(days=1))
+        year_days = get_historical_cop_days(owner_id, twelve_months_ago, today + timedelta(days=1))
         
         # Add debug info to response for troubleshooting
         debug_info = {
@@ -1787,7 +1794,13 @@ def set_holiday_mode(device_id):
 def settings():
     """Settings page for user profile and admin functions"""
     from auth import generate_csrf_token
-    return render_template('settings.html', csrf_token=generate_csrf_token())
+    return render_template(
+        'settings.html',
+        csrf_token=generate_csrf_token(),
+        is_admin=current_user.is_admin(),
+        current_username=getattr(current_user, 'username', None),
+        current_email=getattr(current_user, 'email', None)
+    )
 
 
 # ============================================================================
@@ -2223,6 +2236,24 @@ def change_password():
         logging.error(f"Change password error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
+@app.route('/api/current-user', methods=['GET'])
+@login_required
+def get_current_user_info():
+    """Return information about the currently authenticated web user"""
+    try:
+        if not current_user or not current_user.is_authenticated:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+
+        return jsonify({
+            'success': True,
+            'user': current_user.to_dict(),
+            'is_admin': current_user.is_admin()
+        })
+    except Exception as e:
+        logging.error(f"Current user info error: {e}")
+        return jsonify({'success': False, 'error': 'Failed to load user info'}), 500
+
 # ============================================================================
 # Original Routes (now with authentication)
 # ============================================================================
@@ -2371,8 +2402,8 @@ def get_data_history():
     try:
         limit = int(request.args.get('limit', 100))
         # Clamp limit to prevent very large payloads
-        if limit > 500:
-            limit = 500
+        if limit > 2500:
+            limit = 2500
         offset = int(request.args.get('offset', 0))
         date_from = request.args.get('date_from')
         date_to = request.args.get('date_to')
@@ -2382,6 +2413,10 @@ def get_data_history():
             logging.info(f"History API called with date filtering: {date_from} to {date_to}, limit={limit}")
         
         history = get_device_data_history(user.id, limit=limit, offset=offset, date_from=date_from, date_to=date_to)
+        logging.info('History API request limit=%s offset=%s date_from=%s date_to=%s returned=%s first=%s last=%s',
+                     limit, offset, date_from, date_to, len(history),
+                     history[0].timestamp if history else None,
+                     history[-1].timestamp if history else None)
         # Compute total count for the same filters (without limit/offset)
         try:
             from database import get_device_data_history_count
@@ -3131,7 +3166,11 @@ def get_weather_data():
         return mapping.get(int(code), ("Unknown", "❓"))
 
     # Get latest device data from database (for location and fallback temp)
-    latest_devices = get_latest_devices_for_dashboard(current_user.id)
+    device_owner = get_user()
+    if not device_owner:
+        return jsonify({'error': 'No device data available'}), 404
+
+    latest_devices = get_latest_devices_for_dashboard(device_owner.id)
     if not latest_devices:
         return jsonify({'error': 'No device data available'}), 404
 

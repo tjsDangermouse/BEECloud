@@ -26,7 +26,7 @@
     <script defer src="/static/js/menu.js"></script>
     <script defer src="/static/js/status.js"></script>
     <script src="/static/js/shared-ui.js"></script>
-    <link rel="stylesheet" href="/static/css/app.css?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <script>
         if (typeof tailwind !== 'undefined') {
             tailwind.config = {
@@ -168,7 +168,7 @@
         </div>
         
         <!-- Bottom Navigation -->  
-        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg">
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-700 bottom-bar-bg mobile-bottom-nav">
             <div class="flex items-center justify-around py-2">
                 <button class="flex flex-col items-center py-2 px-4 text-primary-500">
                     <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
@@ -1952,6 +1952,12 @@
             document.getElementById('no-schedules').style.display = 'block';
         }
 
+        function handleConnectionDataUpdate() {
+            console.debug('New MELCloud data detected; refreshing dashboard datasets');
+            loadData();
+            loadWeatherData();
+        }
+
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             setupModeButtons();
@@ -1961,17 +1967,10 @@
             loadWeatherData();
             displayUserInfo(); // Load current user info
             
-            // Initialize shared connection status widget
-            StatusWidget.init();
-            
-            // Auto refresh data every 60 seconds
-            setInterval(loadData, 60000);
-            
-            // Auto refresh schedules every 5 minutes  
-            setInterval(loadNextSchedules, 300000);
-            
-            // Auto refresh weather every 10 minutes
-            setInterval(loadWeatherData, 600000);
+            // Initialize shared connection status widget and refresh on new MELCloud data
+            StatusWidget.init({
+                onDataUpdate: handleConnectionDataUpdate
+            });
         });
     </script>
 </body>
